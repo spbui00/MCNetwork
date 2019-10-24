@@ -1,0 +1,32 @@
+[
+{
+  "directory": "/home/m/m_beck52/Dokumente/masterthesis/build",
+  "command": "/usr/bin/g++-7  -Denhance_EXPORTS -I/home/m/m_beck52/Dokumente/masterthesis/./src -I/usr/include/boost_1_61_0  -std=c++11 -O0 -DDEBUG -g -g -fPIC   -o CMakeFiles/enhance.dir/lib/enhance.cpp.o -c /home/m/m_beck52/Dokumente/masterthesis/lib/enhance.cpp",
+  "file": "/home/m/m_beck52/Dokumente/masterthesis/lib/enhance.cpp"
+},
+{
+  "directory": "/home/m/m_beck52/Dokumente/masterthesis/build",
+  "command": "/usr/bin/g++-7   -I/home/m/m_beck52/Dokumente/masterthesis/./src -I/usr/include/boost_1_61_0  -std=c++11 -O0 -DDEBUG -g -g   -o CMakeFiles/MCnetwork.dir/src/main.cpp.o -c /home/m/m_beck52/Dokumente/masterthesis/src/main.cpp",
+  "file": "/home/m/m_beck52/Dokumente/masterthesis/src/main.cpp"
+},
+{
+  "directory": "/home/m/m_beck52/Dokumente/masterthesis/build",
+  "command": "/usr/bin/g++-7   -I/home/m/m_beck52/Dokumente/masterthesis/./src -I/usr/include/boost_1_61_0  -std=c++11 -O0 -DDEBUG -g -g   -o CMakeFiles/MCnetwork.dir/src/system.cpp.o -c /home/m/m_beck52/Dokumente/masterthesis/src/system.cpp",
+  "file": "/home/m/m_beck52/Dokumente/masterthesis/src/system.cpp"
+},
+{
+  "directory": "/home/m/m_beck52/Dokumente/masterthesis/build",
+  "command": "/usr/bin/g++-7   -I/home/m/m_beck52/Dokumente/masterthesis/./src -I/usr/include/boost_1_61_0  -std=c++11 -O0 -DDEBUG -g -g   -o CMakeFiles/MCnetwork.dir/src/system/datafile.cpp.o -c /home/m/m_beck52/Dokumente/masterthesis/src/system/datafile.cpp",
+  "file": "/home/m/m_beck52/Dokumente/masterthesis/src/system/datafile.cpp"
+},
+{
+  "directory": "/home/m/m_beck52/Dokumente/masterthesis/build",
+  "command": "/usr/bin/g++-7   -I/home/m/m_beck52/Dokumente/masterthesis/./src -I/usr/include/boost_1_61_0  -std=c++11 -O0 -DDEBUG -g -g   -o CMakeFiles/MCnetwork.dir/src/system/mchost.cpp.o -c /home/m/m_beck52/Dokumente/masterthesis/src/system/mchost.cpp",
+  "file": "/home/m/m_beck52/Dokumente/masterthesis/src/system/mchost.cpp"
+},
+{
+  "directory": "/home/m/m_beck52/Dokumente/masterthesis/build",
+  "command": "/usr/bin/g++-7   -I/home/m/m_beck52/Dokumente/masterthesis/./src -I/usr/include/boost_1_61_0  -std=c++11 -O0 -DDEBUG -g -g   -o CMakeFiles/MCnetwork.dir/src/system/parameterstorage.cpp.o -c /home/m/m_beck52/Dokumente/masterthesis/src/system/parameterstorage.cpp",
+  "file": "/home/m/m_beck52/Dokumente/masterthesis/src/system/parameterstorage.cpp"
+}
+]

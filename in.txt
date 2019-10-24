@@ -1,0 +1,4 @@
+maxBufferSize 10 #bufferSize in MegaByte
+steps 2000000
+T 290
+
