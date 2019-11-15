@@ -1,9 +1,7 @@
 #include "../lib/enhance.hpp"
 #include "system/mchost.h"
 
-#ifndef NDEBUG
-   #include "debug.h"
-#endif
+#include "debug.h"
 
 #include <random>
 #include <iostream>
@@ -13,22 +11,24 @@
 
 
 int main(int argc, char *argv[]){
-   #ifndef NDEBUG
-      DEBUG_FUNC_START
-   #endif
+   DEBUG_FUNC_START
 
-   std::string inputFileName="in.txt";
+   enhance::seed = std::random_device{}();
+   #ifndef NDEBUG
+      enhance::seed = 123456749;
+   #endif
+   enhance::rand_engine.seed(enhance::seed);
+
+   std::string inputFileName="../in.txt";
    std::shared_ptr<ParameterStorage> parameterStorage;
    parameterStorage.reset(new ParameterStorage(inputFileName));  //all input parameters are stored in the shared pointer "inputfile". all classes get the pointer 
 
-   std::cout<<parameterStorage->parameters.at("T")<<std::endl;
-
-
    MCHost mchost(parameterStorage);
-   
-   #ifndef NDEBUG
-      DEBUG_FUNC_END
-   #endif
+   mchost.setup();
+   mchost.run(parameterStorage->parameters.at("steps"));
 
+
+   
+   DEBUG_FUNC_END
    return 0;
 }

@@ -1,12 +1,8 @@
 #include "parameterstorage.h"
-#ifndef NDEBUG
-   #include "debug.h"
-#endif
 ParameterStorage::ParameterStorage(std::string filename)
 {
-    #ifndef NDEBUG
-        DEBUG_FUNC_START
-    #endif
+    DEBUG_FUNC_START
+
     std::ifstream infile(filename);
     std::string line;
     double val;  //buffer for values
@@ -33,9 +29,22 @@ ParameterStorage::ParameterStorage(std::string filename)
             // std::cout<<name<<parameters[name]<<std::endl;
         }
     }
+
+
+    parameters["kT"]=parameters["k"]*parameters["T"];
+    parameters["donorNumber"]=int(parameters["acceptorNumber"]*parameters["compensationFactor"]);
+    
+    // convert lens in dimensions of R    
+    parameters["R"]=std::pow(parameters["lenX"]*parameters["lenY"]/parameters["acceptorNumber"],0.5);
+    parameters["lenX"]=parameters["lenX"]/parameters["R"];
+    parameters["lenY"]=parameters["lenY"]/parameters["R"];
+    parameters["a"]=parameters["a"]/parameters["R"];
+    // convert energies in dimensions of kT
+    parameters["I0"]=parameters["I0"]*0.001*parameters["e"]/parameters["kT"];
+
+
+
   
 
-    #ifndef NDEBUG
-        DEBUG_FUNC_END
-    #endif    
+    DEBUG_FUNC_END
 }

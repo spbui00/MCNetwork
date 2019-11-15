@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 2.8.9)
 project (MCnetwork)
 include_directories("./src/")
 
-set(CMAKE_CXX_FLAGS "-std=c++11 -O0 -DDEBUG -g")
+set(CMAKE_CXX_FLAGS "-std=c++11 -O0 -DDEBUG -g -Wl,--start-group")
 # set(CMAKE_CXX_FLAGS "-std=c++11")
 # set(CMAKE_CXX_FLAGS_DEBUG "-std=c++11 -DDEBUG" ${CMAKE_CXX_FLAGS_DEBUG})
 
@@ -26,5 +26,7 @@ add_library(enhance SHARED lib/enhance.cpp)
 target_link_libraries(MCnetwork enhance)
 target_link_libraries(MCnetwork ${_hdf5_libs})
 target_link_libraries(MCnetwork ${Boost_LIBRARIES})
+target_link_libraries (MCnetwork mfem)
 
-install(TARGETS MCnetwork RUNTIME DESTINATION bin)
+
+# install(TARGETS MCnetwork RUNTIME DESTINATION bin)

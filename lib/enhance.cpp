@@ -6,7 +6,13 @@ namespace enhance
     unsigned int    seed;
     std::mt19937_64 rand_engine;
 
-
+    std::string multipliplyString(std::string in, int n){
+        std::string out="";
+        for(int i;i<n;i++){
+            out+=in;
+        }
+        return out;
+    }
 //     // random double from [a,b)
 //     double random_double(double a, double b)
 //     {

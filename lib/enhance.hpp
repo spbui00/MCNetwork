@@ -23,6 +23,9 @@ namespace enhance
     double sigmoid(std::vector<double>& coeff, double x);
     double polynom(std::vector<double>& coeff, double x);
 
+
+    std::string multipliplyString(std::string in, int n);
+
     
 
 
@@ -57,5 +60,9 @@ namespace enhance
         x *= x; x *= x; x *= x; x *= x;
         return x;        
     }
+
+
+
+
 }
 namespace enh = enhance;

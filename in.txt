@@ -1,4 +1,22 @@
+#simulation parameters
 maxBufferSize 10 #bufferSize in MegaByte
 steps 2000000
-T 290
+
+
+
+#physical parameters
+T 77
+acceptorNumber 10
+lenX 300 #nm
+lenY 300 #nm
+
+I0 600 #meV
+a 100 #nm
+compensationFactor 0.2 #donors per acceptor
+
+
+
+#fundamental constants
+k 1.380649e-23 #boltzmann
+e 1.60217662e-19 #elementary charge
 
