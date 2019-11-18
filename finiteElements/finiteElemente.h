@@ -16,15 +16,20 @@ class FiniteElemente
 
 private:
     double len, width;
-    int dim = 2, sdim = 2, order =1, attrib = 1; 
     int numberVerticesX,numberVerticesY;
+    int dim = 2, sdim = 2, order =1;
+    int** vertexIndexMap;
+    void initMesh(int maxNumberOfElements);
 
     Mesh *mesh;
+
+    FiniteElementCollection *fec;
+    FiniteElementSpace *fespace;
+    GridFunction *x; // solution vector -- changed to pointer
 
 public:
     FiniteElemente(double len_,double width_, int maxNumberOfElments);
     ~FiniteElemente();
-    void printMesh(std::string);
     void run();
     void setElectrode(double a, double b, int edge,double voltage);
 

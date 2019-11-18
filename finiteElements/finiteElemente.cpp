@@ -5,12 +5,24 @@ FiniteElemente::FiniteElemente(double len_, double width_, int maxNumberOfElment
     len=len_;
     width=width_;
 
+    initMesh(maxNumberOfElments);
 
+    // 5. --> see see mfem ex1.cpp in mfem lib
+    fec = new H1_FECollection(order, dim);
+    fespace = new FiniteElementSpace(mesh, fec);
+
+    // 8.  --> see see mfem ex1.cpp in mfem lib
+    x= new GridFunction(fespace); // changed to pointer
+    *x = 0;
+}
+
+
+void FiniteElemente::initMesh(int maxNumberOfElments){
     double area=len*width;
     numberVerticesX=int(len/std::sqrt(area/maxNumberOfElments))+1;
     numberVerticesY=int(width/std::sqrt(area/maxNumberOfElments))+1;
 
-    std::cout<<"numberVerticesX "<<numberVerticesX<<" numberVerticesY "<<numberVerticesY<<" pro "<<numberVerticesX*numberVerticesY<<std::endl;
+    // std::cout<<"numberVerticesX "<<numberVerticesX<<" numberVerticesY "<<numberVerticesY<<" pro "<<numberVerticesX*numberVerticesY<<std::endl;
 
 
     int nv=numberVerticesX*numberVerticesY;
@@ -20,42 +32,47 @@ FiniteElemente::FiniteElemente(double len_, double width_, int maxNumberOfElment
     mesh=new Mesh(dim, nv, ne, nb, sdim);
 
 
+    // add elements
+    vertexIndexMap = new int*[numberVerticesX];
     for(int i=0;i<numberVerticesX;i++){
+        vertexIndexMap[i]= new int[numberVerticesY];
         for(int j=0;j<numberVerticesY;j++){
             mesh->AddVertex(Vertex(len*i/(numberVerticesX-1),width*j/(numberVerticesY-1))()); 
-            // std::cout<<"v_x: "<<len*i/(numberVerticesX-1)<<" v_y: "<<width*j/(numberVerticesY-1)<<std::endl;
+            vertexIndexMap[i][j]=numberVerticesY*i+j;
         }
     }
     
+    // add elements
     int quadIndx[4];
     for(int i=0;i<numberVerticesX-1;i++){
         for(int j=0;j<numberVerticesY-1;j++){
-            quadIndx[0]=i*    numberVerticesY+j;
-            quadIndx[1]=(i+1)*numberVerticesY+j;
-            quadIndx[2]=(i+1)*numberVerticesY+(j+1);
-            quadIndx[3]=i*    numberVerticesY+(j+1);
+            quadIndx[0]=vertexIndexMap[i  ][j  ];
+            quadIndx[1]=vertexIndexMap[i+1][j  ];
+            quadIndx[2]=vertexIndexMap[i+1][j+1];
+            quadIndx[3]=vertexIndexMap[i  ][j+1];
 
-            // std::cout<<quadIndx[0]<<quadIndx[1]<<quadIndx[2]<<quadIndx[3]<<std::endl;
+            // std::cout<<vertexIndexMap[i][j]<<vertexIndexMap[i+1][j]<<vertexIndexMap[i+1][j+1]<<vertexIndexMap[i][j+1]<<std::endl;
             mesh->AddQuad(quadIndx);
         }
     }
 
+    // add boundaries
     int bdrIndx[2];
     for(int i=0;i<numberVerticesX-1;i++){
-        bdrIndx[0]=(i+1)*numberVerticesY;
-        bdrIndx[1]=i*numberVerticesY;
+        bdrIndx[0]=vertexIndexMap[i+1][0];
+        bdrIndx[1]=vertexIndexMap[i  ][0];
         mesh->AddBdrSegment(bdrIndx);
-        bdrIndx[0]=i    *numberVerticesY+(numberVerticesY-1);
-        bdrIndx[1]=(i+1)*numberVerticesY+(numberVerticesY-1);
-        mesh->AddBdrSegment(bdrIndx,2);
+        bdrIndx[0]=vertexIndexMap[i  ][numberVerticesY-1];
+        bdrIndx[1]=vertexIndexMap[i+1][numberVerticesY-1];
+        mesh->AddBdrSegment(bdrIndx);
     }
     for(int j=0;j<numberVerticesY-1;j++){
-        bdrIndx[0]=j;
-        bdrIndx[1]=j+1;
-        mesh->AddBdrSegment(bdrIndx,3);
-        bdrIndx[0]=j+1 +numberVerticesY*(numberVerticesX-1);
-        bdrIndx[1]=j   +numberVerticesY*(numberVerticesX-1);
-        mesh->AddBdrSegment(bdrIndx,4);
+        bdrIndx[0]=vertexIndexMap[0][j  ];
+        bdrIndx[1]=vertexIndexMap[0][j+1];
+        mesh->AddBdrSegment(bdrIndx);
+        bdrIndx[0]=vertexIndexMap[numberVerticesX-1][j+1];
+        bdrIndx[1]=vertexIndexMap[numberVerticesX-1][j  ];
+        mesh->AddBdrSegment(bdrIndx);
     }
     mesh->FinalizeQuadMesh(0, 0, true);
 
@@ -68,37 +85,82 @@ void FiniteElemente::setElectrode(double begin, double end,int edge,double volta
     // 2 --> y=0
     // 3 --> y=width
 
+
+    //validity checks
+    if(edge > 3 || edge < 0){
+        throw std::invalid_argument("invalid edge given");
+    }
+    if((edge == 0 || edge == 1) && (end > width ||  begin < 0)){
+        throw std::length_error("electrode out of range");
+    }
+    else if((edge == 2 || edge == 3) && (end > len ||  begin < 0)){
+        throw std::length_error("electrode out of range");
+    }
+
+
     //get vertex indices inside range
     std::vector<int> vertexIndices;
     switch (edge){
         case 0:
             for(int j=0;j<numberVerticesY;j++){
-                if(mesh->GetVertex(j)[1]>=begin and mesh->GetVertex(j)[1]<=end){
+                if(mesh->GetVertex(vertexIndexMap[0][j])[1]>=begin and mesh->GetVertex(vertexIndexMap[0][j])[1]<=end){
                     vertexIndices.push_back(j);
                 }
             }
             break;
         case 1:
             for(int j=0;j<numberVerticesY;j++){
-                if(mesh->GetVertex(j)[1]>=begin and mesh->GetVertex(j)[1]<=end){
-                    vertexIndices.push_back(j);
+                if(mesh->GetVertex(vertexIndexMap[numberVerticesX-1][j])[1]>=begin and mesh->GetVertex(vertexIndexMap[numberVerticesX-1][j])[1]<=end){
+                    vertexIndices.push_back(vertexIndexMap[numberVerticesX-1][j]);
+                }
+            }
+            break;
+        case 2:
+            for(int i=0;i<numberVerticesX;i++){
+                if(mesh->GetVertex(vertexIndexMap[i][0])[0]>=begin and mesh->GetVertex(vertexIndexMap[i][0])[0]<=end){
+                    vertexIndices.push_back(vertexIndexMap[i][0]);
+                }
+            }
+            break;
+        case 3:
+            for(int i=0;i<numberVerticesX;i++){
+                if(mesh->GetVertex(vertexIndexMap[i][numberVerticesY-1])[0]>=begin and mesh->GetVertex(vertexIndexMap[i][numberVerticesY-1])[0]<=end){
+                    vertexIndices.push_back(vertexIndexMap[i][numberVerticesY-1]);
                 }
             }
             break;
     }
 
 
-    std::cout<<"found: ";
-    for(auto a:vertexIndices){
-        std::cout<<a<<" ";
+
+    // set initial condition in solution vector
+    for(auto index:vertexIndices){
+        (*x)[index]=voltage;
     }
-    std::cout<<std::endl;
+
+
+
+    // make boundary mandatory
+    Array<int> bdrVertices = {0,0};
+    for(int i=0;i<2*(numberVerticesX-1)+2*(numberVerticesY-1);i++){ //loop over all boundary elements
+        mesh->GetBdrElementVertices(i,bdrVertices);
+        for(auto index1:vertexIndices){
+            if (bdrVertices[0] == index1){
+                for(auto index2:vertexIndices){
+                    if (bdrVertices[1] == index2){
+                        mesh->GetBdrElement(i)->SetAttribute(2);
+                        break;
+                    }
+                }
+            }
+        }    
+    }
 
 
     
-    // move first and last vertex
+    // move first and last vertex to exactly fit electrode boundaries
     if (vertexIndices.size()<2){
-        throw std::invalid_argument("could not find 2 vertices inside electrode range, refine grid or enlarge electrode");
+        throw std::length_error("could not find 2 vertices inside electrode range, refine grid or enlarge electrode");
         }
     else{
         switch (edge){
@@ -118,31 +180,24 @@ void FiniteElemente::setElectrode(double begin, double end,int edge,double volta
 }
 
 void FiniteElemente::run(){
-    // see ex1.cpp in mfem lib
+    // see mfem ex1.cpp in mfem lib
 
 
-    // 2.
+    // 2.--> see see mfem ex1.cpp in mfem lib
    Device device("cpu");
    device.Print();
 
 
-    // 5.
-   FiniteElementCollection *fec;
-   int order =1;
-   fec = new H1_FECollection(order, dim);
 
-   FiniteElementSpace *fespace = new FiniteElementSpace(mesh, fec);
-
-   //6.
+   //6.--> see see mfem ex1.cpp in mfem lib
    Array<int> ess_tdof_list;
    if (mesh->bdr_attributes.Size())
    {
       Array<int> ess_bdr(mesh->bdr_attributes.Max());
       ess_bdr = 1;
+      ess_bdr[1] = 1;
       fespace->GetEssentialTrueDofs(ess_bdr, ess_tdof_list);
    }
-
-
 
    // 7. Set up the linear form b(.) which corresponds to the right-hand side of
    //    the FEM linear system, which in this case is (1,phi_i) where phi_i are
@@ -150,19 +205,8 @@ void FiniteElemente::run(){
    LinearForm *b = new LinearForm(fespace);
    ConstantCoefficient one(1.0);
    ConstantCoefficient zero(0.0);
-   b->AddDomainIntegrator(new DomainLFIntegrator(one));
+   b->AddDomainIntegrator(new DomainLFIntegrator(zero));
    b->Assemble();
-
-   // 8. Define the solution vector x as a finite element grid function
-   //    corresponding to fespace. Initialize x with initial guess of zero,
-   //    which satisfies the boundary conditions.
-   GridFunction x(fespace);
-   x = 0;
-   for(int i=0;i<20;i++){
-       x[i+10]=10;
-   }
-   
-   std::cout<<"x size"<<x.Size()<<std::endl;
 
    // 9. Set up the bilinear form a(.,.) on the finite element space
    //    corresponding to the Laplacian operator -Delta, by adding the Diffusion
@@ -178,15 +222,15 @@ void FiniteElemente::run(){
 
    OperatorPtr A;
    Vector B, X;
-   a->FormLinearSystem(ess_tdof_list, x, *b, A, X, B);
+   a->FormLinearSystem(ess_tdof_list, *x, *b, A, X, B);
 
 
    // 11. Solve the linear system A X = B.
     GSSmoother M((SparseMatrix&)(*A));
-    PCG(*A, M, B, X, 1, 200, 1e-12, 0.0);
+    PCG(*A, M, B, X, 1, 1000, 1e-12, 0.0);
 
    // 12. Recover the solution as a finite element grid function.
-   a->RecoverFEMSolution(X, *b, x);
+   a->RecoverFEMSolution(X, *b, *x);
 
 
    // -------- tetsing only -------
@@ -197,35 +241,14 @@ void FiniteElemente::run(){
    mesh->Print(mesh_ofs);
    ofstream sol_ofs("sol.gf");
    sol_ofs.precision(8);
-   x.Save(sol_ofs);
-
-
-    // -------- tetsing only -------
-    // 14. Send the solution by socket to a GLVis server.
-    char vishost[] = "localhost";
-    int  visport   = 19916;
-    socketstream sol_sock(vishost, visport);
-    sol_sock.precision(8);
-    sol_sock << "solution\n" << *mesh << x << flush;
-
-
-    delete fespace;
-    delete fec;
-}
-
-
-
-void FiniteElemente::printMesh(std::string fileName){
-
-    ofstream meshfile;
-
-    meshfile.open(fileName,ios::trunc);
-    mesh->Print(meshfile);
-    meshfile.close();
+   x->Save(sol_ofs);
 
 }
+
 
 FiniteElemente::~FiniteElemente(){
-   delete mesh;
-
+    delete fespace;
+    delete fec;
+    delete mesh;
+    delete vertexIndexMap;
 }
