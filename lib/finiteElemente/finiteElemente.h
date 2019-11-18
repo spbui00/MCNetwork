@@ -1,3 +1,6 @@
+// TODO: update voltages and not replace whole system
+
+
 #ifndef FINITE_ELEMENTE_H
 #define FINITE_ELEMENTE_H
 
@@ -25,14 +28,15 @@ private:
 
     FiniteElementCollection *fec;
     FiniteElementSpace *fespace;
-    GridFunction *x; // solution vector -- changed to pointer
+    GridFunction *solutionVector; // changed to pointer
 
 public:
     FiniteElemente(double len_,double width_, int maxNumberOfElments);
     ~FiniteElemente();
+
     void run();
     void setElectrode(double a, double b, int edge,double voltage);
-
+    double getPotential(double x, double y); //nearest neighbour interpolation
    
 };
 

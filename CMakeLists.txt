@@ -22,8 +22,10 @@ file(GLOB MCnetwork_SRC
 add_executable(MCnetwork ${MCnetwork_SRC} ${sources})
 
 add_library(enhance SHARED lib/enhance.cpp)
+add_library(finiteElemente SHARED lib/finiteElemente/finiteElemente.cpp)
 
 target_link_libraries(MCnetwork enhance)
+target_link_libraries(MCnetwork finiteElemente)
 target_link_libraries(MCnetwork ${_hdf5_libs})
 target_link_libraries(MCnetwork ${Boost_LIBRARIES})
 target_link_libraries (MCnetwork mfem)

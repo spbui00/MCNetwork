@@ -12,8 +12,8 @@ FiniteElemente::FiniteElemente(double len_, double width_, int maxNumberOfElment
     fespace = new FiniteElementSpace(mesh, fec);
 
     // 8.  --> see see mfem ex1.cpp in mfem lib
-    x= new GridFunction(fespace); // changed to pointer
-    *x = 0;
+    solutionVector= new GridFunction(fespace); // changed to pointer
+    *solutionVector = 0;
 }
 
 
@@ -135,12 +135,12 @@ void FiniteElemente::setElectrode(double begin, double end,int edge,double volta
 
     // set initial condition in solution vector
     for(auto index:vertexIndices){
-        (*x)[index]=voltage;
+        (*solutionVector)[index]=voltage;
     }
 
 
 
-    // make boundary mandatory
+    // set boundary attribute to make (only) it mandatory
     Array<int> bdrVertices = {0,0};
     for(int i=0;i<2*(numberVerticesX-1)+2*(numberVerticesY-1);i++){ //loop over all boundary elements
         mesh->GetBdrElementVertices(i,bdrVertices);
@@ -185,7 +185,7 @@ void FiniteElemente::run(){
 
     // 2.--> see see mfem ex1.cpp in mfem lib
    Device device("cpu");
-   device.Print();
+//    device.Print();
 
 
 
@@ -194,7 +194,7 @@ void FiniteElemente::run(){
    if (mesh->bdr_attributes.Size())
    {
       Array<int> ess_bdr(mesh->bdr_attributes.Max());
-      ess_bdr = 1;
+    //   ess_bdr = 0;
       ess_bdr[1] = 1;
       fespace->GetEssentialTrueDofs(ess_bdr, ess_tdof_list);
    }
@@ -222,15 +222,15 @@ void FiniteElemente::run(){
 
    OperatorPtr A;
    Vector B, X;
-   a->FormLinearSystem(ess_tdof_list, *x, *b, A, X, B);
+   a->FormLinearSystem(ess_tdof_list, *solutionVector, *b, A, X, B);
 
 
    // 11. Solve the linear system A X = B.
     GSSmoother M((SparseMatrix&)(*A));
-    PCG(*A, M, B, X, 1, 1000, 1e-12, 0.0);
+    PCG(*A, M, B, X, 0, 1000, 1e-12, 0.0);
 
    // 12. Recover the solution as a finite element grid function.
-   a->RecoverFEMSolution(X, *b, *x);
+   a->RecoverFEMSolution(X, *b, *solutionVector);
 
 
    // -------- tetsing only -------
@@ -241,8 +241,14 @@ void FiniteElemente::run(){
    mesh->Print(mesh_ofs);
    ofstream sol_ofs("sol.gf");
    sol_ofs.precision(8);
-   x->Save(sol_ofs);
+   solutionVector->Save(sol_ofs);
 
+}
+
+double FiniteElemente::getPotential(double x, double y){
+    if(x>len) throw std::invalid_argument("x pos of getPotential out of range");
+    if(y>len) throw std::invalid_argument("y pos of getPotential out of range");
+    return (*solutionVector)[vertexIndexMap[int(x/len*(numberVerticesX-1)+0.5)][int(y/width*(numberVerticesY-1)+0.5)]];
 }
 
 
