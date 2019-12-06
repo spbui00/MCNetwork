@@ -6,8 +6,10 @@
 #include <fstream>
 // #include "datafile.h"
 #include "parameterstorage.h"
-#include "dopant.h"
+#include "hoppingSite.h"
 #include "../lib/enhance.hpp"
+#include "../lib/finiteElemente/finiteElemente.h"
+
 #include <boost/multi_array.hpp>
 
 
@@ -18,26 +20,35 @@
 class System
 {
 private:
-    int steps=0;
-    int acceptorNumber=0;
+    int steps, acceptorNumber, hoppingSiteNumber;
     double** pairEnergies;
-    // bool* notOccVec;
-
+    double** donorPositions;
     std::shared_ptr<ParameterStorage> parameterStorage;
-    // std::unique_ptr<DataFile> dataFile;
     
+    FiniteElemente * finEle; //finEle device
+    // std::unique_ptr<DataFile> dataFile;
     
 public:
     System(std::shared_ptr<ParameterStorage>);
     double** distances;
     double** deltaEnergies;
 
-    std::vector<Dopant> dopants {};
 
-    void setup();
+    std::vector< HoppingSite * > hoppingSites {};
+
+
+    void createRandomNewDevice();
+    void loadDevice(std::string deviceFileName);
+
+    void initilizeMatrices();
+    void getReadyForRun();
+
     void calcEnergies();
-
-
+    void setElectrodeVoltage(int electrodeIndex, double voltage);
+    void updatePotential();
 };
+
+
+
 
 #endif // SYSTEM_H

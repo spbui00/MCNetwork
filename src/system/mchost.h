@@ -10,7 +10,7 @@ class MCHost
 {
 private:
     int steps=0;
-    int acceptorNumber=0;
+    int hoppingSiteNumber=0;
     double ratesSum=0;
     double locLenA=0;
     double** rates;
@@ -24,8 +24,11 @@ private:
     
 public:
     MCHost(std::shared_ptr<ParameterStorage>);
-    void setup();
-    void run(int N);
+    void setup(std::string deviceFileName="");
+
+    void singleRun(int N);
+    void run();
+
 };
 
 #endif // MCHOST_H

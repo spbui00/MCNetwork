@@ -20,23 +20,35 @@ class FiniteElemente
 private:
     double len, width;
     int numberVerticesX,numberVerticesY;
-    int dim = 2, sdim = 2, order =1;
+    int const dim = 2, sdim = 2, order =1;
     int** vertexIndexMap;
-    void initMesh(int maxNumberOfElements);
+    std::vector<std::vector<int>> electrodeVertexIndices;
+    int numberOfElectrodes=0;
+    void initMesh(int const & maxNumberOfElements);
 
     Mesh *mesh;
 
+    //mfem stuff
     FiniteElementCollection *fec;
     FiniteElementSpace *fespace;
-    GridFunction *solutionVector; // changed to pointer
+    GridFunction *solutionVector; // changed to pointer, named x in example
+    BilinearForm * a; 
+    LinearForm * b;
+    OperatorPtr A;
+    Vector B, X;
+    GSSmoother M;
+   Array<int> ess_tdof_list;
+
 
 public:
-    FiniteElemente(double len_,double width_, int maxNumberOfElments);
+    FiniteElemente(double const & len,double const & width, int const & maxNumberOfElments);
     ~FiniteElemente();
 
+    void initRun();
     void run();
-    void setElectrode(double a, double b, int edge,double voltage);
-    double getPotential(double x, double y); //nearest neighbour interpolation
+    void setElectrode(double const & begin, double const & end, int const & edge, double const & voltage);
+    void updateElectrodeVoltage(int const & electrodeIndex, double const & voltage);
+    double getPotential(double const & x, double const & y); //nearest neighbour interpolation
    
 };
 

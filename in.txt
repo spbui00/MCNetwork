@@ -1,6 +1,8 @@
 #simulation parameters
 maxBufferSize 10 #bufferSize in MegaByte
-steps 2000000
+steps 1000
+finiteElementsResolution 1e5
+
 
 
 
@@ -10,7 +12,7 @@ acceptorNumber 10
 lenX 300 #nm
 lenY 300 #nm
 
-I0 600 #meV
+I0 60 #meV (bram found 600)
 a 100 #nm
 compensationFactor 0.2 #donors per acceptor
 
@@ -19,4 +21,25 @@ compensationFactor 0.2 #donors per acceptor
 #fundamental constants
 k 1.380649e-23 #boltzmann
 e 1.60217662e-19 #elementary charge
+eps0 8.854187817620389e-12
 
+
+
+#electrode positions (positions given in fractions of lens)  
+#pos edge voltage
+#edges:
+# 0 --> x=0
+# 1 --> x=len
+# 2 --> y=0
+# 3 --> y=width
+
+electrode 0.25 0  1
+electrode 0.75 0 -1
+electrode 0.25 1  1
+electrode 0.75 1 -1
+electrode 0.25 2  1
+electrode 0.75 2 -1
+electrode 0.25 3  1
+electrode 0.75 3 -1
+
+electrodeWidth 30 #nm

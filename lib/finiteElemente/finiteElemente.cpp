@@ -1,9 +1,7 @@
 #include "finiteElemente.h"
 
 
-FiniteElemente::FiniteElemente(double len_, double width_, int maxNumberOfElments){
-    len=len_;
-    width=width_;
+FiniteElemente::FiniteElemente(double const & len, double const & width, int const & maxNumberOfElments): len(len), width(width){
 
     initMesh(maxNumberOfElments);
 
@@ -12,22 +10,22 @@ FiniteElemente::FiniteElemente(double len_, double width_, int maxNumberOfElment
     fespace = new FiniteElementSpace(mesh, fec);
 
     // 8.  --> see see mfem ex1.cpp in mfem lib
-    solutionVector= new GridFunction(fespace); // changed to pointer
+    solutionVector= new GridFunction(fespace); // changed to pointer, named x in example
     *solutionVector = 0;
 }
 
 
-void FiniteElemente::initMesh(int maxNumberOfElments){
-    double area=len*width;
+void FiniteElemente::initMesh(int const & maxNumberOfElments){
+    double const area=len*width;
     numberVerticesX=int(len/std::sqrt(area/maxNumberOfElments))+1;
     numberVerticesY=int(width/std::sqrt(area/maxNumberOfElments))+1;
 
     // std::cout<<"numberVerticesX "<<numberVerticesX<<" numberVerticesY "<<numberVerticesY<<" pro "<<numberVerticesX*numberVerticesY<<std::endl;
 
 
-    int nv=numberVerticesX*numberVerticesY;
-    int ne=(numberVerticesX-1)*(numberVerticesY-1);
-    int nb=2*(numberVerticesX-1)+2*(numberVerticesY-1);
+    int const nv=numberVerticesX*numberVerticesY;
+    int const ne=(numberVerticesX-1)*(numberVerticesY-1);
+    int const nb=2*(numberVerticesX-1)+2*(numberVerticesY-1);
 
     mesh=new Mesh(dim, nv, ne, nb, sdim);
 
@@ -78,13 +76,12 @@ void FiniteElemente::initMesh(int maxNumberOfElments){
 
 }
 
-void FiniteElemente::setElectrode(double begin, double end,int edge,double voltage){
+void FiniteElemente::setElectrode(double const & begin, double const & end,int const & edge,double const & voltage){
     // set electrode in given range on edge given by:
     // 0 --> x=0
     // 1 --> x=len
     // 2 --> y=0
     // 3 --> y=width
-
 
     //validity checks
     if(edge > 3 || edge < 0){
@@ -99,33 +96,33 @@ void FiniteElemente::setElectrode(double begin, double end,int edge,double volta
 
 
     //get vertex indices inside range
-    std::vector<int> vertexIndices;
+    electrodeVertexIndices.push_back(std::vector<int>());
     switch (edge){
         case 0:
             for(int j=0;j<numberVerticesY;j++){
                 if(mesh->GetVertex(vertexIndexMap[0][j])[1]>=begin and mesh->GetVertex(vertexIndexMap[0][j])[1]<=end){
-                    vertexIndices.push_back(j);
+                    electrodeVertexIndices[numberOfElectrodes].push_back(j);
                 }
             }
             break;
         case 1:
             for(int j=0;j<numberVerticesY;j++){
                 if(mesh->GetVertex(vertexIndexMap[numberVerticesX-1][j])[1]>=begin and mesh->GetVertex(vertexIndexMap[numberVerticesX-1][j])[1]<=end){
-                    vertexIndices.push_back(vertexIndexMap[numberVerticesX-1][j]);
+                    electrodeVertexIndices[numberOfElectrodes].push_back(vertexIndexMap[numberVerticesX-1][j]);
                 }
             }
             break;
         case 2:
             for(int i=0;i<numberVerticesX;i++){
                 if(mesh->GetVertex(vertexIndexMap[i][0])[0]>=begin and mesh->GetVertex(vertexIndexMap[i][0])[0]<=end){
-                    vertexIndices.push_back(vertexIndexMap[i][0]);
+                    electrodeVertexIndices[numberOfElectrodes].push_back(vertexIndexMap[i][0]);
                 }
             }
             break;
         case 3:
             for(int i=0;i<numberVerticesX;i++){
                 if(mesh->GetVertex(vertexIndexMap[i][numberVerticesY-1])[0]>=begin and mesh->GetVertex(vertexIndexMap[i][numberVerticesY-1])[0]<=end){
-                    vertexIndices.push_back(vertexIndexMap[i][numberVerticesY-1]);
+                    electrodeVertexIndices[numberOfElectrodes].push_back(vertexIndexMap[i][numberVerticesY-1]);
                 }
             }
             break;
@@ -134,7 +131,7 @@ void FiniteElemente::setElectrode(double begin, double end,int edge,double volta
 
 
     // set initial condition in solution vector
-    for(auto index:vertexIndices){
+    for(auto index:electrodeVertexIndices[numberOfElectrodes]){
         (*solutionVector)[index]=voltage;
     }
 
@@ -144,9 +141,9 @@ void FiniteElemente::setElectrode(double begin, double end,int edge,double volta
     Array<int> bdrVertices = {0,0};
     for(int i=0;i<2*(numberVerticesX-1)+2*(numberVerticesY-1);i++){ //loop over all boundary elements
         mesh->GetBdrElementVertices(i,bdrVertices);
-        for(auto index1:vertexIndices){
+        for(auto index1:electrodeVertexIndices[numberOfElectrodes]){
             if (bdrVertices[0] == index1){
-                for(auto index2:vertexIndices){
+                for(auto index2:electrodeVertexIndices[numberOfElectrodes]){
                     if (bdrVertices[1] == index2){
                         mesh->GetBdrElement(i)->SetAttribute(2);
                         break;
@@ -159,27 +156,37 @@ void FiniteElemente::setElectrode(double begin, double end,int edge,double volta
 
     
     // move first and last vertex to exactly fit electrode boundaries
-    if (vertexIndices.size()<2){
+    if (electrodeVertexIndices[numberOfElectrodes].size()<2){
         throw std::length_error("could not find 2 vertices inside electrode range, refine grid or enlarge electrode");
         }
     else{
         switch (edge){
             case 0:
             case 1:
-                mesh->GetVertex(vertexIndices.front())[1]=begin;
-                mesh->GetVertex(vertexIndices.back())[1]=end;
+                mesh->GetVertex(electrodeVertexIndices[numberOfElectrodes].front())[1]=begin;
+                mesh->GetVertex(electrodeVertexIndices[numberOfElectrodes].back())[1]=end;
                 break;
             case 2:
             case 3:
-                mesh->GetVertex(vertexIndices.front())[0]=begin;
-                mesh->GetVertex(vertexIndices.back())[0]=end;
+                mesh->GetVertex(electrodeVertexIndices[numberOfElectrodes].front())[0]=begin;
+                mesh->GetVertex(electrodeVertexIndices[numberOfElectrodes].back())[0]=end;
                 break;
-                
-            }
         }
+    }
+
+
+    numberOfElectrodes++;
 }
 
-void FiniteElemente::run(){
+void FiniteElemente::updateElectrodeVoltage(int const & electrodeIndex, double const & voltage){
+    
+    for(auto index:electrodeVertexIndices[electrodeIndex]){
+        (*solutionVector)[index]=voltage;
+    }
+}
+
+
+void FiniteElemente::initRun(){
     // see mfem ex1.cpp in mfem lib
 
 
@@ -190,11 +197,10 @@ void FiniteElemente::run(){
 
 
    //6.--> see see mfem ex1.cpp in mfem lib
-   Array<int> ess_tdof_list;
    if (mesh->bdr_attributes.Size())
    {
       Array<int> ess_bdr(mesh->bdr_attributes.Max());
-    //   ess_bdr = 0;
+      ess_bdr = 1; // <<<<<<<<<<<<--------------  change this to 0 to make only part of boundaries essential
       ess_bdr[1] = 1;
       fespace->GetEssentialTrueDofs(ess_bdr, ess_tdof_list);
    }
@@ -202,7 +208,7 @@ void FiniteElemente::run(){
    // 7. Set up the linear form b(.) which corresponds to the right-hand side of
    //    the FEM linear system, which in this case is (1,phi_i) where phi_i are
    //    the basis functions in the finite element fespace.
-   LinearForm *b = new LinearForm(fespace);
+   b = new LinearForm(fespace);
    ConstantCoefficient one(1.0);
    ConstantCoefficient zero(0.0);
    b->AddDomainIntegrator(new DomainLFIntegrator(zero));
@@ -211,7 +217,7 @@ void FiniteElemente::run(){
    // 9. Set up the bilinear form a(.,.) on the finite element space
    //    corresponding to the Laplacian operator -Delta, by adding the Diffusion
    //    domain integrator.
-   BilinearForm *a = new BilinearForm(fespace);
+   a = new BilinearForm(fespace);
    a->AddDomainIntegrator(new DiffusionIntegrator(one));
 
    // 10. Assemble the bilinear form and the corresponding linear system,
@@ -219,14 +225,14 @@ void FiniteElemente::run(){
    //     conditions, applying conforming constraints for non-conforming AMR,
    //     static condensation, etc.
    a->Assemble();
-
-   OperatorPtr A;
-   Vector B, X;
-   a->FormLinearSystem(ess_tdof_list, *solutionVector, *b, A, X, B);
+    }
 
 
-   // 11. Solve the linear system A X = B.
-    GSSmoother M((SparseMatrix&)(*A));
+void FiniteElemente::run(){
+    // 10.
+    a->FormLinearSystem(ess_tdof_list, *solutionVector, *b, A, X, B);
+    // 11.
+    M=GSSmoother((SparseMatrix&)(*A));
     PCG(*A, M, B, X, 0, 1000, 1e-12, 0.0);
 
    // 12. Recover the solution as a finite element grid function.
@@ -236,16 +242,15 @@ void FiniteElemente::run(){
    // -------- tetsing only -------
    // 13. Save the refined mesh and the solution. This output can be viewed later
    //     using GLVis: "glvis -m refined.mesh -g sol.gf".
-   ofstream mesh_ofs("refined.mesh");
-   mesh_ofs.precision(8);
-   mesh->Print(mesh_ofs);
-   ofstream sol_ofs("sol.gf");
-   sol_ofs.precision(8);
-   solutionVector->Save(sol_ofs);
-
+//    ofstream mesh_ofs("finEle.mesh");
+//    mesh_ofs.precision(8);
+//    mesh->Print(mesh_ofs);
+//    ofstream sol_ofs("laplace_solution.gf");
+//    sol_ofs.precision(8);
+//    solutionVector->Save(sol_ofs);
 }
 
-double FiniteElemente::getPotential(double x, double y){
+double FiniteElemente::getPotential(double const & x, double const & y){
     if(x>len) throw std::invalid_argument("x pos of getPotential out of range");
     if(y>len) throw std::invalid_argument("y pos of getPotential out of range");
     return (*solutionVector)[vertexIndexMap[int(x/len*(numberVerticesX-1)+0.5)][int(y/width*(numberVerticesY-1)+0.5)]];
