@@ -2,7 +2,6 @@
 
 
 
-using namespace H5;
 
 
 // DataFile::~DataFile()

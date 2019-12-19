@@ -1,6 +1,6 @@
 #simulation parameters
 maxBufferSize 10 #bufferSize in MegaByte
-steps 1000
+steps 1e6
 finiteElementsResolution 1e5
 
 
@@ -12,7 +12,7 @@ acceptorNumber 10
 lenX 300 #nm
 lenY 300 #nm
 
-I0 60 #meV (bram found 600)
+I0 600 #meV (bram found 600)
 a 100 #nm
 compensationFactor 0.2 #donors per acceptor
 

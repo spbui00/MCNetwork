@@ -69,8 +69,13 @@ void MCHost::makeSwap(){
             // std::cout<<partRatesSum<<" "<<rates[i][j]<<" "<<rndNumber<<" "<<ratesSum<<std::endl;
             if(partRatesSum > rndNumber){
                 system->hoppingSites[i]->setOccupation(false);
+                system->hoppingSites[i]->currentCounter++;
+                system->hoppingSites[i]->absCurrentCounter++;
                 system->hoppingSites[j]->setOccupation(true);
-                std::cout<<"swapped "<<i<<" "<<j<<" "<<setw(9);
+                system->hoppingSites[j]->currentCounter--;
+                system->hoppingSites[j]->absCurrentCounter++;
+
+                // std::cout<<"swapped "<<i<<" "<<j<<" "<<setw(9);
                 goto endDoubleLoop;
             }
         }
@@ -88,12 +93,21 @@ void MCHost::singleRun(int N){
         calcRates();
         makeSwap();
 
+        // // print occupations
         // std::cout<<i<<" ";
         // for (int i = 0; i < hoppingSiteNumber; i++){
         //     std::cout<<setw(2)<<" "<<system->hoppingSites[i]->getOccupation();
         // }
         // std::cout<<std::endl;
     }
+
+    // print currents
+    for (int i = 0; i < hoppingSiteNumber; i++){
+        std::cout<<i<<" "<<system->hoppingSites[i]->currentCounter<<" "<<system->hoppingSites[i]->absCurrentCounter<<std::endl;
+    }
+    std::cout<<std::endl;
+
+
     DEBUG_FUNC_END
 }
 
@@ -103,12 +117,22 @@ void MCHost::run(){
 
     singleRun(parameterStorage->parameters.at("steps"));
 
-    system->setElectrodeVoltage(0,0);
-    system->setElectrodeVoltage(1,0);
+    // system->setElectrodeVoltage(0,0);
+    // system->setElectrodeVoltage(1,50);
     system->updatePotential();
+
+    for (int i = 0; i < hoppingSiteNumber; i++){
+        system->hoppingSites[i]->currentCounter=0;
+        system->hoppingSites[i]->absCurrentCounter=0;
+    }
 
     singleRun(parameterStorage->parameters.at("steps"));
 
 
     DEBUG_FUNC_END
 }
+
+// void MCHost::printCurrents(int step){
+
+
+// }

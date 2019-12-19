@@ -13,10 +13,10 @@
 #include <stdio.h>
 using namespace H5;
 
-class DataFile
-{
+// class DataFile
+// {
 
-private:    
+// private:    
 //     std::string filename="out.h5";
     
 //     std::vector<std::string> outs;
@@ -56,6 +56,6 @@ private:
 //     void createAttribute(std::string, double, H5File&);
 //     void flush();
     
-};
+// };
 
 #endif // DATAFILE_H

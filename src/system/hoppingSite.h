@@ -14,6 +14,8 @@ protected:
 public:
     HoppingSite(double posX, double posY): posX(posX), posY(posY){}
     double const posX,posY;
+    int currentCounter=0;
+    int absCurrentCounter=0;
     double energy=0,constEnergyPart=0;
 
     virtual void setOccupation(bool occ){occupied = occ;}
