@@ -38,7 +38,7 @@ public:
 
 
     void createRandomNewDevice();
-    void loadDevice(std::string deviceFileName);
+    void loadDevice();
 
     void initilizeMatrices();
     void getReadyForRun();

@@ -36,13 +36,13 @@ public:
     void createAttribute(std::string, double);
 
     template<typename Data>
-    void addData(std::string datasetName,Data data, int stepsToAdd);
+    void addData(std::string datasetName,Data data);
 
 };
 
 
 template<typename Data>
-void DataFile::addData(std::string datasetName,Data data, int stepsToAdd){
+void DataFile::addData(std::string datasetName,Data data){
     int index=indexMap.at(datasetName);
     size  [index][0]++;
     offset[index][0]=size[index][0]-1;

@@ -13,19 +13,28 @@ MCHost::MCHost(std::shared_ptr<ParameterStorage> parameterStorage) : parameterSt
     for(int i=0; i<hoppingSiteNumber;i++){
         rates[i]= new double[hoppingSiteNumber];
     }
+    lastCurrentCounter    = new double[hoppingSiteNumber];
+    lastAbsCurrentCounter = new double[hoppingSiteNumber];
+
+    std::string dataFileName = parameterStorage->workingDirecotry+ "data.hdf5";
+    dataFile = std::shared_ptr<DataFile>(new DataFile(dataFileName));
+
+    dataFile->createDataset("currents",{hoppingSiteNumber});
+    dataFile->createDataset("absCurrents",{hoppingSiteNumber});
+
     
     DEBUG_FUNC_END
 }
 
-void MCHost::setup(std::string deviceFileName /*=""*/)
+void MCHost::setup(bool makeNewDevice)
 {
     DEBUG_FUNC_START
 
     system.reset(new System(parameterStorage));
     system->initilizeMatrices();
 
-    if(deviceFileName!=""){
-        system->loadDevice(deviceFileName);
+    if(!makeNewDevice){
+        system->loadDevice();
     }
     else{
         system->createRandomNewDevice();
@@ -94,6 +103,7 @@ void MCHost::makeSwap(){
 
 
 void MCHost::singleRun(int N){
+    //run system until currents are in equilibrium
     DEBUG_FUNC_START
 
     for(int i=0; i<N;i++){
@@ -109,7 +119,7 @@ void MCHost::singleRun(int N){
         // std::cout<<std::endl;
 
     
-        if(i%currentConverganceIntervalCheckSteps==0){
+        if((i-1)%currentConverganceIntervalCheckSteps==0){
 
             // print currents
             std::cout<<"currents "<<i<<std::endl;
@@ -119,10 +129,18 @@ void MCHost::singleRun(int N){
             }
             std::cout<<std::endl;
 
+
+
             for (int i = 0; i < hoppingSiteNumber; i++){
-                system->hoppingSites[i]->currentCounter=0;
-                system->hoppingSites[i]->absCurrentCounter=0;
+                lastCurrentCounter[i]   =system->hoppingSites[i]->currentCounter;
+                lastAbsCurrentCounter[i]=system->hoppingSites[i]->absCurrentCounter;
+
+                system->hoppingSites[i]->currentCounter    = 0;
+                system->hoppingSites[i]->absCurrentCounter = 0;
             }
+
+            dataFile->addData("currents"   ,lastCurrentCounter);
+            dataFile->addData("absCurrents",lastAbsCurrentCounter);
         }
     }
 

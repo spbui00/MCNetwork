@@ -24,10 +24,10 @@ int main(int argc, char *argv[]){
 
    std::string inputFileName=workingDirecotry + "in.txt";
    std::shared_ptr<ParameterStorage> parameterStorage(new ParameterStorage(inputFileName));//all input parameters are stored in the shared pointer "inputfile". all classes get the pointer 
+   parameterStorage->workingDirecotry=workingDirecotry;
 
    MCHost mchost(parameterStorage);
-   mchost.setup(workingDirecotry + "device.txt");
-   // mchost.setup();
+   mchost.setup(true);
    mchost.run();
 
 

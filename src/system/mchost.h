@@ -5,6 +5,7 @@
 #include <fstream>
 #include "parameterstorage.h"
 #include "system.h"
+#include "datafile.h"
 
 class MCHost
 {
@@ -15,9 +16,12 @@ private:
     double ratesSum=0;
     double locLenA;
     double** rates;
+    double* lastCurrentCounter;
+    double* lastAbsCurrentCounter;
 
     std::shared_ptr<ParameterStorage> parameterStorage;
-    std::unique_ptr<System> system;
+    std::shared_ptr<DataFile>         dataFile;
+    std::unique_ptr<System>           system;
 
     void makeSwap();
     void calcRates();
@@ -25,7 +29,7 @@ private:
     
 public:
     MCHost(std::shared_ptr<ParameterStorage>);
-    void setup(std::string deviceFileName="");
+    void setup(bool makeNewDevice=true);
 
     void singleRun(int N);
     void run();

@@ -48,8 +48,9 @@ void System::createRandomNewDevice(){
     }
 
     //save device
+    std::string deviceFileName=parameterStorage->workingDirecotry + "device.txt";
     ofstream deviceFile;
-    deviceFile.open ("device.txt",ios::trunc);
+    deviceFile.open (deviceFileName,ios::trunc);
     deviceFile<<"acceptors: posX, posY"<<std::endl;
     for(int i=0;i<acceptorNumber;i++){
         deviceFile<<hoppingSites[i]->posX*parameterStorage->parameters["R"]<<" "<<hoppingSites[i]->posY*parameterStorage->parameters["R"]<<std::endl;
@@ -67,9 +68,10 @@ void System::createRandomNewDevice(){
     DEBUG_FUNC_END
 }
 
-void System::loadDevice(std::string deviceFileName){
+void System::loadDevice(){
     DEBUG_FUNC_START
 
+    std::string deviceFileName=parameterStorage->workingDirecotry + "device.txt";
     std::ifstream deviceFile(deviceFileName);
     std::string line;
     double posXBuffer, posYBuffer;
