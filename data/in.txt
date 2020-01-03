@@ -1,7 +1,8 @@
 #simulation parameters
-maxBufferSize 10 #bufferSize in MegaByte
-steps 1e6
+#maxBufferSize 10 #bufferSize in MegaByte
+steps 1e9
 finiteElementsResolution 1e5
+currentConverganceIntervalCheckSteps 1e5
 
 
 
@@ -33,13 +34,13 @@ eps0 8.854187817620389e-12
 # 2 --> y=0
 # 3 --> y=width
 
-electrode 0.25 0  1
+electrode 0.25 0 1
 electrode 0.75 0 -1
-electrode 0.25 1  1
+electrode 0.25 1 1
 electrode 0.75 1 -1
-electrode 0.25 2  1
+electrode 0.25 2 1
 electrode 0.75 2 -1
-electrode 0.25 3  1
+electrode 0.25 3 1
 electrode 0.75 3 -1
 
 electrodeWidth 30 #nm

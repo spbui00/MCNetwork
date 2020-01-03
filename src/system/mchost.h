@@ -11,8 +11,9 @@ class MCHost
 private:
     int steps=0;
     int hoppingSiteNumber=0;
+    int currentConverganceIntervalCheckSteps;
     double ratesSum=0;
-    double locLenA=0;
+    double locLenA;
     double** rates;
 
     std::shared_ptr<ParameterStorage> parameterStorage;

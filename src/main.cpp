@@ -20,15 +20,18 @@ int main(int argc, char *argv[]){
    #endif
    enhance::rand_engine.seed(enhance::seed);
 
-   std::string inputFileName="../in.txt";
+   std::string workingDirecotry ="../data/";
+
+   std::string inputFileName=workingDirecotry + "in.txt";
    std::shared_ptr<ParameterStorage> parameterStorage(new ParameterStorage(inputFileName));//all input parameters are stored in the shared pointer "inputfile". all classes get the pointer 
 
    MCHost mchost(parameterStorage);
-   // mchost.setup("device.txt");
-   mchost.setup();
+   mchost.setup(workingDirecotry + "device.txt");
+   // mchost.setup();
    mchost.run();
 
 
+   
 
 
    

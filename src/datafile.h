@@ -13,49 +13,55 @@
 #include <stdio.h>
 using namespace H5;
 
-// class DataFile
-// {
+class DataFile
+{
 
-// private:    
-//     std::string filename="out.h5";
-    
-//     std::vector<std::string> outs;
-//     std::map<std::string,std::function<const boost::multi_array<int,2>()>> getterMap;
-//     std::vector<boost::multi_array<int,3>> buffer;
-//     int bufferLen=0;
-//     long int bufferSize=0;
-//     long int maxBufferSize=1024*1024*10;
-    
-    
-//     unsigned int   NX = 0;          
-//     unsigned int   NY = 0;
-//     unsigned int images = 0;
+private:    
+    std::map<std::string,int>    indexMap;
+    std::string                  filename;    
+    int                          numberOfDatasets=0;
+    std::vector< hsize_t >       dims;
+    std::vector< hsize_t * >     dimsf;
+    std::vector< hsize_t * >     size;
+    std::vector< hsize_t * >     offset;
+    std::vector< hsize_t * >     chunk_dims;
+    std::vector< hsize_t * >     maxdimsf;
 
-//     hsize_t     dimsf[3];
-//     hsize_t     offset[3]={0,0,0};
-//     hsize_t      size[3];
-//     hsize_t      chunk_dims[3];
-//     hsize_t      maxdimsf[3] = {H5S_UNLIMITED, H5S_UNLIMITED,H5S_UNLIMITED};
-
-//     DataSpace spaceDummy;
-//     std::shared_ptr<ParameterStorage> parameterStorage;
-
-    
-// public:
+    DataSpace spaceDummy;
 
 
-//     ~DataFile();
-//     DataFile(Lipidsystem&,std::shared_ptr<InputFile>);
-//     void createFile();
-//     void writeStep();
+public:
+    DataFile(std::string _filename);
+    void createDataset(std::string datasetName, std::vector<int> dimensions);
+    void createAttribute(std::string, double);
 
-// private:
-//     template<typename INTorFloat>
-//     void extendDataset(std::string ,const boost::multi_array<INTorFloat,3>&,H5File&);
-//     void createDataset(std::string, H5File&);
-//     void createAttribute(std::string, double, H5File&);
-//     void flush();
-    
-// };
+    template<typename Data>
+    void addData(std::string datasetName,Data data, int stepsToAdd);
+
+};
+
+
+template<typename Data>
+void DataFile::addData(std::string datasetName,Data data, int stepsToAdd){
+    int index=indexMap.at(datasetName);
+    size  [index][0]++;
+    offset[index][0]=size[index][0]-1;
+
+    spaceDummy=DataSpace( dims[index], dimsf[index]);
+
+
+    H5File * file= new H5File(filename, H5F_ACC_RDWR );
+
+    DataSet dataset=file->openDataSet(datasetName);
+
+    dataset.extend(size[index]);
+    DataSpace fspace = dataset.getSpace ();
+    fspace.selectHyperslab( H5S_SELECT_SET, dimsf[index], offset[index]);
+
+
+    dataset.write( data , PredType::NATIVE_DOUBLE, spaceDummy, fspace );
+
+    delete file;
+}
 
 #endif // DATAFILE_H

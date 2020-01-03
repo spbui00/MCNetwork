@@ -8,11 +8,11 @@ set(CMAKE_CXX_FLAGS "-std=c++11 -O0 -DDEBUG -g -Wl,--start-group")
 # set(CMAKE_CXX_FLAGS "-std=c++11")
 # set(CMAKE_CXX_FLAGS_DEBUG "-std=c++11 -DDEBUG" ${CMAKE_CXX_FLAGS_DEBUG})
 
+find_package(Boost COMPONENTS program_options REQUIRED)
 
-find_package(HDF5 REQUIRED)
-FIND_PACKAGE(Boost COMPONENTS program_options REQUIRED)
+link_directories(/usr/local/hdf5/lib)
 
-include_directories(${HDF5_INCLUDE_DIR} ${Boost_INCLUDE_DIRS})
+include_directories(/usr/local/hdf5/include ${Boost_INCLUDE_DIRS})
 set(_hdf5_libs hdf5 hdf5_cpp)
 
 file(GLOB MCnetwork_SRC
