@@ -36,13 +36,28 @@ namespace enhance
 //     }
 // 
 // 
-//     float fastExp(float x)
-//     {
-//         x = 1.0 + x / 256.0;
-//         x *= x; x *= x; x *= x; x *= x;
-//         x *= x; x *= x; x *= x; x *= x;
-//         return x;        
-//     }
+    float fastExp(float x)
+    // !!! WARNING yielding completly wrong results if not x << n (here n=256) !!!
+    {
+        // std::cout<<"x= "<<x;
+        x = 1.0 + x / 256.0;
+        x *= x; x *= x; x *= x; x *= x;
+        x *= x; x *= x; x *= x; x *= x;
+        // std::cout<<" exp(x) = "<<x<<std::endl;
+        return x;        
+    }
+
+    float mediumFastExp(float x)
+    // !!! WARNING yielding completly wrong results if not x << n (here n=4096) !!!
+    {
+        // std::cout<<"x= "<<x;
+        x = 1.0 + x / 4096.0;
+        x *= x; x *= x; x *= x; x *= x;
+        x *= x; x *= x; x *= x; x *= x;
+        x *= x; x *= x; x *= x; x *= x;
+        // std::cout<<" exp(x) = "<<x<<std::endl;
+        return x;        
+    }
 
     double polynom(std::vector<double>& coeff, double x)
     {
@@ -60,5 +75,14 @@ namespace enhance
         return coeff[0]  / (1 + std::exp(-coeff[1]  * (x - coeff[2] ))) + coeff[3];  
     }
     
-    
+
+    bool logicOperation(bool arg1, bool arg2, std::string operationName){
+        if(operationName=="AND" ){ return  (arg1 & arg2);}
+        if(operationName=="NAND"){ return !(arg1 & arg2);}
+        if(operationName=="OR"  ){ return  (arg1 | arg2);}
+        if(operationName=="NOR" ){ return !(arg1 | arg2);}
+        if(operationName=="XOR" ){ return  (arg1 ^ arg2);}
+        if(operationName=="NXOR"){ return !(arg1 ^ arg2);}
+    }
+
 }

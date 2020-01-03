@@ -59,6 +59,14 @@ void DataFile::addData(std::string datasetName,Data data){
     fspace.selectHyperslab( H5S_SELECT_SET, dimsf[index], offset[index]);
 
 
+    // for (size_t i = 0; i < 3; i++){
+    //     for (size_t j = 0; j < 3; j++){
+    //         std::cout<<data[i][j]<<" ";
+    //     }
+    //     std::cout<<std::endl;
+    // }
+    
+
     dataset.write( data , PredType::NATIVE_DOUBLE, spaceDummy, fspace );
 
     delete file;

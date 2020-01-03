@@ -5,22 +5,27 @@
 MCHost::MCHost(std::shared_ptr<ParameterStorage> parameterStorage) : parameterStorage(parameterStorage){
     DEBUG_FUNC_START
 
-    hoppingSiteNumber=this->parameterStorage->parameters.at("hoppingSiteNumber");
-    locLenA=this->parameterStorage->parameters.at("a");
-    currentConverganceIntervalCheckSteps=this->parameterStorage->parameters.at("currentConverganceIntervalCheckSteps");
+    hoppingSiteNumber=parameterStorage->parameters.at("hoppingSiteNumber");
+    locLenA=parameterStorage->parameters.at("a");
 
     rates = new double*[hoppingSiteNumber];
     for(int i=0; i<hoppingSiteNumber;i++){
         rates[i]= new double[hoppingSiteNumber];
     }
-    lastCurrentCounter    = new double[hoppingSiteNumber];
-    lastAbsCurrentCounter = new double[hoppingSiteNumber];
+
+
+
 
     std::string dataFileName = parameterStorage->workingDirecotry+ "data.hdf5";
     dataFile = std::shared_ptr<DataFile>(new DataFile(dataFileName));
 
-    dataFile->createDataset("currents",{hoppingSiteNumber});
-    dataFile->createDataset("absCurrents",{hoppingSiteNumber});
+    voltageScanPointsNumber = (parameterStorage->parameters.at("voltageScanMax")-parameterStorage->parameters.at("voltageScanMin"))/parameterStorage->parameters.at("voltageScanResolution")+1;
+
+    outputCurrentBuffer = new double[voltageScanPointsNumber*voltageScanPointsNumber];
+
+    dataFile->createDataset("outputCurrent", {voltageScanPointsNumber*voltageScanPointsNumber} );
+    dataFile->createDataset("fitness"      , {1});
+    dataFile->createDataset("voltages"     , {int(parameterStorage->electrodes.size())} );
 
     
     DEBUG_FUNC_END
@@ -102,73 +107,108 @@ void MCHost::makeSwap(){
 }
 
 
-void MCHost::singleRun(int N){
+void MCHost::singleRun(){
     //run system until currents are in equilibrium
     DEBUG_FUNC_START
 
+    // reset currents
+    for (int i = 0; i < hoppingSiteNumber; i++){
+        system->hoppingSites[i]->currentCounter    = 0;
+        system->hoppingSites[i]->absCurrentCounter = 0;
+    }
+    // run equil steps
+    int N=parameterStorage->parameters.at("equilSteps");
     for(int i=0; i<N;i++){
         system->calcEnergies();
         calcRates();
         makeSwap();
-
-        // // print occupations
-        // std::cout<<i<<" ";
-        // for (int i = 0; i < hoppingSiteNumber; i++){
-        //     std::cout<<setw(2)<<" "<<system->hoppingSites[i]->getOccupation();
-        // }
-        // std::cout<<std::endl;
-
-    
-        if((i-1)%currentConverganceIntervalCheckSteps==0){
-
-            // print currents
-            std::cout<<"currents "<<i<<std::endl;
-            for (int i = 0; i < hoppingSiteNumber; i++){
-                std::cout<<i<<" "<<system->hoppingSites[i]->currentCounter<<" "<<system->hoppingSites[i]->absCurrentCounter<<std::endl;
- 
-            }
-            std::cout<<std::endl;
+    }
+    // reset currents
+    for (int i = 0; i < hoppingSiteNumber; i++){
+        system->hoppingSites[i]->currentCounter    = 0;
+        system->hoppingSites[i]->absCurrentCounter = 0;
+    }
+    // run pruductions steps
+    N=parameterStorage->parameters.at("calcCurrentSteps");
+    for(int i=0; i<N;i++){
+        system->calcEnergies();
+        calcRates();
+        makeSwap();
+    }
+   
+    DEBUG_FUNC_END
+}
 
 
+void MCHost::runControlSetup(){
+    DEBUG_FUNC_START
 
-            for (int i = 0; i < hoppingSiteNumber; i++){
-                lastCurrentCounter[i]   =system->hoppingSites[i]->currentCounter;
-                lastAbsCurrentCounter[i]=system->hoppingSites[i]->absCurrentCounter;
+    double max=DBL_MIN,min=DBL_MAX,mean=0;
 
-                system->hoppingSites[i]->currentCounter    = 0;
-                system->hoppingSites[i]->absCurrentCounter = 0;
-            }
+    for(int i=0; i < voltageScanPointsNumber; i++){            
+        for(int j=0; j < voltageScanPointsNumber; j++){
+            std::cout<<"scanning... "<<parameterStorage->parameters.at("voltageScanMin")+parameterStorage->parameters.at("voltageScanResolution")*i<<" "
+                                     <<parameterStorage->parameters.at("voltageScanMin")+parameterStorage->parameters.at("voltageScanResolution")*j<<" ";
+            system->setElectrodeVoltage(parameterStorage->parameters.at("inputElectrode1"),parameterStorage->parameters.at("voltageScanMin")+parameterStorage->parameters.at("voltageScanResolution")*i);
+            system->setElectrodeVoltage(parameterStorage->parameters.at("inputElectrode2"),parameterStorage->parameters.at("voltageScanMin")+parameterStorage->parameters.at("voltageScanResolution")*j);
 
-            dataFile->addData("currents"   ,lastCurrentCounter);
-            dataFile->addData("absCurrents",lastAbsCurrentCounter);
+            system->updatePotential();
+
+            singleRun();
+
+            outputCurrentBuffer[i*voltageScanPointsNumber+j]=system->hoppingSites[parameterStorage->parameters.at("outputElectrode")+parameterStorage->parameters["acceptorNumber"]]->currentCounter;
+            std:cout<<"current: "<<outputCurrentBuffer[i*voltageScanPointsNumber+j]<<std::endl;
+
+            mean+=outputCurrentBuffer[i*voltageScanPointsNumber+j];
+            if (outputCurrentBuffer[i*voltageScanPointsNumber+j]<min){min=outputCurrentBuffer[i*voltageScanPointsNumber+j];}
+            if (outputCurrentBuffer[i*voltageScanPointsNumber+j]>max){max=outputCurrentBuffer[i*voltageScanPointsNumber+j];}
+
+        }
+    }
+
+    fitness=0;
+    double normed,desiredVal;
+    for(int i=0; i < voltageScanPointsNumber; i++){            
+        for(int j=0; j < voltageScanPointsNumber; j++){
+            normed=(outputCurrentBuffer[i*voltageScanPointsNumber+j]-min)/(max-min);
+            desiredVal = enhance::logicOperation((parameterStorage->parameters.at("voltageScanMin")+parameterStorage->parameters.at("voltageScanResolution")*i)>0,(parameterStorage->parameters.at("voltageScanMin")+parameterStorage->parameters.at("voltageScanResolution")*j)>0,mode);
+            fitness+=std::abs(normed-desiredVal);
         }
     }
 
     DEBUG_FUNC_END
 }
 
-
 void MCHost::run(){
     DEBUG_FUNC_START
+    double voltageBuffer[int(parameterStorage->electrodes.size())]; 
 
-    singleRun(parameterStorage->parameters.at("steps"));
+    system->setElectrodeVoltage(parameterStorage->parameters.at("outputElectrode"),0);
+    
 
-    // system->setElectrodeVoltage(0,0);
-    // system->setElectrodeVoltage(1,50);
-    system->updatePotential();
+    for (size_t j = 0; j < 20; j++){
 
-    // for (int i = 0; i < hoppingSiteNumber; i++){
-    //     system->hoppingSites[i]->currentCounter=0;
-    //     system->hoppingSites[i]->absCurrentCounter=0;
-    // }
+        for(int i=0;i<int(parameterStorage->electrodes.size());i++){
+            if(i !=parameterStorage->parameters.at("outputElectrode")){
+                system->setElectrodeVoltage(i,enhance::random_double(-1,1));
+            }
+        }
 
-    // singleRun(parameterStorage->parameters.at("steps"));
+        for (size_t i = 0; i < 5; i++){
+            std::cout<<"random run "<<j+1<<" repetition "<<i+1<<std::endl;
 
+            runControlSetup();
+
+            for(int i=0;i<int(parameterStorage->electrodes.size());i++){
+                voltageBuffer[i]=parameterStorage->electrodes[i].voltage;
+            }
+            
+            dataFile->addData("outputCurrent",outputCurrentBuffer);
+            dataFile->addData("fitness",& fitness);
+            dataFile->addData("voltages",voltageBuffer);
+        }
+    }
+        
 
     DEBUG_FUNC_END
 }
-
-// void MCHost::printCurrents(int step){
-
-
-// }

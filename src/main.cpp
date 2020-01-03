@@ -27,7 +27,7 @@ int main(int argc, char *argv[]){
    parameterStorage->workingDirecotry=workingDirecotry;
 
    MCHost mchost(parameterStorage);
-   mchost.setup(true);
+   mchost.setup(false);
    mchost.run();
 
 

@@ -20,13 +20,15 @@ namespace enhance
     inline unsigned int    random_uns_int(int, int);
     inline int    random_int(int, int);
 
-    inline float fastExp(float x);
-    inline float mediumFastExp(float x);
+    float fastExp(float x);
+    float mediumFastExp(float x);
     double sigmoid(std::vector<double>& coeff, double x);
     double polynom(std::vector<double>& coeff, double x);
 
 
     std::string multipliplyString(std::string in, int n);
+
+    bool logicOperation(bool arg1, bool arg2, std::string operationName);
 
     
 
@@ -55,28 +57,28 @@ namespace enhance
     }
 
 
-    float fastExp(float x)
-    // !!! WARNING yielding completly wrong results if not x << n (here n=256) !!!
-    {
-        // std::cout<<"x= "<<x;
-        x = 1.0 + x / 256.0;
-        x *= x; x *= x; x *= x; x *= x;
-        x *= x; x *= x; x *= x; x *= x;
-        // std::cout<<" exp(x) = "<<x<<std::endl;
-        return x;        
-    }
+    // float fastExp(float x)
+    // // !!! WARNING yielding completly wrong results if not x << n (here n=256) !!!
+    // {
+    //     // std::cout<<"x= "<<x;
+    //     x = 1.0 + x / 256.0;
+    //     x *= x; x *= x; x *= x; x *= x;
+    //     x *= x; x *= x; x *= x; x *= x;
+    //     // std::cout<<" exp(x) = "<<x<<std::endl;
+    //     return x;        
+    // }
 
-    float mediumFastExp(float x)
-    // !!! WARNING yielding completly wrong results if not x << n (here n=4096) !!!
-    {
-        // std::cout<<"x= "<<x;
-        x = 1.0 + x / 4096.0;
-        x *= x; x *= x; x *= x; x *= x;
-        x *= x; x *= x; x *= x; x *= x;
-        x *= x; x *= x; x *= x; x *= x;
-        // std::cout<<" exp(x) = "<<x<<std::endl;
-        return x;        
-    }
+    // float mediumFastExp(float x)
+    // // !!! WARNING yielding completly wrong results if not x << n (here n=4096) !!!
+    // {
+    //     // std::cout<<"x= "<<x;
+    //     x = 1.0 + x / 4096.0;
+    //     x *= x; x *= x; x *= x; x *= x;
+    //     x *= x; x *= x; x *= x; x *= x;
+    //     x *= x; x *= x; x *= x; x *= x;
+    //     // std::cout<<" exp(x) = "<<x<<std::endl;
+    //     return x;        
+    // }
 
 
 
