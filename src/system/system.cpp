@@ -246,6 +246,16 @@ void System::calcEnergies(){
         }
     }
 
+    // for(int i=0;i<hoppingSiteNumber;i++){
+    //     for(int j=0;j<hoppingSiteNumber;j++){
+    //         std::cout<<deltaEnergies[i][j]<<" ";
+    //     }
+    //     std::cout<<std::endl;
+    // }
+    // std::cout<<std::endl;
+
+
+
     DEBUG_FUNC_END
 }
 

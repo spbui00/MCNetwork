@@ -7,6 +7,7 @@ MCHost::MCHost(std::shared_ptr<ParameterStorage> parameterStorage) : parameterSt
 
     hoppingSiteNumber=parameterStorage->parameters.at("hoppingSiteNumber");
     locLenA=parameterStorage->parameters.at("a");
+    electrodeNumber=int(parameterStorage->electrodes.size());
 
     rates = new double*[hoppingSiteNumber];
     for(int i=0; i<hoppingSiteNumber;i++){
@@ -25,7 +26,7 @@ MCHost::MCHost(std::shared_ptr<ParameterStorage> parameterStorage) : parameterSt
 
     dataFile->createDataset("outputCurrent", {voltageScanPointsNumber*voltageScanPointsNumber} );
     dataFile->createDataset("fitness"      , {1});
-    dataFile->createDataset("voltages"     , {int(parameterStorage->electrodes.size())} );
+    dataFile->createDataset("voltages"     , {electrodeNumber} );
 
     
     DEBUG_FUNC_END
@@ -71,8 +72,14 @@ void MCHost::calcRates(){
                 // std::cout<<"rate inf "<<rates[i][j]<<" i "<<i<<" j "<<j<<std::endl;
             }
             ratesSum+=rates[i][j];
+
+
+            // std::cout<<system->deltaEnergies[i][j]<<" ";
         }
-    }    
+        // std::cout<<std::endl;
+    }
+    // std::cout<<std::endl;
+
     DEBUG_FUNC_END
 }
 
@@ -135,15 +142,18 @@ void MCHost::singleRun(){
         calcRates();
         makeSwap();
     }
+
+    // //print currents
+    // for (int i = 0; i < hoppingSiteNumber; i++){
+    //     std::cout<<i<<" "<<system->hoppingSites[i]->absCurrentCounter<<std::endl;
+    // }
    
     DEBUG_FUNC_END
 }
 
 
-void MCHost::runControlSetup(){
+void MCHost::runVoltageSetup(){
     DEBUG_FUNC_START
-
-    double max=DBL_MIN,min=DBL_MAX,mean=0;
 
     for(int i=0; i < voltageScanPointsNumber; i++){            
         for(int j=0; j < voltageScanPointsNumber; j++){
@@ -158,11 +168,39 @@ void MCHost::runControlSetup(){
 
             outputCurrentBuffer[i*voltageScanPointsNumber+j]=system->hoppingSites[parameterStorage->parameters.at("outputElectrode")+parameterStorage->parameters["acceptorNumber"]]->currentCounter;
             std:cout<<"current: "<<outputCurrentBuffer[i*voltageScanPointsNumber+j]<<std::endl;
+        }
+    }
 
+
+    DEBUG_FUNC_END
+}
+
+void MCHost::saveResults(){
+    DEBUG_FUNC_START
+
+    double voltageBuffer[electrodeNumber]; 
+    for(int i=0;i<electrodeNumber;i++){
+        voltageBuffer[i]=parameterStorage->electrodes[i].voltage;
+    }
+    
+    dataFile->addData("outputCurrent",outputCurrentBuffer);
+    dataFile->addData("fitness",& fitness);
+    dataFile->addData("voltages",voltageBuffer);
+
+    DEBUG_FUNC_END
+}
+
+
+void MCHost::calcFitness(){
+    DEBUG_FUNC_START
+
+    double max=DBL_MIN,min=DBL_MAX,mean=0;
+
+    for(int i=0; i < voltageScanPointsNumber; i++){            
+        for(int j=0; j < voltageScanPointsNumber; j++){
             mean+=outputCurrentBuffer[i*voltageScanPointsNumber+j];
             if (outputCurrentBuffer[i*voltageScanPointsNumber+j]<min){min=outputCurrentBuffer[i*voltageScanPointsNumber+j];}
             if (outputCurrentBuffer[i*voltageScanPointsNumber+j]>max){max=outputCurrentBuffer[i*voltageScanPointsNumber+j];}
-
         }
     }
 
@@ -171,24 +209,86 @@ void MCHost::runControlSetup(){
     for(int i=0; i < voltageScanPointsNumber; i++){            
         for(int j=0; j < voltageScanPointsNumber; j++){
             normed=(outputCurrentBuffer[i*voltageScanPointsNumber+j]-min)/(max-min);
-            desiredVal = enhance::logicOperation((parameterStorage->parameters.at("voltageScanMin")+parameterStorage->parameters.at("voltageScanResolution")*i)>0,(parameterStorage->parameters.at("voltageScanMin")+parameterStorage->parameters.at("voltageScanResolution")*j)>0,mode);
-            fitness+=std::abs(normed-desiredVal);
+            desiredVal = desiredLogicFunction(parameterStorage->parameters.at("voltageScanMin")+parameterStorage->parameters.at("voltageScanResolution")*i,parameterStorage->parameters.at("voltageScanMin")+parameterStorage->parameters.at("voltageScanResolution")*j,parameterStorage->gate);
+            fitness-=std::abs(normed-desiredVal);
         }
     }
 
     DEBUG_FUNC_END
 }
 
+void MCHost::optimizeMC(){
+    DEBUG_FUNC_START
+
+    system->setElectrodeVoltage(parameterStorage->parameters.at("outputElectrode"),0);
+    
+    // init random voltages
+    for(int i=0;i<electrodeNumber;i++){
+        if((i !=parameterStorage->parameters.at("outputElectrode")) & (i !=parameterStorage->parameters.at("inputElectrode1")) &(i !=parameterStorage->parameters.at("inputElectrode2"))){
+            system->setElectrodeVoltage(i,enhance::random_double(parameterStorage->parameters.at("controlVoltageMin"),parameterStorage->parameters.at("controlVoltageMax")));
+        }
+    }
+
+
+
+
+    runVoltageSetup();
+    calcFitness();
+    saveResults();
+
+    double lastFitness=fitness;
+    double lastVoltages[electrodeNumber];
+    for(int i=0;i<electrodeNumber;i++){
+        lastVoltages[i]=parameterStorage->electrodes[i].voltage;
+    }
+
+
+    for (size_t i = 0; i < 1000; i++){
+        //get new random voltages
+        std::cout<<"new random voltages: "<<std::endl;
+        for(int i=0;i<electrodeNumber;i++){
+            if((i !=parameterStorage->parameters.at("outputElectrode")) & (i !=parameterStorage->parameters.at("inputElectrode1")) &(i !=parameterStorage->parameters.at("inputElectrode2"))){
+                system->setElectrodeVoltage(i,enhance::random_double(std::max(parameterStorage->parameters.at("controlVoltageMin"),parameterStorage->electrodes[i].voltage-parameterStorage->parameters.at("maxDeltaV")),std::min(parameterStorage->parameters.at("controlVoltageMax"),parameterStorage->electrodes[i].voltage+parameterStorage->parameters.at("maxDeltaV"))));
+                std::cout<<i<<" "<<parameterStorage->electrodes[i].voltage<<std::endl;
+            }
+        }
+
+        runVoltageSetup();
+        calcFitness();
+        saveResults();
+
+        std::cout<<"fitness "<<fitness<<" lastFitness "<<lastFitness;
+        if(fitness < lastFitness){
+            std::cout<<" not accepted "<<std::endl;
+            //swap back
+            for(int i=0;i<electrodeNumber;i++){
+                system->setElectrodeVoltage(i,lastVoltages[i]);
+            }
+        }
+        else{
+            std::cout<<" accepted"<<std::endl;
+            //setup for next iteration
+            for(int i=0;i<electrodeNumber;i++){
+                lastVoltages[i]=parameterStorage->electrodes[i].voltage;
+            }
+            lastFitness=fitness;
+        }
+    }
+    
+
+    DEBUG_FUNC_END
+}
+
+
 void MCHost::run(){
     DEBUG_FUNC_START
-    double voltageBuffer[int(parameterStorage->electrodes.size())]; 
 
     system->setElectrodeVoltage(parameterStorage->parameters.at("outputElectrode"),0);
     
 
     for (size_t j = 0; j < 20; j++){
 
-        for(int i=0;i<int(parameterStorage->electrodes.size());i++){
+        for(int i=0;i<electrodeNumber;i++){
             if(i !=parameterStorage->parameters.at("outputElectrode")){
                 system->setElectrodeVoltage(i,enhance::random_double(-1,1));
             }
@@ -197,18 +297,33 @@ void MCHost::run(){
         for (size_t i = 0; i < 5; i++){
             std::cout<<"random run "<<j+1<<" repetition "<<i+1<<std::endl;
 
-            runControlSetup();
-
-            for(int i=0;i<int(parameterStorage->electrodes.size());i++){
-                voltageBuffer[i]=parameterStorage->electrodes[i].voltage;
-            }
-            
-            dataFile->addData("outputCurrent",outputCurrentBuffer);
-            dataFile->addData("fitness",& fitness);
-            dataFile->addData("voltages",voltageBuffer);
+            runVoltageSetup();
+            calcFitness();
+            saveResults();
         }
     }
         
+
+    DEBUG_FUNC_END
+}
+
+
+
+bool MCHost::desiredLogicFunction(double val1, double val2, std::string gate){
+    DEBUG_FUNC_START
+
+    bool b1 = val1 > parameterStorage->parameters.at("seperationVoltage");
+    bool b2 = val2 > parameterStorage->parameters.at("seperationVoltage");
+
+    if     (gate == "AND" ){ return  (b1 & b2);}
+    else if(gate == "NAND"){ return !(b1 & b2);}
+    else if(gate == "OR"  ){ return  (b1 | b2);}
+    else if(gate == "NOR" ){ return !(b1 | b2);}
+    else if(gate == "XOR" ){ return  (b1 ^ b2);}
+    else if(gate == "NXOR"){ return !(b1 ^ b2);}
+    else{
+        throw std::runtime_error("logic operation not found");
+    }
 
     DEBUG_FUNC_END
 }

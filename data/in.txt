@@ -1,9 +1,9 @@
 #simulation parameters
-#maxBufferSize 10 #bufferSize in MegaByte
+gate AND
 steps 1e9
 finiteElementsResolution 5e3
-equilSteps 1e4
-calcCurrentSteps 1e5
+equilSteps 1e5
+calcCurrentSteps 1e6
 
 
 
@@ -15,7 +15,7 @@ lenX 300 #nm
 lenY 300 #nm
 
 I0 600 #meV (bram found 600)
-a 100 #nm
+a 25 #nm
 compensationFactor 0.2 #donors per acceptor
 
 
@@ -49,6 +49,17 @@ inputElectrode1 0
 inputElectrode2 1
 outputElectrode 5
 
-voltageScanMin -1
-voltageScanMax 1
-voltageScanResolution 0.4
+
+controlVoltageMin -1
+controlVoltageMax 1
+
+
+voltageScanMin 0
+voltageScanMax 0.5
+voltageScanResolution 0.5
+seperationVoltage 0.25
+
+
+#optimization parameters
+maxDeltaV 0.05
+

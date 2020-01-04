@@ -2,6 +2,7 @@
 #define MCHOST_H
 #include <iostream>
 #include <memory>
+#include <algorithm>
 #include <fstream>
 #include "parameterstorage.h"
 #include "system.h"
@@ -11,10 +12,10 @@
 class MCHost
 {
 private:
-    std::string const mode = "AND";
     int steps=0;
     int hoppingSiteNumber=0;
     int voltageScanPointsNumber;
+    int electrodeNumber;
     double fitness;
     double ratesSum=0;
     double locLenA;
@@ -28,6 +29,9 @@ private:
 
     void makeSwap();
     void calcRates();
+    void calcFitness();
+    void saveResults();
+    bool desiredLogicFunction(double val1, double val2, std::string gate);
 
     
 public:
@@ -35,8 +39,10 @@ public:
     void setup(bool makeNewDevice=true);
 
     void singleRun();
-    void runControlSetup();
+    void runVoltageSetup();
+    void optimizeMC();
     void run();
+    
 
 };
 

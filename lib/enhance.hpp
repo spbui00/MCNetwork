@@ -28,8 +28,6 @@ namespace enhance
 
     std::string multipliplyString(std::string in, int n);
 
-    bool logicOperation(bool arg1, bool arg2, std::string operationName);
-
     
 
 

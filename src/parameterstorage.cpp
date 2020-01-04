@@ -28,6 +28,10 @@ ParameterStorage::ParameterStorage(std::string filename)
             if(!(iss>>pos>>edge>>voltage)) throw std::invalid_argument( "cant read electrode: " + line);
             electrodes.push_back({pos,edge,voltage});
         }
+        else if (name == "gate")
+        {
+            if(!(iss>>gate)) throw std::invalid_argument( "cant read gate: " + line);
+        }
         else{
             if(!(iss>>val)) throw std::invalid_argument( "can't read line: " + line);
             parameters[name]=val;    
@@ -46,11 +50,11 @@ ParameterStorage::ParameterStorage(std::string filename)
     parameters["lenY"]=parameters["lenY"]/parameters["R"];
     parameters["a"]=parameters["a"]/parameters["R"];
     parameters["electrodeWidth"]=parameters["electrodeWidth"]/parameters["R"];
-    std::cout<<"R = "<<parameters["R"]<<"nm, I0 = "<<parameters["I0"]<<" meV corresponds to eps = "<< parameters["e"]*parameters["e"]/(4*M_PI*parameters["eps0"]*parameters["R"]*1e-9*parameters["I0"]*0.001*parameters["e"]) <<std::endl;
+
+    std::cout<<"R = "<<parameters["R"]<<"nm, a/R = "<<parameters["a"]<<" I0 = "<<parameters["I0"]<<" meV == "<<parameters["I0"]*0.001*parameters["e"]/parameters["kT"]<<"kT corresponds to eps = "<< parameters["e"]*parameters["e"]/(4*M_PI*parameters["eps0"]*parameters["R"]*1e-9*parameters["I0"]*0.001*parameters["e"]) <<std::endl;
+
     // convert energies in dimensions of kT
     parameters["I0"]=parameters["I0"]*0.001*parameters["e"]/parameters["kT"]; //I0 given in meV
-
-
 
 
   

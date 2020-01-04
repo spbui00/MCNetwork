@@ -26,7 +26,6 @@ private:
     std::shared_ptr<ParameterStorage> parameterStorage;
     
     FiniteElemente * finEle; //finEle device
-    // std::unique_ptr<DataFile> dataFile;
     
 public:
     System(std::shared_ptr<ParameterStorage>);
