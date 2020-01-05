@@ -34,11 +34,16 @@ import matplotlib.pylab as plt
 
 fig, ax = plt.subplots(1,1)
 
-for electrode in electrodes:
-    if electrode[1]==0: ax.scatter(0                              ,electrode[0]*parameters["lenY"],c="darkred",marker=".",s=200)
-    if electrode[1]==1: ax.scatter(parameters["lenX"]             ,electrode[0]*parameters["lenY"],c="darkred",marker=".",s=200)
-    if electrode[1]==2: ax.scatter(electrode[0]*parameters["lenX"],0                              ,c="darkred",marker=".",s=200)
-    if electrode[1]==3: ax.scatter(electrode[0]*parameters["lenX"],parameters["lenY"]             ,c="darkred",marker=".",s=200)
+for i in range(len(electrodes)):
+    if   i == parameters["outputElectrode"]: color= "blue"
+    elif i == parameters["inputElectrode1"]: color= "red"
+    elif i == parameters["inputElectrode2"]: color= "red"
+    else:                                    color= "green"
+    
+    if electrodes[i][1]==0: ax.scatter(0                              ,electrodes[i][0]*parameters["lenY"],c=color,marker=".",s=400)
+    if electrodes[i][1]==1: ax.scatter(parameters["lenX"]             ,electrodes[i][0]*parameters["lenY"],c=color,marker=".",s=400)
+    if electrodes[i][1]==2: ax.scatter(electrodes[i][0]*parameters["lenX"],0                              ,c=color,marker=".",s=400)
+    if electrodes[i][1]==3: ax.scatter(electrodes[i][0]*parameters["lenX"],parameters["lenY"]             ,c=color,marker=".",s=400)
 
 
 for i in range(acceptorPos.shape[0]):
@@ -62,6 +67,9 @@ ax.set_xlim(0,parameters["lenX"])
 ax.set_ylim(0,parameters["lenY"])
 
 ax.set_aspect('equal')
+
+ax.set_xticks([], [])
+ax.set_yticks([], [])
 
 plt.show()
 

@@ -17,7 +17,10 @@ def readParameters(pathToSimFolder):
             splitted=line.split(" ")
             
             if len(splitted)==2:
-                parameters[splitted[0]]=float(splitted[1])
+                try:
+                    parameters[splitted[0]]=float(splitted[1])
+                except ValueError:
+                    pass
             elif splitted[0]=="electrode":
                 electrodes.append([float(splitted[1]),float(splitted[2]),float(splitted[3])])
 
