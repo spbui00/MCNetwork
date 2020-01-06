@@ -16,11 +16,12 @@ private:
     int hoppingSiteNumber=0;
     int voltageScanPointsNumber;
     int electrodeNumber;
-    double fitness;
+    double fitness,fitnessUncert;
     double ratesSum=0;
     double locLenA;
     double** rates;
-    double* outputCurrentBuffer;
+    double outputCurrent,outputCurrentSqrt,outputCurrentStd;
+    double * outputCurrentBuffer, * outputCurrentUncertBuffer;
 
 
     std::shared_ptr<ParameterStorage> parameterStorage;

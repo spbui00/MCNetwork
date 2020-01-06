@@ -37,12 +37,13 @@ eps0 8.854187817620389e-12
 
 electrode 0.25 0 1
 electrode 0.75 0 -1
-electrode 0.25 1 1
-electrode 0.75 1 -1
-electrode 0.25 2 1
-electrode 0.75 2 -1
-electrode 0.25 3 1
-electrode 0.75 3 -1
+electrode 0.25 1 0
+electrode 0.75 1 -0.93930643
+electrode 0.25 2 -0.61343962
+electrode 0.75 2 -0.07728976
+electrode 0.25 3 0.92529793
+electrode 0.75 3 -0.73068846
+
 
 electrodeWidth 30 #nm
 inputElectrode1 0
@@ -61,5 +62,6 @@ seperationVoltage 0.25
 
 
 #optimization parameters
-maxDeltaV 0.05
+acceptanceFactor 0.5 #big factor -> all accepted
+maxDeltaV 0.1
 

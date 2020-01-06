@@ -9,6 +9,16 @@
 #include <boost/program_options.hpp>
 
 
+/*
+TODO:
+-correlation as fitness
+-metropolis
+
+
+OPT:
+-parallelization
+*/
+
 namespace po = boost::program_options;
 
 
@@ -27,7 +37,9 @@ int main(int argc, char *argv[]){
    po::options_description desc("Allowed options");
    desc.add_options()
       ("mnd", "make new device")
-      // ("dir", po::value<std::string>(),"define working dir. has to contain 'in.txt'")s
+      ("opt", "optimize control voltages")
+      ("run", "just run control voltages defined in in.txt")
+      // ("dir", po::value<std::string>(),"define working dir. has to contain 'in.txt'")
       ("help", "produce help message");
    
    po::variables_map vm;
@@ -45,7 +57,7 @@ int main(int argc, char *argv[]){
       workingDirecotry= vm["dir"].as<std::string>();
    }
    else{
-      workingDirecotry ="../data/";
+      workingDirecotry ="./";
    }
    std::cout<<"running in dir: "<<workingDirecotry<<std::endl;
    
@@ -53,9 +65,18 @@ int main(int argc, char *argv[]){
    std::shared_ptr<ParameterStorage> parameterStorage(new ParameterStorage(inputFileName));//all input parameters are stored in the shared pointer "inputfile". all classes get the pointer 
    parameterStorage->workingDirecotry=workingDirecotry;
 
+
    MCHost mchost(parameterStorage);
    mchost.setup(vm.count("mnd"));
-   mchost.optimizeMC();
+
+
+   if (vm.count("opt")){
+      mchost.optimizeMC();
+   }
+   else if (vm.count("run")){
+      mchost.run();
+   }
+   
 
    DEBUG_FUNC_END
    return 0;

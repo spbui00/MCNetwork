@@ -22,11 +22,14 @@ MCHost::MCHost(std::shared_ptr<ParameterStorage> parameterStorage) : parameterSt
 
     voltageScanPointsNumber = (parameterStorage->parameters.at("voltageScanMax")-parameterStorage->parameters.at("voltageScanMin"))/parameterStorage->parameters.at("voltageScanResolution")+1;
 
-    outputCurrentBuffer = new double[voltageScanPointsNumber*voltageScanPointsNumber];
+    outputCurrentBuffer       = new double[voltageScanPointsNumber*voltageScanPointsNumber];
+    outputCurrentUncertBuffer = new double[voltageScanPointsNumber*voltageScanPointsNumber];
 
-    dataFile->createDataset("outputCurrent", {voltageScanPointsNumber*voltageScanPointsNumber} );
-    dataFile->createDataset("fitness"      , {1});
-    dataFile->createDataset("voltages"     , {electrodeNumber} );
+    dataFile->createDataset("outputCurrent",       {voltageScanPointsNumber*voltageScanPointsNumber} );
+    dataFile->createDataset("outputCurrentUncert", {voltageScanPointsNumber*voltageScanPointsNumber} );
+    dataFile->createDataset("fitness",             {1});
+    dataFile->createDataset("fitnessUncert",       {1});
+    dataFile->createDataset("voltages",            {electrodeNumber} );
 
     
     DEBUG_FUNC_END
@@ -130,18 +133,33 @@ void MCHost::singleRun(){
         calcRates();
         makeSwap();
     }
-    // reset currents
-    for (int i = 0; i < hoppingSiteNumber; i++){
-        system->hoppingSites[i]->currentCounter    = 0;
-        system->hoppingSites[i]->absCurrentCounter = 0;
+
+
+    //split up in multiple runs to calc uncertainty of currents
+    int uncertaintySplits=10;
+    N=int(parameterStorage->parameters.at("calcCurrentSteps")/uncertaintySplits);
+
+    outputCurrent     = 0;
+    outputCurrentSqrt = 0;
+
+    for(int j=0; j < uncertaintySplits; j++){
+        // reset currents
+        for (int i = 0; i < hoppingSiteNumber; i++){
+            system->hoppingSites[i]->currentCounter    = 0;
+            system->hoppingSites[i]->absCurrentCounter = 0;
+        }
+        // run pruductions steps
+        for(int i=0; i<N;i++){
+            system->calcEnergies();
+            calcRates();
+            makeSwap();
+        }
+        outputCurrent     +=           system->hoppingSites[parameterStorage->parameters.at("outputElectrode")+parameterStorage->parameters["acceptorNumber"]]->currentCounter;
+        outputCurrentSqrt += std::pow(system->hoppingSites[parameterStorage->parameters.at("outputElectrode")+parameterStorage->parameters["acceptorNumber"]]->currentCounter,2);
     }
-    // run pruductions steps
-    N=parameterStorage->parameters.at("calcCurrentSteps");
-    for(int i=0; i<N;i++){
-        system->calcEnergies();
-        calcRates();
-        makeSwap();
-    }
+
+    outputCurrentStd=std::sqrt((outputCurrentSqrt-outputCurrent*outputCurrent/uncertaintySplits)/uncertaintySplits);
+    outputCurrent/=uncertaintySplits;
 
     // //print currents
     // for (int i = 0; i < hoppingSiteNumber; i++){
@@ -166,7 +184,8 @@ void MCHost::runVoltageSetup(){
 
             singleRun();
 
-            outputCurrentBuffer[i*voltageScanPointsNumber+j]=system->hoppingSites[parameterStorage->parameters.at("outputElectrode")+parameterStorage->parameters["acceptorNumber"]]->currentCounter;
+            outputCurrentBuffer      [i*voltageScanPointsNumber+j]=outputCurrent;
+            outputCurrentUncertBuffer[i*voltageScanPointsNumber+j]=outputCurrentStd;
             std:cout<<"current: "<<outputCurrentBuffer[i*voltageScanPointsNumber+j]<<std::endl;
         }
     }
@@ -183,58 +202,71 @@ void MCHost::saveResults(){
         voltageBuffer[i]=parameterStorage->electrodes[i].voltage;
     }
     
-    dataFile->addData("outputCurrent",outputCurrentBuffer);
-    dataFile->addData("fitness",& fitness);
-    dataFile->addData("voltages",voltageBuffer);
+    dataFile->addData("outputCurrent"      ,outputCurrentBuffer);
+    dataFile->addData("outputCurrentUncert",outputCurrentUncertBuffer);
+    dataFile->addData("fitness"            ,& fitness);
+    dataFile->addData("fitnessUncert"      ,& fitnessUncert);
+    dataFile->addData("voltages"           ,voltageBuffer);
 
     DEBUG_FUNC_END
 }
 
 
 void MCHost::calcFitness(){
+    // el of [0,1]
     DEBUG_FUNC_START
 
-    double max=DBL_MIN,min=DBL_MAX,mean=0;
+    int maxIndex=0,minIndex=0;
 
     for(int i=0; i < voltageScanPointsNumber; i++){            
         for(int j=0; j < voltageScanPointsNumber; j++){
-            mean+=outputCurrentBuffer[i*voltageScanPointsNumber+j];
-            if (outputCurrentBuffer[i*voltageScanPointsNumber+j]<min){min=outputCurrentBuffer[i*voltageScanPointsNumber+j];}
-            if (outputCurrentBuffer[i*voltageScanPointsNumber+j]>max){max=outputCurrentBuffer[i*voltageScanPointsNumber+j];}
+            if (outputCurrentBuffer[i*voltageScanPointsNumber+j]<outputCurrentBuffer[minIndex]){minIndex=i*voltageScanPointsNumber+j;}
+            if (outputCurrentBuffer[i*voltageScanPointsNumber+j]>outputCurrentBuffer[maxIndex]){maxIndex=i*voltageScanPointsNumber+j;}
         }
     }
 
     fitness=0;
-    double normed,desiredVal;
+    fitnessUncert=0;
+    double normed,desiredVal,normedUncert;
     for(int i=0; i < voltageScanPointsNumber; i++){            
         for(int j=0; j < voltageScanPointsNumber; j++){
-            normed=(outputCurrentBuffer[i*voltageScanPointsNumber+j]-min)/(max-min);
+            normed=(outputCurrentBuffer[i*voltageScanPointsNumber+j]-outputCurrentBuffer[minIndex])/(outputCurrentBuffer[maxIndex]-outputCurrentBuffer[minIndex]);
+            normedUncert=std::sqrt(std::pow(outputCurrentUncertBuffer[i*voltageScanPointsNumber+j]/(outputCurrentBuffer[maxIndex]-outputCurrentBuffer[minIndex]),2)
+                                  +std::pow((outputCurrentBuffer[i*voltageScanPointsNumber+j]-outputCurrentBuffer[minIndex])/std::pow(outputCurrentBuffer[maxIndex]-outputCurrentBuffer[minIndex],2)*outputCurrentUncertBuffer[maxIndex],2)
+                                  +std::pow(((outputCurrentBuffer[i*voltageScanPointsNumber+j]-outputCurrentBuffer[minIndex])/std::pow(outputCurrentBuffer[maxIndex]-outputCurrentBuffer[minIndex],2)-1/(outputCurrentBuffer[maxIndex]-outputCurrentBuffer[minIndex]))*outputCurrentUncertBuffer[minIndex],2));
             desiredVal = desiredLogicFunction(parameterStorage->parameters.at("voltageScanMin")+parameterStorage->parameters.at("voltageScanResolution")*i,parameterStorage->parameters.at("voltageScanMin")+parameterStorage->parameters.at("voltageScanResolution")*j,parameterStorage->gate);
-            fitness-=std::abs(normed-desiredVal);
+            fitness+=std::abs(normed-desiredVal);
+            fitnessUncert+=normedUncert*normedUncert;
         }
     }
+    fitness/=voltageScanPointsNumber*voltageScanPointsNumber;
+    fitness=1-fitness;
+    fitnessUncert=std::sqrt(fitnessUncert);
+    fitnessUncert/=voltageScanPointsNumber*voltageScanPointsNumber;
+
 
     DEBUG_FUNC_END
 }
 
 void MCHost::optimizeMC(){
     DEBUG_FUNC_START
+    std::cout<<"running optimization"<<std::endl;
 
     system->setElectrodeVoltage(parameterStorage->parameters.at("outputElectrode"),0);
     
     // init random voltages
-    for(int i=0;i<electrodeNumber;i++){
-        if((i !=parameterStorage->parameters.at("outputElectrode")) & (i !=parameterStorage->parameters.at("inputElectrode1")) &(i !=parameterStorage->parameters.at("inputElectrode2"))){
-            system->setElectrodeVoltage(i,enhance::random_double(parameterStorage->parameters.at("controlVoltageMin"),parameterStorage->parameters.at("controlVoltageMax")));
-        }
-    }
-
-
+    // for(int i=0;i<electrodeNumber;i++){
+    //     if((i !=parameterStorage->parameters.at("outputElectrode")) & (i !=parameterStorage->parameters.at("inputElectrode1")) &(i !=parameterStorage->parameters.at("inputElectrode2"))){
+    //         system->setElectrodeVoltage(i,enhance::random_double(parameterStorage->parameters.at("controlVoltageMin"),parameterStorage->parameters.at("controlVoltageMax")));
+    //     }
+    // }
 
 
     runVoltageSetup();
     calcFitness();
     saveResults();
+
+    std::cout<<"fitness "<<fitness<<" +- "<<fitnessUncert<<std::endl;;
 
     double lastFitness=fitness;
     double lastVoltages[electrodeNumber];
@@ -257,8 +289,8 @@ void MCHost::optimizeMC(){
         calcFitness();
         saveResults();
 
-        std::cout<<"fitness "<<fitness<<" lastFitness "<<lastFitness;
-        if(fitness < lastFitness){
+        std::cout<<"fitness ("<<fitness<<" +- "<<fitnessUncert<<") lastFitness "<<lastFitness;
+        if((fitness < lastFitness) & (enhance::fastExp((fitness-lastFitness)/parameterStorage->parameters.at("acceptanceFactor"))<enhance::random_double(0,1))){
             std::cout<<" not accepted "<<std::endl;
             //swap back
             for(int i=0;i<electrodeNumber;i++){
@@ -282,27 +314,16 @@ void MCHost::optimizeMC(){
 
 void MCHost::run(){
     DEBUG_FUNC_START
+    std::cout<<"running fixed setup"<<std::endl;
 
     system->setElectrodeVoltage(parameterStorage->parameters.at("outputElectrode"),0);
     
+    runVoltageSetup();
+    calcFitness();
+    saveResults();
 
-    for (size_t j = 0; j < 20; j++){
+    std::cout<<"fitness "<<fitness<<" +- "<<fitnessUncert<<std::endl;;
 
-        for(int i=0;i<electrodeNumber;i++){
-            if(i !=parameterStorage->parameters.at("outputElectrode")){
-                system->setElectrodeVoltage(i,enhance::random_double(-1,1));
-            }
-        }
-
-        for (size_t i = 0; i < 5; i++){
-            std::cout<<"random run "<<j+1<<" repetition "<<i+1<<std::endl;
-
-            runVoltageSetup();
-            calcFitness();
-            saveResults();
-        }
-    }
-        
 
     DEBUG_FUNC_END
 }
