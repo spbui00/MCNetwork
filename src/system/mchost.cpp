@@ -196,7 +196,7 @@ void MCHost::runVoltageSetup(){
 
             outputCurrentBuffer      [i*voltageScanPointsNumber+j]=outputCurrent;
             outputCurrentUncertBuffer[i*voltageScanPointsNumber+j]=outputCurrentStd;
-            std:cout<<"current: "<<outputCurrentBuffer[i*voltageScanPointsNumber+j]<<std::endl;
+            std:cout<<"current: "<<outputCurrentBuffer[i*voltageScanPointsNumber+j]<<" +- "<<outputCurrentUncertBuffer[i*voltageScanPointsNumber+j]<<std::endl;
         }
     }
 
