@@ -19,6 +19,7 @@ with h5py.File(join(pathToSimFolder,"data.hdf5"),"r") as dataFile:
     currents=np.array(dataFile["/outputCurrent"][:])
     sigma=np.array(dataFile["/outputCurrentUncert"][:])
     fitness=np.array(dataFile["/fitness"][:])
+    sigmaFitness=np.array(dataFile["/fitnessUncert"][:])
     voltages=np.array(dataFile["/voltages"][:])
 
 voltageScanPointsNumber = int((parameters["voltageScanMax"]-parameters["voltageScanMin"])/parameters["voltageScanResolution"]+1)
@@ -28,7 +29,7 @@ sigma   .resize((sigma   .shape[0],voltageScanPointsNumber,voltageScanPointsNumb
 print(currents.shape)
 
 best=np.argmax(fitness,axis=0)
-print("best at",best,"fitness: ",fitness[best]," +-", sigma[best])
+print("best at",best,"fitness: ",fitness[best]," +-", sigmaFitness[best])
 print(voltages[best])
 
 

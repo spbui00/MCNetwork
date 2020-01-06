@@ -1,7 +1,7 @@
 #include "finiteElemente.h"
 
 
-FiniteElemente::FiniteElemente(double const & len, double const & width, int const & maxNumberOfElments): len(len), width(width){
+FiniteElemente::FiniteElemente(double const & len, double const & width, int const & maxNumberOfElments, bool saveSolution): len(len), width(width), saveSolution(saveSolution){
 
     initMesh(maxNumberOfElments);
 
@@ -191,63 +191,73 @@ void FiniteElemente::initRun(){
 
 
     // 2.--> see see mfem ex1.cpp in mfem lib
-   Device device("cpu");
-//    device.Print();
+    Device device("cpu");
+    //    device.Print();
 
 
 
-   //6.--> see see mfem ex1.cpp in mfem lib
-   if (mesh->bdr_attributes.Size())
-   {
-      Array<int> ess_bdr(mesh->bdr_attributes.Max());
-      ess_bdr = 1; // <<<<<<<<<<<<--------------  change this to 0 to make only part of boundaries essential
-      ess_bdr[1] = 1;
-      fespace->GetEssentialTrueDofs(ess_bdr, ess_tdof_list);
-   }
-
-   // 7. Set up the linear form b(.) which corresponds to the right-hand side of
-   //    the FEM linear system, which in this case is (1,phi_i) where phi_i are
-   //    the basis functions in the finite element fespace.
-   b = new LinearForm(fespace);
-   ConstantCoefficient one(1.0);
-   ConstantCoefficient zero(0.0);
-   b->AddDomainIntegrator(new DomainLFIntegrator(zero));
-   b->Assemble();
-
-   // 9. Set up the bilinear form a(.,.) on the finite element space
-   //    corresponding to the Laplacian operator -Delta, by adding the Diffusion
-   //    domain integrator.
-   a = new BilinearForm(fespace);
-   a->AddDomainIntegrator(new DiffusionIntegrator(one));
-
-   // 10. Assemble the bilinear form and the corresponding linear system,
-   //     applying any necessary transformations such as: eliminating boundary
-   //     conditions, applying conforming constraints for non-conforming AMR,
-   //     static condensation, etc.
-   a->Assemble();
+    //6.--> see see mfem ex1.cpp in mfem lib
+    if (mesh->bdr_attributes.Size())
+    {
+        Array<int> ess_bdr(mesh->bdr_attributes.Max());
+        ess_bdr = 1; // <<<<<<<<<<<<--------------  change this to 0 to make only part of boundaries essential
+        ess_bdr[1] = 1;
+        fespace->GetEssentialTrueDofs(ess_bdr, ess_tdof_list);
     }
+
+    if(saveSolution){   
+        ofstream mesh_ofs("finEle.mesh");
+        mesh_ofs.precision(8);
+        mesh->Print(mesh_ofs);
+    }
+}
 
 
 void FiniteElemente::run(){
-    // 10.
+
+    // 7. Set up the linear form b(.) which corresponds to the right-hand side of
+    //    the FEM linear system, which in this case is (1,phi_i) where phi_i are
+    //    the basis functions in the finite element fespace.
+    b = new LinearForm(fespace);
+    ConstantCoefficient one(1.0);
+    ConstantCoefficient zero(0.0);
+    b->AddDomainIntegrator(new DomainLFIntegrator(zero));
+    b->Assemble();
+
+    // 9. Set up the bilinear form a(.,.) on the finite element space
+    //    corresponding to the Laplacian operator -Delta, by adding the Diffusion
+    //    domain integrator.
+    a = new BilinearForm(fespace);
+    a->AddDomainIntegrator(new DiffusionIntegrator(one));
+
+    // 10. Assemble the bilinear form and the corresponding linear system,
+    //     applying any necessary transformations such as: eliminating boundary
+    //     conditions, applying conforming constraints for non-conforming AMR,
+    //     static condensation, etc.
+    a->Assemble();
     a->FormLinearSystem(ess_tdof_list, *solutionVector, *b, A, X, B);
     // 11.
     M=GSSmoother((SparseMatrix&)(*A));
     PCG(*A, M, B, X, 0, 1000, 1e-12, 0.0);
 
-   // 12. Recover the solution as a finite element grid function.
-   a->RecoverFEMSolution(X, *b, *solutionVector);
+    // 12. Recover the solution as a finite element grid function.
+    a->RecoverFEMSolution(X, *b, *solutionVector);
 
 
-   // -------- tetsing only -------
-   // 13. Save the refined mesh and the solution. This output can be viewed later
-   //     using GLVis: "glvis -m refined.mesh -g sol.gf".
-//    ofstream mesh_ofs("finEle.mesh");
-//    mesh_ofs.precision(8);
-//    mesh->Print(mesh_ofs);
-//    ofstream sol_ofs("laplace_solution.gf");
-//    sol_ofs.precision(8);
-//    solutionVector->Save(sol_ofs);
+    // 13. Save the refined mesh and the solution. This output can be viewed later
+    //    using GLVis: "glvis -m finEle.mesh -g laplace_solution.gf".
+    if(saveSolution){   
+        ofstream sol_ofs("laplace_solution"+std::to_string(runNumber)+".gf");
+        sol_ofs.precision(8);
+        solutionVector->Save(sol_ofs);
+        std::cout<<"mfem run "<<runNumber<<" finished"<<std::endl;
+    }
+    runNumber++;
+    // *solutionVector = 0;
+
+    delete a;
+    delete b;
+
 }
 
 double FiniteElemente::getPotential(double const & x, double const & y){

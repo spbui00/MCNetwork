@@ -77,6 +77,7 @@ void MCHost::calcRates(){
             ratesSum+=rates[i][j];
 
 
+            // std::cout<<-2*system->distances[i][j]/locLenA<<" ";
             // std::cout<<system->deltaEnergies[i][j]<<" ";
         }
         // std::cout<<std::endl;
@@ -121,6 +122,11 @@ void MCHost::singleRun(){
     //run system until currents are in equilibrium
     DEBUG_FUNC_START
 
+    // std::cout<<"voltages: "<<std::endl;
+    // for(int i=0;i<electrodeNumber;i++){
+    //     std::cout<<i<<" "<<parameterStorage->electrodes[i].voltage<<std::endl;
+    // }
+
     // reset currents
     for (int i = 0; i < hoppingSiteNumber; i++){
         system->hoppingSites[i]->currentCounter    = 0;
@@ -132,6 +138,7 @@ void MCHost::singleRun(){
         system->calcEnergies();
         calcRates();
         makeSwap();
+        system->increaseTime(ratesSum);
     }
 
 
@@ -147,15 +154,18 @@ void MCHost::singleRun(){
         for (int i = 0; i < hoppingSiteNumber; i++){
             system->hoppingSites[i]->currentCounter    = 0;
             system->hoppingSites[i]->absCurrentCounter = 0;
+            system->time=0;
         }
         // run pruductions steps
         for(int i=0; i<N;i++){
             system->calcEnergies();
             calcRates();
             makeSwap();
+            system->increaseTime(ratesSum);
+
         }
-        outputCurrent     +=           system->hoppingSites[parameterStorage->parameters.at("outputElectrode")+parameterStorage->parameters["acceptorNumber"]]->currentCounter;
-        outputCurrentSqrt += std::pow(system->hoppingSites[parameterStorage->parameters.at("outputElectrode")+parameterStorage->parameters["acceptorNumber"]]->currentCounter,2);
+        outputCurrent     +=          system->hoppingSites[parameterStorage->parameters.at("outputElectrode")+parameterStorage->parameters["acceptorNumber"]]->currentCounter/system->time;
+        outputCurrentSqrt += std::pow(system->hoppingSites[parameterStorage->parameters.at("outputElectrode")+parameterStorage->parameters["acceptorNumber"]]->currentCounter/system->time,2);
     }
 
     outputCurrentStd=std::sqrt((outputCurrentSqrt-outputCurrent*outputCurrent/uncertaintySplits)/uncertaintySplits);

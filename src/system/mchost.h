@@ -12,7 +12,6 @@
 class MCHost
 {
 private:
-    int steps=0;
     int hoppingSiteNumber=0;
     int voltageScanPointsNumber;
     int electrodeNumber;

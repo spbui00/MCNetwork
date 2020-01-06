@@ -45,7 +45,7 @@ ParameterStorage::ParameterStorage(std::string filename)
     parameters["hoppingSiteNumber"]=parameters["acceptorNumber"]+electrodes.size();
 
     // convert lens in dimensions of R    
-    parameters["R"]=std::pow(parameters["lenX"]*parameters["lenY"]/parameters["acceptorNumber"],0.5);
+    parameters["R"]=std::sqrt(parameters["lenX"]*parameters["lenY"]/parameters["acceptorNumber"]);
     parameters["lenX"]=parameters["lenX"]/parameters["R"];
     parameters["lenY"]=parameters["lenY"]/parameters["R"];
     parameters["a"]=parameters["a"]/parameters["R"];

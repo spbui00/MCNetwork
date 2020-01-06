@@ -19,6 +19,8 @@ class FiniteElemente
 
 private:
     double len, width;
+    bool saveSolution;
+    int runNumber=0;
     int numberVerticesX,numberVerticesY;
     int const dim = 2, sdim = 2, order =1;
     int** vertexIndexMap;
@@ -41,7 +43,7 @@ private:
 
 
 public:
-    FiniteElemente(double const & len,double const & width, int const & maxNumberOfElments);
+    FiniteElemente(double const & len,double const & width, int const & maxNumberOfElments, bool saveSolution=false);
     ~FiniteElemente();
 
     void initRun();

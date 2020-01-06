@@ -21,7 +21,6 @@ class ParameterStorage
     
 public:
     std::string gate;
-    double T, kBT;
     std::map<std::string,double> parameters; //general parameter map
     std::vector<ElectrodeParameters> electrodes;
     std::string workingDirecotry ="./";

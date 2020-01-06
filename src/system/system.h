@@ -28,6 +28,8 @@ private:
     FiniteElemente * finEle; //finEle device
     
 public:
+    double time=0;
+
     System(std::shared_ptr<ParameterStorage>);
     double** distances;
     double** deltaEnergies;
@@ -45,6 +47,7 @@ public:
     void calcEnergies();
     void setElectrodeVoltage(int electrodeIndex, double voltage);
     void updatePotential();
+    void increaseTime(double const & ratesSum);
 };
 
 

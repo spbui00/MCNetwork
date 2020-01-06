@@ -166,11 +166,12 @@ void System::getReadyForRun(){
     // set const energy part
     for(int i=0;i<hoppingSiteNumber;i++){
         for(int j=0;j<parameterStorage->parameters.at("donorNumber");j++){
-            //dopant interaction
+            //donor interaction
             hoppingSites[i]->constEnergyPart+=parameterStorage->parameters.at("I0")*1/std::sqrt(std::pow(hoppingSites[i]->posX-donorPositions[j][0],2)+std::pow(hoppingSites[i]->posY-donorPositions[j][1],2));
         }
         //potential
-        hoppingSites[i]->constEnergyPart+=finEle->getPotential(hoppingSites[i]->posX,hoppingSites[i]->posY);
+        // std::cout<<i<<" donor interaction "<< hoppingSites[i]->constEnergyPart <<" pot "<< finEle->getPotential(hoppingSites[i]->posX,hoppingSites[i]->posY)*parameterStorage->parameters.at("e")/parameterStorage->parameters.at("kT")<<std::endl;
+        hoppingSites[i]->constEnergyPart+=finEle->getPotential(hoppingSites[i]->posX,hoppingSites[i]->posY)*parameterStorage->parameters.at("e")/parameterStorage->parameters.at("kT");
 
     }
     DEBUG_FUNC_END
@@ -264,7 +265,7 @@ void System::updatePotential(){
     
     //reset old potential
     for(int i=0;i<hoppingSiteNumber;i++){
-        hoppingSites[i]->constEnergyPart-=finEle->getPotential(hoppingSites[i]->posX,hoppingSites[i]->posY);
+        hoppingSites[i]->constEnergyPart-=finEle->getPotential(hoppingSites[i]->posX,hoppingSites[i]->posY)*parameterStorage->parameters.at("e")/parameterStorage->parameters.at("kT");
     }
 
     //recalc potential
@@ -272,7 +273,7 @@ void System::updatePotential(){
 
     //set new potential
     for(int i=0;i<hoppingSiteNumber;i++){
-        hoppingSites[i]->constEnergyPart+=finEle->getPotential(hoppingSites[i]->posX,hoppingSites[i]->posY);
+        hoppingSites[i]->constEnergyPart+=finEle->getPotential(hoppingSites[i]->posX,hoppingSites[i]->posY)*parameterStorage->parameters.at("e")/parameterStorage->parameters.at("kT");
     }
     DEBUG_FUNC_END
 }
@@ -284,6 +285,15 @@ void System::setElectrodeVoltage(int electrodeIndex, double voltage){
     parameterStorage->electrodes[electrodeIndex].voltage=voltage;
 
     finEle->updateElectrodeVoltage(electrodeIndex,voltage);
+
+    DEBUG_FUNC_END
+}
+
+
+void System::increaseTime(double const & ratesSum){
+    DEBUG_FUNC_START
+
+    time+=std::log(enhance::random_double(0,1))/(-1*ratesSum);
 
     DEBUG_FUNC_END
 }

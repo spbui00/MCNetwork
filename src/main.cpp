@@ -11,9 +11,6 @@
 
 /*
 TODO:
--correlation as fitness
--metropolis
-
 
 OPT:
 -parallelization

@@ -76,17 +76,6 @@ namespace enhance
     }
     
 
-    bool logicOperation(bool arg1, bool arg2, std::string operationName){
-        if     (operationName=="AND" ){ return  (arg1 & arg2);}
-        else if(operationName=="NAND"){ return !(arg1 & arg2);}
-        else if(operationName=="OR"  ){ return  (arg1 | arg2);}
-        else if(operationName=="NOR" ){ return !(arg1 | arg2);}
-        else if(operationName=="XOR" ){ return  (arg1 ^ arg2);}
-        else if(operationName=="NXOR"){ return !(arg1 ^ arg2);}
-        else{
-            throw std::runtime_error("logic operation not found");
-        }
 
-    }
 
 }
