@@ -84,6 +84,7 @@ void MCHost::calcRates(){
     }
     // std::cout<<std::endl;
 
+
     DEBUG_FUNC_END
 }
 
@@ -127,10 +128,22 @@ void MCHost::singleRun(){
     //     std::cout<<i<<" "<<parameterStorage->electrodes[i].voltage<<std::endl;
     // }
 
+
+        // set start occupation of acceptors
+    std::vector<int> indicesUnoccupied {};
+    for(int i=0;i<parameterStorage->parameters.at("acceptorNumber");i++){indicesUnoccupied.push_back(i);}
+    for(int i=0;i<parameterStorage->parameters.at("acceptorNumber")-parameterStorage->parameters.at("donorNumber");i++){
+        int index=enhance::random_int(0,parameterStorage->parameters.at("acceptorNumber")-i-1);
+        system->hoppingSites[indicesUnoccupied[index]]->setOccupation(true);
+        indicesUnoccupied.erase(indicesUnoccupied.begin()+index);
+    }
+
+
     // reset currents
     for (int i = 0; i < hoppingSiteNumber; i++){
         system->hoppingSites[i]->currentCounter    = 0;
         system->hoppingSites[i]->absCurrentCounter = 0;
+        system->time=0;
     }
     // run equil steps
     int N=parameterStorage->parameters.at("equilSteps");
@@ -148,6 +161,7 @@ void MCHost::singleRun(){
 
     outputCurrent     = 0;
     outputCurrentSqrt = 0;
+
 
     for(int j=0; j < uncertaintySplits; j++){
         // reset currents
@@ -168,6 +182,7 @@ void MCHost::singleRun(){
         outputCurrentSqrt += std::pow(system->hoppingSites[parameterStorage->parameters.at("outputElectrode")+parameterStorage->parameters["acceptorNumber"]]->currentCounter/system->time,2);
     }
 
+
     outputCurrentStd=std::sqrt((outputCurrentSqrt-outputCurrent*outputCurrent/uncertaintySplits)/uncertaintySplits);
     outputCurrent/=uncertaintySplits;
 
@@ -187,8 +202,8 @@ void MCHost::runVoltageSetup(){
         for(int j=0; j < voltageScanPointsNumber; j++){
             std::cout<<"scanning... "<<parameterStorage->parameters.at("voltageScanMin")+parameterStorage->parameters.at("voltageScanResolution")*i<<" "
                                      <<parameterStorage->parameters.at("voltageScanMin")+parameterStorage->parameters.at("voltageScanResolution")*j<<" ";
-            system->setElectrodeVoltage(parameterStorage->parameters.at("inputElectrode1"),parameterStorage->parameters.at("voltageScanMin")+parameterStorage->parameters.at("voltageScanResolution")*i);
-            system->setElectrodeVoltage(parameterStorage->parameters.at("inputElectrode2"),parameterStorage->parameters.at("voltageScanMin")+parameterStorage->parameters.at("voltageScanResolution")*j);
+            parameterStorage->electrodes[parameterStorage->parameters.at("inputElectrode1")].voltage=parameterStorage->parameters.at("voltageScanMin")+parameterStorage->parameters.at("voltageScanResolution")*i;
+            parameterStorage->electrodes[parameterStorage->parameters.at("inputElectrode2")].voltage=parameterStorage->parameters.at("voltageScanMin")+parameterStorage->parameters.at("voltageScanResolution")*j;
 
             system->updatePotential();
 
@@ -262,9 +277,9 @@ void MCHost::optimizeMC(){
     DEBUG_FUNC_START
     std::cout<<"running optimization"<<std::endl;
 
-    system->setElectrodeVoltage(parameterStorage->parameters.at("outputElectrode"),0);
+    parameterStorage->electrodes[parameterStorage->parameters.at("outputElectrode")].voltage=0;
     
-    // init random voltages
+    // // init random voltages
     // for(int i=0;i<electrodeNumber;i++){
     //     if((i !=parameterStorage->parameters.at("outputElectrode")) & (i !=parameterStorage->parameters.at("inputElectrode1")) &(i !=parameterStorage->parameters.at("inputElectrode2"))){
     //         system->setElectrodeVoltage(i,enhance::random_double(parameterStorage->parameters.at("controlVoltageMin"),parameterStorage->parameters.at("controlVoltageMax")));
@@ -278,7 +293,8 @@ void MCHost::optimizeMC(){
 
     std::cout<<"fitness "<<fitness<<" +- "<<fitnessUncert<<std::endl;;
 
-    double lastFitness=fitness;
+    double lastFitness       = fitness;
+    double lastFitnessUncert = fitnessUncert;
     double lastVoltages[electrodeNumber];
     for(int i=0;i<electrodeNumber;i++){
         lastVoltages[i]=parameterStorage->electrodes[i].voltage;
@@ -290,7 +306,7 @@ void MCHost::optimizeMC(){
         std::cout<<"new random voltages: "<<std::endl;
         for(int i=0;i<electrodeNumber;i++){
             if((i !=parameterStorage->parameters.at("outputElectrode")) & (i !=parameterStorage->parameters.at("inputElectrode1")) &(i !=parameterStorage->parameters.at("inputElectrode2"))){
-                system->setElectrodeVoltage(i,enhance::random_double(std::max(parameterStorage->parameters.at("controlVoltageMin"),parameterStorage->electrodes[i].voltage-parameterStorage->parameters.at("maxDeltaV")),std::min(parameterStorage->parameters.at("controlVoltageMax"),parameterStorage->electrodes[i].voltage+parameterStorage->parameters.at("maxDeltaV"))));
+                parameterStorage->electrodes[i].voltage=enhance::random_double(std::max(parameterStorage->parameters.at("controlVoltageMin"),parameterStorage->electrodes[i].voltage-parameterStorage->parameters.at("maxDeltaV")),std::min(parameterStorage->parameters.at("controlVoltageMax"),parameterStorage->electrodes[i].voltage+parameterStorage->parameters.at("maxDeltaV")));
                 std::cout<<i<<" "<<parameterStorage->electrodes[i].voltage<<std::endl;
             }
         }
@@ -299,12 +315,13 @@ void MCHost::optimizeMC(){
         calcFitness();
         saveResults();
 
-        std::cout<<"fitness ("<<fitness<<" +- "<<fitnessUncert<<") lastFitness "<<lastFitness;
-        if((fitness < lastFitness) & (enhance::fastExp((fitness-lastFitness)/parameterStorage->parameters.at("acceptanceFactor"))<enhance::random_double(0,1))){
-            std::cout<<" not accepted "<<std::endl;
+        std::cout<<"fitness ("<<fitness<<" +- "<<fitnessUncert<<") lastFitness ("<<lastFitness<<" +- "<<fitnessUncert<<")";
+        // if(((fitness-fitnessUncert/2) < (lastFitness-lastFitnessUncert/2)) & (enhance::fastExp(((fitness-fitnessUncert/2)-(lastFitness-lastFitnessUncert/2))/parameterStorage->parameters.at("acceptanceFactor"))<enhance::random_double(0,1))){
+        if(false){
+            std::cout<<"not accepted "<<std::endl;
             //swap back
             for(int i=0;i<electrodeNumber;i++){
-                system->setElectrodeVoltage(i,lastVoltages[i]);
+                parameterStorage->electrodes[i].voltage=lastVoltages[i];
             }
         }
         else{
@@ -313,7 +330,8 @@ void MCHost::optimizeMC(){
             for(int i=0;i<electrodeNumber;i++){
                 lastVoltages[i]=parameterStorage->electrodes[i].voltage;
             }
-            lastFitness=fitness;
+            lastFitness       = fitness;
+            lastFitnessUncert = lastFitnessUncert;
         }
     }
     
@@ -326,8 +344,8 @@ void MCHost::run(){
     DEBUG_FUNC_START
     std::cout<<"running fixed setup"<<std::endl;
 
-    system->setElectrodeVoltage(parameterStorage->parameters.at("outputElectrode"),0);
-    
+    parameterStorage->electrodes[parameterStorage->parameters.at("outputElectrode")].voltage=0;
+
     runVoltageSetup();
     calcFitness();
     saveResults();

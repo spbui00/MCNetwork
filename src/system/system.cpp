@@ -269,6 +269,9 @@ void System::updatePotential(){
     }
 
     //recalc potential
+    for(int i=0;i < parameterStorage->electrodes.size();i++){
+        finEle->updateElectrodeVoltage(i,parameterStorage->electrodes[i].voltage);
+    }
     finEle->run();
 
     //set new potential
@@ -278,16 +281,6 @@ void System::updatePotential(){
     DEBUG_FUNC_END
 }
 
-
-void System::setElectrodeVoltage(int electrodeIndex, double voltage){
-    DEBUG_FUNC_START
-
-    parameterStorage->electrodes[electrodeIndex].voltage=voltage;
-
-    finEle->updateElectrodeVoltage(electrodeIndex,voltage);
-
-    DEBUG_FUNC_END
-}
 
 
 void System::increaseTime(double const & ratesSum){

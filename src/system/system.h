@@ -45,7 +45,6 @@ public:
     void getReadyForRun();
 
     void calcEnergies();
-    void setElectrodeVoltage(int electrodeIndex, double voltage);
     void updatePotential();
     void increaseTime(double const & ratesSum);
 };

@@ -2,7 +2,7 @@
 gate XOR 
 steps 1e9
 finiteElementsResolution 5e3
-equilSteps 5e5
+equilSteps 1e5
 calcCurrentSteps 5e6
 
 
@@ -63,5 +63,5 @@ seperationVoltage 0.25
 
 #optimization parameters
 acceptanceFactor 0.05 #big factor -> all accepted
-maxDeltaV 0.1
+maxDeltaV 0.05
 

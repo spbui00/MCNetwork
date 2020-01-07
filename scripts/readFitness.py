@@ -28,7 +28,7 @@ sigma   .resize((sigma   .shape[0],voltageScanPointsNumber,voltageScanPointsNumb
 
 print(currents.shape)
 
-best=np.argmax(fitness,axis=0)
+best=np.argmax((fitness-sigmaFitness/2),axis=0)
 print("best at",best,"fitness: ",fitness[best]," +-", sigmaFitness[best])
 print(voltages[best])
 
