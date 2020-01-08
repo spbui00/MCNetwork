@@ -119,6 +119,8 @@ void System::getReadyForRun(){
     }
 
 
+
+
     //set electrodes
     for(ElectrodeParameters & el: parameterStorage->electrodes){
         switch (el.edge){
@@ -287,6 +289,19 @@ void System::increaseTime(double const & ratesSum){
     DEBUG_FUNC_START
 
     time+=std::log(enhance::random_double(0,1))/(-1*ratesSum);
+
+    DEBUG_FUNC_END
+}
+
+std::string System::getState(){
+    DEBUG_FUNC_START
+
+    std::string occupationState="";
+    for(int i=0;i<acceptorNumber;i++){
+        occupationState+=hoppingSites[i]->getOccupation() ? "1" : "0";
+    }
+
+    return occupationState;
 
     DEBUG_FUNC_END
 }

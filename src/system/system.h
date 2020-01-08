@@ -41,8 +41,11 @@ public:
     void createRandomNewDevice();
     void loadDevice();
 
+
     void initilizeMatrices();
     void getReadyForRun();
+
+    std::string getState();
 
     void calcEnergies();
     void updatePotential();

@@ -1,9 +1,10 @@
 #simulation parameters
 gate XOR 
+memoryLimit 2000 #in MB (should be around 100mb under real limit)
 steps 1e9
 finiteElementsResolution 5e3
 equilSteps 1e5
-calcCurrentSteps 5e6
+calcCurrentSteps 1e7
 
 
 
@@ -38,11 +39,11 @@ eps0 8.854187817620389e-12
 electrode 0.25 0 0
 electrode 0.75 0 0
 electrode 0.25 1 0
-electrode 0.75 1 0
-electrode 0.25 2 0
-electrode 0.75 2 0
-electrode 0.25 3 0
-electrode 0.75 3 0
+electrode 0.75 1 -0.31593346
+electrode 0.25 2 0.31334221
+electrode 0.75 2 -0.09762791
+electrode 0.25 3 0.86493324
+electrode 0.75 3 -0.0838823
 
 
 electrodeWidth 30 #nm
@@ -63,5 +64,5 @@ seperationVoltage 0.25
 
 #optimization parameters
 acceptanceFactor 0.05 #big factor -> all accepted
-maxDeltaV 0.05
+maxDeltaV 0.1
 
