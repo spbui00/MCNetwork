@@ -9,8 +9,6 @@ MCHost::MCHost(std::shared_ptr<ParameterStorage> parameterStorage) : parameterSt
     locLenA=parameterStorage->parameters.at("a");
     electrodeNumber=int(parameterStorage->electrodes.size());
 
-    // rates = std::shared_ptr<std::vector<double>> (& std::vector<double>(hoppingSiteNumber*hoppingSiteNumber));
-
 
 
     std::string dataFileName = parameterStorage->workingDirecotry+ "data.hdf5";
@@ -25,6 +23,7 @@ MCHost::MCHost(std::shared_ptr<ParameterStorage> parameterStorage) : parameterSt
     dataFile->createDataset("outputCurrentUncert", {voltageScanPointsNumber*voltageScanPointsNumber} );
     dataFile->createDataset("fitness",             {1});
     dataFile->createDataset("fitnessUncert",       {1});
+    dataFile->createDataset("optEnergy",           {1});
     dataFile->createDataset("voltages",            {electrodeNumber} );
 
     
@@ -260,13 +259,14 @@ void MCHost::saveResults(){
     dataFile->addData("outputCurrentUncert",outputCurrentUncertBuffer);
     dataFile->addData("fitness"            ,& fitness);
     dataFile->addData("fitnessUncert"      ,& fitnessUncert);
+    dataFile->addData("optEnergy"          ,& optEnergy);
     dataFile->addData("voltages"           ,voltageBuffer);
 
     DEBUG_FUNC_END
 }
 
 
-void MCHost::calcFitness(){
+void MCHost::calcOptimizationEnergy(){
     // el of [0,1]
     DEBUG_FUNC_START
 
@@ -297,33 +297,41 @@ void MCHost::calcFitness(){
     fitness=1-fitness;
     fitnessUncert=std::sqrt(fitnessUncert);
     fitnessUncert/=voltageScanPointsNumber*voltageScanPointsNumber;
+    normedDiff= (outputCurrentBuffer[maxIndex]-outputCurrentBuffer[minIndex])/(2*std::max(std::abs(outputCurrentBuffer[maxIndex]),std::abs(outputCurrentBuffer[minIndex])));
+
+    optEnergy = fitness - fitnessUncert*parameterStorage->parameters.at("fitnessUncertWeight") + normedDiff*parameterStorage->parameters.at("diffWeight");
 
 
     DEBUG_FUNC_END
 }
 
-void MCHost::optimizeMC(){
+void MCHost::optimizeMC(bool rndStart /*= false*/){
     DEBUG_FUNC_START
     std::cout<<"running optimization"<<std::endl;
 
     parameterStorage->electrodes[parameterStorage->parameters.at("outputElectrode")].voltage=0;
     
-    // // init random voltages
-    // for(int i=0;i<electrodeNumber;i++){
-    //     if((i !=parameterStorage->parameters.at("outputElectrode")) & (i !=parameterStorage->parameters.at("inputElectrode1")) &(i !=parameterStorage->parameters.at("inputElectrode2"))){
-    //         system->setElectrodeVoltage(i,enhance::random_double(parameterStorage->parameters.at("controlVoltageMin"),parameterStorage->parameters.at("controlVoltageMax")));
-    //     }
-    // }
-
+    // init random voltages
+    if (rndStart){
+        std::cout<<"new random voltages: "<<std::endl;
+        for(int i=0;i<electrodeNumber;i++){
+            if((i !=parameterStorage->parameters.at("outputElectrode")) & (i !=parameterStorage->parameters.at("inputElectrode1")) &(i !=parameterStorage->parameters.at("inputElectrode2"))){
+                parameterStorage->electrodes[i].voltage=enhance::random_double(parameterStorage->parameters.at("controlVoltageMin"),parameterStorage->parameters.at("controlVoltageMax"));
+                std::cout<<i<<" "<<parameterStorage->electrodes[i].voltage<<std::endl;
+            }
+        }
+    }
 
     runVoltageSetup();
-    calcFitness();
+    calcOptimizationEnergy();
     saveResults();
 
-    std::cout<<"fitness "<<fitness<<" +- "<<fitnessUncert<<std::endl;;
+    std::cout<<"optEnergy: "<<optEnergy    <<" fitness: ("<<fitness    <<" +- "<<fitnessUncert    <<") normedDiff: "<<normedDiff<<std::endl;;
 
     double lastFitness       = fitness;
     double lastFitnessUncert = fitnessUncert;
+    double lastOptEnergy     = optEnergy;
+    double lastNormedDiff    = normedDiff;
     double lastVoltages[electrodeNumber];
     for(int i=0;i<electrodeNumber;i++){
         lastVoltages[i]=parameterStorage->electrodes[i].voltage;
@@ -343,29 +351,38 @@ void MCHost::optimizeMC(){
         }
 
         runVoltageSetup();
-        calcFitness();
+        calcOptimizationEnergy();
         saveResults();
 
-        std::cout<<"fitness ("<<fitness<<" +- "<<fitnessUncert<<") lastFitness ("<<lastFitness<<" +- "<<lastFitnessUncert<<")";
-        if(((fitness-fitnessUncert/2) < (lastFitness-lastFitnessUncert/2)) & (enhance::fastExp(((fitness-fitnessUncert/2)-(lastFitness-lastFitnessUncert/2))/parameterStorage->parameters.at("acceptanceFactor"))<enhance::random_double(0,1))){
-            std::cout<<"not accepted "<<std::endl;
+        std::cout<<"now:  optEnergy: "<<optEnergy    <<" fitness: ("<<fitness    <<" +- "<<fitnessUncert    <<") normedDiff: "<<normedDiff<<"\nlast: optEnergy: "<<lastOptEnergy<<" fitness: ("<<lastFitness<<" +- "<<lastFitnessUncert<<") normedDiff: "<<lastNormedDiff<<std::endl;
+        if((optEnergy < lastOptEnergy) & (enhance::fastExp((optEnergy-lastOptEnergy)/parameterStorage->parameters.at("acceptanceFactor"))<enhance::random_double(0,1))){
+            std::cout<<"-- not accepted --"<<std::endl;
             //swap back
             for(int i=0;i<electrodeNumber;i++){
                 parameterStorage->electrodes[i].voltage=lastVoltages[i];
             }
         }
         else{
-            std::cout<<" accepted"<<std::endl;
+            std::cout<<"-- accepted --"<<std::endl;
             //setup for next iteration
             for(int i=0;i<electrodeNumber;i++){
                 lastVoltages[i]=parameterStorage->electrodes[i].voltage;
             }
             lastFitness       = fitness;
             lastFitnessUncert = fitnessUncert;
+            lastOptEnergy     = optEnergy;
+            lastNormedDiff    = normedDiff;
         }
         auto endTime = chrono::steady_clock::now();
         std::cout << "time per VoltageSetup = " << std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count()/1000.0 << " s" << std::endl;
     
+        int maxIncreases=7;
+        int increaseNumber=0;
+        if((increaseNumber < maxIncreases) and (fitness+fitnessUncert)>1){
+            increaseNumber++;
+            parameterStorage->parameters["calcCurrentSteps"]*=2;
+            std::cout<<"############ steps increased!! now:"<<parameterStorage->parameters["calcCurrentSteps"]<<" #############"<<std::endl;
+        }
     }
     
 
@@ -383,10 +400,10 @@ void MCHost::run(){
     parameterStorage->electrodes[parameterStorage->parameters.at("outputElectrode")].voltage=0;
 
     runVoltageSetup();
-    calcFitness();
+    calcOptimizationEnergy();
     saveResults();
 
-    std::cout<<"fitness "<<fitness<<" +- "<<fitnessUncert<<std::endl;;
+    std::cout<<"optEnergy: "<<optEnergy    <<" fitness: ("<<fitness    <<" +- "<<fitnessUncert    <<") normedDiff: "<<normedDiff<<std::endl;;
 
     auto endTime = chrono::steady_clock::now();
     std::cout << "time elapsed = " << std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count()/1000.0 << " s" << std::endl;

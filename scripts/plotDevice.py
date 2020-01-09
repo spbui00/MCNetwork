@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 from sys import argv
-from tools import readParameters
+from tools import *
 from os.path import join
 
 import numpy as np
@@ -32,7 +32,7 @@ print(donorPos)
 import matplotlib.pylab as plt
 
 
-fig, ax = plt.subplots(1,1)
+fig, ax=plt.subplots(1,1,figsize=(4.980614173228346,3.2))
 
 for i in range(len(electrodes)):
     if   i == parameters["outputElectrode"]: color= "blue"
@@ -71,6 +71,8 @@ ax.set_aspect('equal')
 ax.set_xticks([], [])
 ax.set_yticks([], [])
 
+plt.savefig(join(pathToSimFolder,"plotDevice.png"),bbox_inches="tight",dpi=300)    
 plt.show()
-
+plt.close()
+fig=None
 # print(parameters)

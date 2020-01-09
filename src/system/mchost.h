@@ -18,7 +18,7 @@ private:
     int hoppingSiteNumber=0;
     int voltageScanPointsNumber;
     int electrodeNumber;
-    double fitness,fitnessUncert;
+    double fitness,fitnessUncert,optEnergy,normedDiff;
     double ratesSum=0;
     double locLenA;
     // double* rates;
@@ -37,7 +37,7 @@ private:
 
     void makeSwap();
     void calcRates(bool storeKnownStates = false);
-    void calcFitness();
+    void calcOptimizationEnergy();
     void saveResults();
     bool desiredLogicFunction(double val1, double val2, std::string gate);
 
@@ -48,7 +48,7 @@ public:
 
     void singleRun();
     void runVoltageSetup();
-    void optimizeMC();
+    void optimizeMC(bool rndStart = false);
     void run();
     
 

@@ -3,6 +3,11 @@
 from os.path import join
 from re import sub
 import numpy as np
+import matplotlib.pylab as plt
+
+plt.rc('text', usetex=True)
+plt.rcParams["lines.linewidth"]=1
+plt.rcParams["errorbar.capsize"]=3
 
 
 def readParameters(pathToSimFolder):
@@ -15,12 +20,11 @@ def readParameters(pathToSimFolder):
             line = sub(r'#.*', "", line)
 
             splitted=line.split(" ")
-            
             if len(splitted)==2:
                 try:
                     parameters[splitted[0]]=float(splitted[1])
                 except ValueError:
-                    pass
+                    parameters[splitted[0]]=str(splitted[1]).replace("\n","")
             elif splitted[0]=="electrode":
                 electrodes.append([float(splitted[1]),float(splitted[2]),float(splitted[3])])
 
@@ -58,3 +62,12 @@ def color(i,N):
     RGBA[np.where(RGBA>1)]=1
     RGBA[np.where(RGBA<0)]=0
     return RGBA
+
+def logical(a,b,gate):
+    if   gate=="AND" : return     np.logical_and(a,b)
+    elif gate=="NAND": return not np.logical_and(a,b)
+    elif gate=="OR"  : return     np.logical_or(a,b)
+    elif gate=="NOR" : return not np.logical_or(a,b)
+    elif gate=="XOR" : return     np.logical_xor(a,b)
+    elif gate=="NXOR": return not np.logical_xor(a,b)
+    

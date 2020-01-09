@@ -166,15 +166,16 @@ void System::getReadyForRun(){
     }
 
     // set const energy part
-    for(int i=0;i<hoppingSiteNumber;i++){
+    for(int i=0;i<acceptorNumber;i++){
         for(int j=0;j<parameterStorage->parameters.at("donorNumber");j++){
             //donor interaction
             hoppingSites[i]->constEnergyPart+=parameterStorage->parameters.at("I0")*1/std::sqrt(std::pow(hoppingSites[i]->posX-donorPositions[j][0],2)+std::pow(hoppingSites[i]->posY-donorPositions[j][1],2));
         }
-        //potential
+    }
+    //potential
+    for(int i=0;i<hoppingSiteNumber;i++){
         // std::cout<<i<<" donor interaction "<< hoppingSites[i]->constEnergyPart <<" pot "<< finEle->getPotential(hoppingSites[i]->posX,hoppingSites[i]->posY)*parameterStorage->parameters.at("e")/parameterStorage->parameters.at("kT")<<std::endl;
         hoppingSites[i]->constEnergyPart+=finEle->getPotential(hoppingSites[i]->posX,hoppingSites[i]->posY)*parameterStorage->parameters.at("e")/parameterStorage->parameters.at("kT");
-
     }
     DEBUG_FUNC_END
 }
@@ -189,7 +190,7 @@ void System::calcEnergies(){
     }
     for(int i=0;i<acceptorNumber;i++){ //coulomb interaction only with acceptors and..
         if (not hoppingSites[i]->getOccupation()){ //.. only if they are unoccupied
-            for(int j=0;j<hoppingSiteNumber;j++){
+            for(int j=0;j<acceptorNumber;j++){
                 hoppingSites[j]->energy-=pairEnergies[i][j];
             }
         }
@@ -219,7 +220,7 @@ void System::calcEnergies(){
     for(int i=0;i<acceptorNumber;i++){
         if (hoppingSites[i]->getOccupation()){
             for(int j=acceptorNumber;j<hoppingSiteNumber;j++){ 
-                deltaEnergies[i][j]=hoppingSites[j]->energy-hoppingSites[i]->energy-pairEnergies[i][j];
+                deltaEnergies[i][j]=hoppingSites[j]->energy-hoppingSites[i]->energy;
             }
         }
         else{
@@ -301,6 +302,7 @@ std::string System::getState(){
         occupationState+=hoppingSites[i]->getOccupation() ? "1" : "0";
     }
 
+    // std::cout<<occupationState<<std::endl;
     return occupationState;
 
     DEBUG_FUNC_END

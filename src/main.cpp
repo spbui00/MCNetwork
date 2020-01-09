@@ -36,6 +36,7 @@ int main(int argc, char *argv[]){
       ("mnd", "make new device")
       ("opt", "optimize control voltages")
       ("run", "just run control voltages defined in in.txt")
+      ("rSV", "random start voltages (only in combination with opt)")
       // ("dir", po::value<std::string>(),"define working dir. has to contain 'in.txt'")
       ("help", "produce help message");
    
@@ -68,7 +69,7 @@ int main(int argc, char *argv[]){
 
 
    if (vm.count("opt")){
-      mchost.optimizeMC();
+      mchost.optimizeMC(vm.count("rSV"));
    }
    else if (vm.count("run")){
       mchost.run();

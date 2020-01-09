@@ -1,10 +1,10 @@
 #simulation parameters
-gate XOR 
+gate XOR
 memoryLimit 2000 #in MB (should be around 100mb under real limit)
 steps 1e9
 finiteElementsResolution 5e3
 equilSteps 1e5
-calcCurrentSteps 1e7
+calcCurrentSteps 1e5
 
 
 
@@ -15,8 +15,8 @@ acceptorNumber 30
 lenX 300 #nm
 lenY 300 #nm
 
-I0 660 #meV (bram found 600)
-a 14 #nm
+I0 66 #meV (bram found 600)
+a 30 #nm
 compensationFactor 0.1 #donors per acceptor
 
 
@@ -39,11 +39,11 @@ eps0 8.854187817620389e-12
 electrode 0.25 0 0
 electrode 0.75 0 0
 electrode 0.25 1 0
-electrode 0.75 1 -0.31593346
-electrode 0.25 2 0.31334221
-electrode 0.75 2 -0.09762791
-electrode 0.25 3 0.86493324
-electrode 0.75 3 -0.0838823
+electrode 0.75 1 0
+electrode 0.25 2 0
+electrode 0.75 2 0
+electrode 0.25 3 0
+electrode 0.75 3 0
 
 
 electrodeWidth 30 #nm
@@ -52,17 +52,20 @@ inputElectrode2 1
 outputElectrode 2
 
 
-controlVoltageMin -1
-controlVoltageMax 1
+controlVoltageMin -0.1
+controlVoltageMax 0.1
 
 
 voltageScanMin 0
-voltageScanMax 0.5
-voltageScanResolution 0.5
-seperationVoltage 0.25
+voltageScanMax 0.05
+voltageScanResolution 0.05
+seperationVoltage 0.025
 
 
 #optimization parameters
-acceptanceFactor 0.05 #big factor -> all accepted
-maxDeltaV 0.1
+acceptanceFactor 0.03 #big factor -> all accepted
+maxDeltaV 0.01
+
+fitnessUncertWeight 0.5
+diffWeight 0.1
 
