@@ -162,19 +162,19 @@ void MCHost::singleRun(){
     int N=parameterStorage->parameters.at("equilSteps");
     for(int i=0; i<N;i++){
         //check if memory limit is exceeded
-        if (storeKnownStates & (i%1000 ==0) & (((hoppingSiteNumber*hoppingSiteNumber+1)*8*knownRates.size()) > (parameterStorage->parameters.at("memoryLimit")*1e6))){
-            storeKnownStates=false;
-            // std::cout<<"memory limit exceeded, stopping to store states"<<std::endl;
-        }
+        // if (storeKnownStates & (i%1000 ==0) & (((hoppingSiteNumber*hoppingSiteNumber+1)*8*knownRates.size()) > (parameterStorage->parameters.at("memoryLimit")*1e6))){
+        //     storeKnownStates=false;
+        //     std::cout<<"memory limit exceeded, stopping to store states"<<std::endl;
+        // }
         system->calcEnergies();
-        calcRates(storeKnownStates);
+        calcRates(false);
         makeSwap();
         system->increaseTime(ratesSum);
     }
 
 
     //split up in multiple runs to calc uncertainty of currents
-    int uncertaintySplits=10;
+    int uncertaintySplits=20;
     N=int(parameterStorage->parameters.at("calcCurrentSteps")/uncertaintySplits);
 
     outputCurrent     = 0;
@@ -182,7 +182,6 @@ void MCHost::singleRun(){
 
 
     for(int j=0; j < uncertaintySplits; j++){
-
         // reset currents
         for (int i = 0; i < hoppingSiteNumber; i++){
             system->hoppingSites[i]->currentCounter    = 0;
@@ -192,7 +191,7 @@ void MCHost::singleRun(){
         // run pruductions steps
         for(int i=0; i<N;i++){
             //check if memory limit is exceeded
-            if (storeKnownStates & (j%1000 ==0) & (((hoppingSiteNumber*hoppingSiteNumber+1)*8*knownRates.size()) > (parameterStorage->parameters.at("memoryLimit")*1e6))){
+            if (storeKnownStates & (i%1000 ==0) & (((hoppingSiteNumber*hoppingSiteNumber+1)*8*knownRates.size()) > (parameterStorage->parameters.at("memoryLimit")*1e6))){
                 storeKnownStates=false;
                 // std::cout<<"memory limit exceeded, stopping to store states"<<std::endl;
             }
@@ -204,10 +203,11 @@ void MCHost::singleRun(){
         }
         outputCurrent     +=          system->hoppingSites[parameterStorage->parameters.at("outputElectrode")+parameterStorage->parameters["acceptorNumber"]]->currentCounter/system->time;
         outputCurrentSqrt += std::pow(system->hoppingSites[parameterStorage->parameters.at("outputElectrode")+parameterStorage->parameters["acceptorNumber"]]->currentCounter/system->time,2);
+        // std::cout<<"curr: "<<" "<<outputCurrent/(j+1) <<" +- "<<std::sqrt((outputCurrentSqrt-outputCurrent*outputCurrent/(j+1)))/(j+1) <<std::endl;
     }
 
 
-    outputCurrentStd=std::sqrt((outputCurrentSqrt-outputCurrent*outputCurrent/uncertaintySplits)/uncertaintySplits);
+    outputCurrentStd=std::sqrt((outputCurrentSqrt-outputCurrent*outputCurrent/uncertaintySplits))/uncertaintySplits;
     outputCurrent/=uncertaintySplits;
 
     // //print currents
@@ -337,8 +337,9 @@ void MCHost::optimizeMC(bool rndStart /*= false*/){
         lastVoltages[i]=parameterStorage->electrodes[i].voltage;
     }
 
-
-    for (size_t i = 0; i < 1000; i++){
+    int maxIncreases=7;
+    int increaseNumber=0;
+    for (size_t i = 0; i < 1000000; i++){
         auto startTime = chrono::steady_clock::now();
 
         //get new random voltages
@@ -372,16 +373,16 @@ void MCHost::optimizeMC(bool rndStart /*= false*/){
             lastFitnessUncert = fitnessUncert;
             lastOptEnergy     = optEnergy;
             lastNormedDiff    = normedDiff;
+
         }
         auto endTime = chrono::steady_clock::now();
         std::cout << "time per VoltageSetup = " << std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count()/1000.0 << " s" << std::endl;
     
-        int maxIncreases=7;
-        int increaseNumber=0;
-        if((increaseNumber < maxIncreases) and (fitness+fitnessUncert)>1){
+
+        if((increaseNumber < maxIncreases) and (fitness+fitnessUncert)>1 and normedDiff>0.05){
             increaseNumber++;
             parameterStorage->parameters["calcCurrentSteps"]*=2;
-            std::cout<<"############ steps increased!! now:"<<parameterStorage->parameters["calcCurrentSteps"]<<" #############"<<std::endl;
+            std::cout<<"############ steps increased!! now: "<<parameterStorage->parameters["calcCurrentSteps"]<<" #############"<<std::endl;
         }
     }
     
