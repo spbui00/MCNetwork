@@ -10,6 +10,8 @@ MCHost::MCHost(std::shared_ptr<ParameterStorage> parameterStorage) : parameterSt
     electrodeNumber=int(parameterStorage->electrodes.size());
 
 
+    rates = std::make_shared<std::vector<double>>(hoppingSiteNumber*hoppingSiteNumber);
+
 
     std::string dataFileName = parameterStorage->workingDirecotry+ "data.hdf5";
     dataFile = std::shared_ptr<DataFile>(new DataFile(dataFileName));
@@ -51,16 +53,16 @@ void MCHost::setup(bool makeNewDevice)
 
 void MCHost::calcRates(bool storeKnownStates /*= false*/){
     DEBUG_FUNC_START
-    std::string state = system->getState();
+    // std::string state = system->getState();
 
 
-    if (knownRates.count(state)){
-        rates    = knownRates   .at(state);
-        ratesSum = knownRatesSum.at(state);
-    }
-    else{
+    // if (knownRates.count(state)){
+    //     rates    = knownRates   .at(state);
+    //     ratesSum = knownRatesSum.at(state);
+    // }
+    // else{
     // std::cout<<"n fnd state = "<<state<<std::endl;
-        rates = std::make_shared<std::vector<double>>(hoppingSiteNumber*hoppingSiteNumber);
+        // rates = std::make_shared<std::vector<double>>(hoppingSiteNumber*hoppingSiteNumber);
 
 
         ratesSum=0;
@@ -86,13 +88,13 @@ void MCHost::calcRates(bool storeKnownStates /*= false*/){
                 // std::cout<<system->deltaEnergies[i][j]<<" ";
             }
             // std::cout<<std::endl;
+    //     }
+    //     // std::cout<<std::endl;
+    //     if (storeKnownStates){
+    //         knownRates   [state]=rates;
+    //         knownRatesSum[state]=ratesSum;
         }
-        // std::cout<<std::endl;
-        if (storeKnownStates){
-            knownRates   [state]=rates;
-            knownRatesSum[state]=ratesSum;
-        }
-    }
+    // }
 
 
     DEBUG_FUNC_END
@@ -150,7 +152,7 @@ void MCHost::singleRun(){
     }
 
 
-    bool storeKnownStates=true;
+bool storeKnownStates=false;
 
     // reset currents
     for (int i = 0; i < hoppingSiteNumber; i++){
@@ -191,18 +193,18 @@ void MCHost::singleRun(){
         // run pruductions steps
         for(int i=0; i<N;i++){
             //check if memory limit is exceeded
-            if (storeKnownStates & (i%1000 ==0) & (((hoppingSiteNumber*hoppingSiteNumber+1)*8*knownRates.size()) > (parameterStorage->parameters.at("memoryLimit")*1e6))){
-                storeKnownStates=false;
-                // std::cout<<"memory limit exceeded, stopping to store states"<<std::endl;
-            }
+            // if (storeKnownStates & (i%1000 ==0) & (((hoppingSiteNumber*hoppingSiteNumber+1)*8*knownRates.size()) > (parameterStorage->parameters.at("memoryLimit")*1e6))){
+            //     storeKnownStates=false;
+            //     // std::cout<<"memory limit exceeded, stopping to store states"<<std::endl;
+            // }
             system->calcEnergies();
             calcRates(storeKnownStates);
             makeSwap();
             system->increaseTime(ratesSum);
 
         }
-        outputCurrent     +=          system->hoppingSites[parameterStorage->parameters.at("outputElectrode")+parameterStorage->parameters["acceptorNumber"]]->currentCounter/system->time;
-        outputCurrentSqrt += std::pow(system->hoppingSites[parameterStorage->parameters.at("outputElectrode")+parameterStorage->parameters["acceptorNumber"]]->currentCounter/system->time,2);
+        outputCurrent     +=          system->hoppingSites[parameterStorage->parameters.at("outputElectrode")+parameterStorage->parameters["acceptorNumber"]]->currentCounter/double(N);
+        outputCurrentSqrt += std::pow(system->hoppingSites[parameterStorage->parameters.at("outputElectrode")+parameterStorage->parameters["acceptorNumber"]]->currentCounter/double(N),2);
         // std::cout<<"curr: "<<" "<<outputCurrent/(j+1) <<" +- "<<std::sqrt((outputCurrentSqrt-outputCurrent*outputCurrent/(j+1)))/(j+1) <<std::endl;
     }
 
@@ -231,7 +233,7 @@ void MCHost::runVoltageSetup(){
 
             system->updatePotential();
 
-            // std::cout<<"maximal size of stored states: "<<(hoppingSiteNumber*hoppingSiteNumber+1)*8/1e6*knownRates.size()<<" mb; "<<knownRates.size()<<" states"<<std::endl;
+            std::cout<<"maximal size of stored states: "<<(hoppingSiteNumber*hoppingSiteNumber+1)*8/1e6*knownRates.size()<<" mb; "<<knownRates.size()<<" states"<<std::endl;
             knownRates   .clear();
             knownRatesSum.clear();
 

@@ -16,7 +16,7 @@ public:
     double const posX,posY;
     int currentCounter=0;
     // int absCurrentCounter=0;
-    double energy=0,constEnergyPart=0;
+    double energy=0,energy2=0,constEnergyPart=0;
 
     virtual void setOccupation(bool occ){occupied = occ;}
     bool const & getOccupation() const {return occupied;}

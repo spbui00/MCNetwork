@@ -3,8 +3,8 @@ gate XOR
 memoryLimit 1500 #in MB (should be around 100mb under real limit)
 steps 1e9
 finiteElementsResolution 5e3
-equilSteps 1e4
-calcCurrentSteps 1e4
+equilSteps 1e5
+calcCurrentSteps 1e6
 
 
 
@@ -64,8 +64,8 @@ seperationVoltage 0.25
 
 #optimization parameters
 acceptanceFactor 0.03 #big factor -> all accepted
-maxDeltaV 0.1
+maxDeltaV 1
 
-fitnessUncertWeight 1
-diffWeight 0.05
+fitnessUncertWeight 2
+diffWeight 0.0
 

@@ -166,9 +166,9 @@ void System::getReadyForRun(){
     }
 
     // set const energy part
+    //donor interaction
     for(int i=0;i<acceptorNumber;i++){
         for(int j=0;j<parameterStorage->parameters.at("donorNumber");j++){
-            //donor interaction
             hoppingSites[i]->constEnergyPart+=parameterStorage->parameters.at("I0")*1/std::sqrt(std::pow(hoppingSites[i]->posX-donorPositions[j][0],2)+std::pow(hoppingSites[i]->posY-donorPositions[j][1],2));
         }
     }
@@ -177,6 +177,17 @@ void System::getReadyForRun(){
         // std::cout<<i<<" donor interaction "<< hoppingSites[i]->constEnergyPart <<" pot "<< finEle->getPotential(hoppingSites[i]->posX,hoppingSites[i]->posY)*parameterStorage->parameters.at("e")/parameterStorage->parameters.at("kT")<<std::endl;
         hoppingSites[i]->constEnergyPart+=finEle->getPotential(hoppingSites[i]->posX,hoppingSites[i]->posY)*parameterStorage->parameters.at("e")/parameterStorage->parameters.at("kT");
     }
+
+    //set electrode energy
+    for(int i=acceptorNumber;i<hoppingSiteNumber;i++){
+        hoppingSites[i]->energy=hoppingSites[i]->constEnergyPart;
+    }
+
+    // -------- new -------------
+    for(int i=0;i<acceptorNumber;i++){
+        hoppingSites[i]->energy2=hoppingSites[i]->constEnergyPart;
+    }
+
     DEBUG_FUNC_END
 }
 
@@ -184,8 +195,22 @@ void System::getReadyForRun(){
 
 void System::calcEnergies(){
     DEBUG_FUNC_START
+
+    // -------- new -------------
+
+    for(int i=0;i<acceptorNumber;i++){
+        hoppingSites[i]->energy2=hoppingSites[i]->constEnergyPart;
+    }
+
+
+
+
+
+
+
+    // -------- old -------------
     // calc dopant energies
-    for(int i=0;i<hoppingSiteNumber;i++){
+    for(int i=0;i<acceptorNumber;i++){
         hoppingSites[i]->energy=hoppingSites[i]->constEnergyPart;
     }
     for(int i=0;i<acceptorNumber;i++){ //coulomb interaction only with acceptors and..
