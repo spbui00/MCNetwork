@@ -405,8 +405,8 @@ void System::makeSwap(){
                 lastSwapped1=i;
                 lastSwapped2=j;
 
-                currentCounter[i]++;
-                currentCounter[j]--;
+                currentCounter[i]--;
+                currentCounter[j]++;
 
                 // std::cout<<"swapped "<<i<<" "<<j<<" "<<setw(9);
                 goto endDoubleLoop;
