@@ -6,11 +6,7 @@ MCHost::MCHost(std::shared_ptr<ParameterStorage> parameterStorage) : parameterSt
     DEBUG_FUNC_START
 
     hoppingSiteNumber=parameterStorage->parameters.at("hoppingSiteNumber");
-    locLenA=parameterStorage->parameters.at("a");
     electrodeNumber=int(parameterStorage->electrodes.size());
-
-
-    rates = std::make_shared<std::vector<double>>(hoppingSiteNumber*hoppingSiteNumber);
 
 
     std::string dataFileName = parameterStorage->workingDirecotry+ "data.hdf5";
@@ -51,85 +47,6 @@ void MCHost::setup(bool makeNewDevice)
     DEBUG_FUNC_END
 }
 
-void MCHost::calcRates(bool storeKnownStates /*= false*/){
-    DEBUG_FUNC_START
-    // std::string state = system->getState();
-
-
-    // if (knownRates.count(state)){
-    //     rates    = knownRates   .at(state);
-    //     ratesSum = knownRatesSum.at(state);
-    // }
-    // else{
-    // std::cout<<"n fnd state = "<<state<<std::endl;
-        // rates = std::make_shared<std::vector<double>>(hoppingSiteNumber*hoppingSiteNumber);
-
-
-        ratesSum=0;
-        for(int i=0; i<hoppingSiteNumber;i++){
-            for(int j=0; j<hoppingSiteNumber;j++){
-                // std::cout<<"i = "<<i<<" j = "<<j<<std::endl;
-                if(system->deltaEnergies[i][j] < 0){ 
-                    (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*system->distances[i][j]/locLenA);
-                    // std::cout<<rates[i][j]<<" < 0 "<<i<<" "<<j<<" r/a "<<system->distances[i][j]/locLenA<<std::endl;
-                }
-                else if(system->deltaEnergies[i][j] >0){
-                    (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*system->distances[i][j]/locLenA-system->deltaEnergies[i][j]);
-                    // std::cout<<rates[i][j]<<" > 0 "<<i<<" "<<j<<" r/a "<<-2*system->distances[i][j]/locLenA<<" dE "<<system->deltaEnergies[i][j]<<std::endl;
-                }
-                else{ // !!!!!!!!!! BUG POTENTIAL if deltaE==0 by accident -> rate=0, but should be 1 !!!!!!!!!!
-                    (*rates)[i*hoppingSiteNumber+j]=0;
-                    // std::cout<<rates[i][j]<<" = 0 "<<i<<" "<<j<<std::endl;
-                }
-                ratesSum+=(*rates)[i*hoppingSiteNumber+j];
-
-
-                // std::cout<<-2*system->distances[i][j]/locLenA<<" ";
-                // std::cout<<system->deltaEnergies[i][j]<<" ";
-            }
-            // std::cout<<std::endl;
-    //     }
-    //     // std::cout<<std::endl;
-    //     if (storeKnownStates){
-    //         knownRates   [state]=rates;
-    //         knownRatesSum[state]=ratesSum;
-        }
-    // }
-
-
-    DEBUG_FUNC_END
-}
-
-
-
-void MCHost::makeSwap(){
-    DEBUG_FUNC_START
-    double rndNumber=enhance::random_double(0,ratesSum);
-    double partRatesSum=0;
-    for(int i=0; i<hoppingSiteNumber;i++){
-        for(int j=0; j<hoppingSiteNumber;j++){
-            partRatesSum+=(*rates)[i*hoppingSiteNumber+j];
-            // std::cout<<partRatesSum<<" "<<rates[i][j]<<" "<<rndNumber<<" "<<ratesSum<<std::endl;
-            if(partRatesSum > rndNumber){
-                system->hoppingSites[i]->setOccupation(false);
-                system->hoppingSites[i]->currentCounter++;
-                // system->hoppingSites[i]->absCurrentCounter++;
-                system->hoppingSites[j]->setOccupation(true);
-                system->hoppingSites[j]->currentCounter--;
-                // system->hoppingSites[j]->absCurrentCounter++;
-
-                // std::cout<<"swapped "<<i<<" "<<j<<" "<<setw(9);
-                goto endDoubleLoop;
-            }
-        }
-        if(i== hoppingSiteNumber-1){
-            std::cout<<"no swapp found!"<<partRatesSum<<" "<<rndNumber<<" "<<ratesSum<<" ";
-
-        }
-    }    
-    endDoubleLoop:;
-    DEBUG_FUNC_END
-}
 
 
 void MCHost::singleRun(){
@@ -141,37 +58,24 @@ void MCHost::singleRun(){
     //     std::cout<<i<<" "<<parameterStorage->electrodes[i].voltage<<std::endl;
     // }
 
-
-        // set start occupation of acceptors
-    std::vector<int> indicesUnoccupied {};
-    for(int i=0;i<parameterStorage->parameters.at("acceptorNumber");i++){indicesUnoccupied.push_back(i);}
-    for(int i=0;i<parameterStorage->parameters.at("acceptorNumber")-parameterStorage->parameters.at("donorNumber");i++){
-        int index=enhance::random_int(0,parameterStorage->parameters.at("acceptorNumber")-i-1);
-        system->hoppingSites[indicesUnoccupied[index]]->setOccupation(true);
-        indicesUnoccupied.erase(indicesUnoccupied.begin()+index);
-    }
-
-
-bool storeKnownStates=false;
+    bool storeKnownStates=true;
 
     // reset currents
     for (int i = 0; i < hoppingSiteNumber; i++){
-        system->hoppingSites[i]->currentCounter    = 0;
-        // system->hoppingSites[i]->absCurrentCounter = 0;
+        system->currentCounter[i] = 0;
         system->time=0;
     }
     // run equil steps
     int N=parameterStorage->parameters.at("equilSteps");
     for(int i=0; i<N;i++){
-        //check if memory limit is exceeded
-        // if (storeKnownStates & (i%1000 ==0) & (((hoppingSiteNumber*hoppingSiteNumber+1)*8*knownRates.size()) > (parameterStorage->parameters.at("memoryLimit")*1e6))){
-        //     storeKnownStates=false;
+        // check if memory limit is exceeded
+        if (storeKnownStates & (i%1000 ==0) & (((hoppingSiteNumber*hoppingSiteNumber+1)*8*system->knownRates.size()) > (parameterStorage->parameters.at("memoryLimit")*1e6))){
+            storeKnownStates=false;
         //     std::cout<<"memory limit exceeded, stopping to store states"<<std::endl;
-        // }
-        system->calcEnergies();
-        calcRates(false);
-        makeSwap();
-        system->increaseTime(ratesSum);
+        }
+        system->updateRates(storeKnownStates);
+        system->makeSwap();
+        system->increaseTime();
     }
 
 
@@ -186,25 +90,23 @@ bool storeKnownStates=false;
     for(int j=0; j < uncertaintySplits; j++){
         // reset currents
         for (int i = 0; i < hoppingSiteNumber; i++){
-            system->hoppingSites[i]->currentCounter    = 0;
-            // system->hoppingSites[i]->absCurrentCounter = 0;
+            system->currentCounter[i] = 0;
             system->time=0;
         }
         // run pruductions steps
         for(int i=0; i<N;i++){
-            //check if memory limit is exceeded
-            // if (storeKnownStates & (i%1000 ==0) & (((hoppingSiteNumber*hoppingSiteNumber+1)*8*knownRates.size()) > (parameterStorage->parameters.at("memoryLimit")*1e6))){
-            //     storeKnownStates=false;
-            //     // std::cout<<"memory limit exceeded, stopping to store states"<<std::endl;
-            // }
-            system->calcEnergies();
-            calcRates(storeKnownStates);
-            makeSwap();
-            system->increaseTime(ratesSum);
+            // check if memory limit is exceeded
+            if (storeKnownStates & (i%1000 ==0) & (((hoppingSiteNumber*hoppingSiteNumber+1)*8*system->knownRates.size()) > (parameterStorage->parameters.at("memoryLimit")*1e6))){
+                storeKnownStates=false;
+                // std::cout<<"memory limit exceeded, stopping to store states"<<std::endl;
+            }
+            system->updateRates(storeKnownStates);
+            system->makeSwap();
+            system->increaseTime();
 
         }
-        outputCurrent     +=          system->hoppingSites[parameterStorage->parameters.at("outputElectrode")+parameterStorage->parameters["acceptorNumber"]]->currentCounter/double(N);
-        outputCurrentSqrt += std::pow(system->hoppingSites[parameterStorage->parameters.at("outputElectrode")+parameterStorage->parameters["acceptorNumber"]]->currentCounter/double(N),2);
+        outputCurrent     +=          system->currentCounter[int(parameterStorage->parameters.at("outputElectrode")+parameterStorage->parameters["acceptorNumber"])]/system->time;
+        outputCurrentSqrt += std::pow(system->currentCounter[int(parameterStorage->parameters.at("outputElectrode")+parameterStorage->parameters["acceptorNumber"])]/system->time,2);
         // std::cout<<"curr: "<<" "<<outputCurrent/(j+1) <<" +- "<<std::sqrt((outputCurrentSqrt-outputCurrent*outputCurrent/(j+1)))/(j+1) <<std::endl;
     }
 
@@ -233,9 +135,9 @@ void MCHost::runVoltageSetup(){
 
             system->updatePotential();
 
-            std::cout<<"maximal size of stored states: "<<(hoppingSiteNumber*hoppingSiteNumber+1)*8/1e6*knownRates.size()<<" mb; "<<knownRates.size()<<" states"<<std::endl;
-            knownRates   .clear();
-            knownRatesSum.clear();
+            std::cout<<"maximal size of stored states: "<<(hoppingSiteNumber*hoppingSiteNumber+1)*8/1e6*system->knownRates.size()<<" mb; "<<system->knownRates.size()<<" states"<<std::endl;
+            system->knownRates   .clear();
+            system->knownRatesSum.clear();
 
             singleRun();
 
@@ -339,7 +241,7 @@ void MCHost::optimizeMC(bool rndStart /*= false*/){
         lastVoltages[i]=parameterStorage->electrodes[i].voltage;
     }
 
-    int maxIncreases=7;
+    int maxIncreases=4;
     int increaseNumber=0;
     for (size_t i = 0; i < 1000000; i++){
         auto startTime = chrono::steady_clock::now();
@@ -381,7 +283,7 @@ void MCHost::optimizeMC(bool rndStart /*= false*/){
         std::cout << "time per VoltageSetup = " << std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count()/1000.0 << " s" << std::endl;
     
 
-        if((increaseNumber < maxIncreases) and (fitness+fitnessUncert)>1 and normedDiff>0.05){
+        if((increaseNumber < maxIncreases) and (fitness+fitnessUncert*2)>1){
             increaseNumber++;
             parameterStorage->parameters["calcCurrentSteps"]*=2;
             std::cout<<"############ steps increased!! now: "<<parameterStorage->parameters["calcCurrentSteps"]<<" #############"<<std::endl;

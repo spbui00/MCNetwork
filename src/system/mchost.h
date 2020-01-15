@@ -19,15 +19,12 @@ private:
     int voltageScanPointsNumber;
     int electrodeNumber;
     double fitness,fitnessUncert,optEnergy,normedDiff;
-    double ratesSum=0;
-    double locLenA;
-    // double* rates;
-    std::shared_ptr<std::vector<double>> rates;
+
     double outputCurrent,outputCurrentSqrt,outputCurrentStd;
     double * outputCurrentBuffer, * outputCurrentUncertBuffer;
 
-    std::map<std::string,std::shared_ptr<std::vector<double>>> knownRates;
-    std::map<std::string,double>  knownRatesSum;
+    // std::map<std::string,std::shared_ptr<std::vector<double>>> knownRates;
+    // std::map<std::string,double>  knownRatesSum;
 
 
 
@@ -35,13 +32,11 @@ private:
     std::shared_ptr<DataFile>         dataFile;
     std::unique_ptr<System>           system;
 
-    void makeSwap();
-    void calcRates(bool storeKnownStates = false);
     void calcOptimizationEnergy();
     void saveResults();
     bool desiredLogicFunction(double val1, double val2, std::string gate);
 
-    
+
 public:
     MCHost(std::shared_ptr<ParameterStorage>);
     void setup(bool makeNewDevice=true);

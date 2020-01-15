@@ -5,8 +5,10 @@
 System::System(std::shared_ptr<ParameterStorage> parameterStorage) : parameterStorage(parameterStorage) {
     DEBUG_FUNC_START
 
-    acceptorNumber=this->parameterStorage->parameters.at("acceptorNumber");
-    hoppingSiteNumber=this->parameterStorage->parameters.at("hoppingSiteNumber");
+    acceptorNumber    = parameterStorage->parameters.at("acceptorNumber");
+    hoppingSiteNumber = parameterStorage->parameters.at("hoppingSiteNumber");
+    locLenA           = parameterStorage->parameters.at("a");
+    electrodeNumber   = hoppingSiteNumber-acceptorNumber;
 
 
     DEBUG_FUNC_END
@@ -14,22 +16,25 @@ System::System(std::shared_ptr<ParameterStorage> parameterStorage) : parameterSt
 void System::initilizeMatrices(){
     DEBUG_FUNC_START
     //setup matrices
-    pairEnergies = new double*[hoppingSiteNumber];
-    distances = new double*[hoppingSiteNumber];
-    deltaEnergies = new double*[hoppingSiteNumber];
-    for(int i=0;i<hoppingSiteNumber;i++){
-        pairEnergies[i] = new double[hoppingSiteNumber];
-        distances[i] = new double[hoppingSiteNumber];
-        deltaEnergies[i] = new double[hoppingSiteNumber];
-        pairEnergies[i][i]=0;
-        distances[i][i]=0;
-        deltaEnergies[i][i]=0;
+    pairEnergies  = new double[acceptorNumber*acceptorNumber];
+    distances     = new double[hoppingSiteNumber*hoppingSiteNumber];
+    deltaEnergies = new double[hoppingSiteNumber*hoppingSiteNumber];
+    energies       = new double[hoppingSiteNumber];
+    currentCounter = new double[hoppingSiteNumber];
+    rates = std::make_shared<std::vector<double>>(hoppingSiteNumber*hoppingSiteNumber);
+
+    donorPositionsX     = new double[int(parameterStorage->parameters.at("donorNumber"))];
+    donorPositionsY     = new double[int(parameterStorage->parameters.at("donorNumber"))];
+    acceptorPositionsX  = new double[acceptorNumber];
+    acceptorPositionsY  = new double[acceptorNumber];
+    electrodePositionsX = new double[electrodeNumber];
+    electrodePositionsY = new double[electrodeNumber];
+
+    occupation = new bool[acceptorNumber];
+    for(int i=0;i<acceptorNumber;i++){
+        occupation[i]=false;
     }
 
-    donorPositions = new double*[int(parameterStorage->parameters.at("donorNumber"))];
-    for(int i=0;i<parameterStorage->parameters.at("donorNumber");i++){
-        donorPositions[i] = new double[2];
-    }
     DEBUG_FUNC_END
 }
 
@@ -38,13 +43,14 @@ void System::createRandomNewDevice(){
 
     // create acceptors, setup position (first part of hoppingSites, rest are electrodes)
     for(int i=0;i<acceptorNumber;i++){
-        hoppingSites.push_back(new Dopant(parameterStorage->parameters.at("lenX")*enhance::random_double(0,1),parameterStorage->parameters.at("lenY")*enhance::random_double(0,1)));
+        acceptorPositionsX[i]=parameterStorage->parameters.at("lenX")*enhance::random_double(0,1);
+        acceptorPositionsY[i]=parameterStorage->parameters.at("lenY")*enhance::random_double(0,1);
     }
 
     // set donor positions
     for(int i=0;i<parameterStorage->parameters.at("donorNumber");i++){
-        donorPositions[i][0]=parameterStorage->parameters.at("lenX")*enhance::random_double(0,1);
-        donorPositions[i][1]=parameterStorage->parameters.at("lenY")*enhance::random_double(0,1);
+        donorPositionsX[i]=parameterStorage->parameters.at("lenX")*enhance::random_double(0,1);
+        donorPositionsY[i]=parameterStorage->parameters.at("lenY")*enhance::random_double(0,1);
     }
 
     //save device
@@ -53,14 +59,14 @@ void System::createRandomNewDevice(){
     deviceFile.open (deviceFileName,ios::trunc);
     deviceFile<<"acceptors: posX, posY"<<std::endl;
     for(int i=0;i<acceptorNumber;i++){
-        deviceFile<<hoppingSites[i]->posX*parameterStorage->parameters["R"]<<" "<<hoppingSites[i]->posY*parameterStorage->parameters["R"]<<std::endl;
+        deviceFile<<acceptorPositionsX[i]*parameterStorage->parameters["R"]<<" "<<acceptorPositionsY[i]*parameterStorage->parameters["R"]<<std::endl;
     }
     deviceFile<<std::endl;
 
 
     deviceFile<<"donors: posX, posY"<<std::endl;
     for(int i=0;i<parameterStorage->parameters.at("donorNumber");i++){
-        deviceFile<<donorPositions[i][0]*parameterStorage->parameters["R"]<<" "<<donorPositions[i][1]*parameterStorage->parameters["R"]<<std::endl;
+        deviceFile<<donorPositionsX[i]*parameterStorage->parameters["R"]<<" "<<donorPositionsY[i]*parameterStorage->parameters["R"]<<std::endl;
     }
 
     deviceFile.close();
@@ -76,7 +82,7 @@ void System::loadDevice(){
     std::string line;
     double posXBuffer, posYBuffer;
 
-    //trahs first line
+    //trash first line
     std::getline(deviceFile, line);
 
     //load acceptors
@@ -84,7 +90,8 @@ void System::loadDevice(){
         std::getline(deviceFile, line);
         std::istringstream iss(line);
         if(!(iss>>posXBuffer>>posYBuffer)) throw std::invalid_argument( "cant read acceptor in line: " + line);
-        hoppingSites.push_back(new Dopant(posXBuffer/parameterStorage->parameters["R"],posYBuffer/parameterStorage->parameters["R"]));
+        acceptorPositionsX[i]=posXBuffer/parameterStorage->parameters["R"];
+        acceptorPositionsY[i]=posYBuffer/parameterStorage->parameters["R"];
     }
 
     //trash 2 lines
@@ -97,8 +104,8 @@ void System::loadDevice(){
         std::getline(deviceFile, line);
         std::istringstream iss(line);
         if(!(iss>>posXBuffer>>posYBuffer)) throw std::invalid_argument( "cant read donor in line: " + line);
-        donorPositions[i][0]=posXBuffer/parameterStorage->parameters["R"];
-        donorPositions[i][1]=posYBuffer/parameterStorage->parameters["R"];
+        donorPositionsX[i]=posXBuffer/parameterStorage->parameters["R"];
+        donorPositionsY[i]=posYBuffer/parameterStorage->parameters["R"];
     }
     
     deviceFile.close();
@@ -114,27 +121,29 @@ void System::getReadyForRun(){
     for(int i=0;i<acceptorNumber;i++){indicesUnoccupied.push_back(i);}
     for(int i=0;i<acceptorNumber-parameterStorage->parameters.at("donorNumber");i++){
         int index=enhance::random_int(0,acceptorNumber-i-1);
-        hoppingSites[indicesUnoccupied[index]]->setOccupation(true);
+        occupation[indicesUnoccupied[index]]=true;
         indicesUnoccupied.erase(indicesUnoccupied.begin()+index);
     }
 
 
-
-
     //set electrodes
-    for(ElectrodeParameters & el: parameterStorage->electrodes){
-        switch (el.edge){
+    for(int i=0; i< electrodeNumber; i++){
+        switch (parameterStorage->electrodes[i].edge){
             case 0:
-                hoppingSites.push_back(new Electrode(0,parameterStorage->parameters.at("lenY")*el.pos));
+                electrodePositionsX[i]=0;
+                electrodePositionsY[i]=parameterStorage->parameters.at("lenY")*parameterStorage->electrodes[i].pos;
                 break;
             case 1:
-                hoppingSites.push_back(new Electrode(parameterStorage->parameters.at("lenX"),parameterStorage->parameters.at("lenY")*el.pos));
+                electrodePositionsX[i]=parameterStorage->parameters.at("lenX");
+                electrodePositionsY[i]=parameterStorage->parameters.at("lenY")*parameterStorage->electrodes[i].pos;
                 break;
             case 2:
-                hoppingSites.push_back(new Electrode(parameterStorage->parameters.at("lenX")*el.pos,0));
+                electrodePositionsX[i]=parameterStorage->parameters.at("lenX")*parameterStorage->electrodes[i].pos;
+                electrodePositionsY[i]=0;
                 break;
             case 3:
-                hoppingSites.push_back(new Electrode(parameterStorage->parameters.at("lenX")*el.pos,parameterStorage->parameters.at("lenY")));
+                electrodePositionsX[i]=parameterStorage->parameters.at("lenX")*parameterStorage->electrodes[i].pos;
+                electrodePositionsY[i]=parameterStorage->parameters.at("lenY");
                 break;
         }
     }
@@ -146,144 +155,212 @@ void System::getReadyForRun(){
     //solve laplace eq
     finEle= new FiniteElemente(parameterStorage->parameters.at("lenX"),parameterStorage->parameters.at("lenY"),parameterStorage->parameters.at("finiteElementsResolution"));
     //set electrodes
-    for(ElectrodeParameters & el: parameterStorage->electrodes){
-        finEle->setElectrode(parameterStorage->parameters.at("lenX")*el.pos-0.5*parameterStorage->parameters.at("electrodeWidth"),parameterStorage->parameters.at("lenX")*el.pos+0.5*parameterStorage->parameters.at("electrodeWidth"),el.edge,el.voltage);
+    for(int i=0; i< electrodeNumber; i++){
+        switch (parameterStorage->electrodes[i].edge){
+            case 0:
+            case 1:
+                finEle->setElectrode(parameterStorage->parameters.at("lenY")*parameterStorage->electrodes[i].pos-0.5*parameterStorage->parameters.at("electrodeWidth"),parameterStorage->parameters.at("lenY")*parameterStorage->electrodes[i].pos+0.5*parameterStorage->parameters.at("electrodeWidth"),parameterStorage->electrodes[i].edge,parameterStorage->electrodes[i].voltage);
+                break;
+            case 2:
+            case 3:
+                finEle->setElectrode(  parameterStorage->parameters.at("lenX")*parameterStorage->electrodes[i].pos-0.5*parameterStorage->parameters.at("electrodeWidth"),parameterStorage->parameters.at("lenX")*parameterStorage->electrodes[i].pos+0.5*parameterStorage->parameters.at("electrodeWidth"),parameterStorage->electrodes[i].edge,parameterStorage->electrodes[i].voltage);
+                break;
+        }
     }
+
     finEle->initRun();
     finEle->run();
 
 
 
     // calc distances and pair energies
-    for(int i=0;i<hoppingSiteNumber;i++){
+    // acc<->acc
+    for(int i=0;i<acceptorNumber;i++){
         for(int j=0;j<i;j++){
-            pairEnergies[i][j]=parameterStorage->parameters.at("I0")/std::sqrt(std::pow(hoppingSites[i]->posX-hoppingSites[j]->posX,2)+std::pow(hoppingSites[i]->posY-hoppingSites[j]->posY,2));
-            pairEnergies[j][i]=parameterStorage->parameters.at("I0")/std::sqrt(std::pow(hoppingSites[i]->posX-hoppingSites[j]->posX,2)+std::pow(hoppingSites[i]->posY-hoppingSites[j]->posY,2));
-            distances[i][j]=std::sqrt(std::pow(hoppingSites[i]->posX-hoppingSites[j]->posX,2)+std::pow(hoppingSites[i]->posY-hoppingSites[j]->posY,2));
-            distances[j][i]=std::sqrt(std::pow(hoppingSites[i]->posX-hoppingSites[j]->posX,2)+std::pow(hoppingSites[i]->posY-hoppingSites[j]->posY,2));
-            // std::cout<<"pair e "<<pairEnergies[i][j]<<" I0 "<<parameterStorage->parameters.at("I0")<<std::endl;
+            distances[i*hoppingSiteNumber+j]=std::sqrt(std::pow(acceptorPositionsX[i]-acceptorPositionsX[j],2)+std::pow(acceptorPositionsY[i]-acceptorPositionsY[j],2));
+            distances[j*hoppingSiteNumber+i]=std::sqrt(std::pow(acceptorPositionsX[i]-acceptorPositionsX[j],2)+std::pow(acceptorPositionsY[i]-acceptorPositionsY[j],2));
+            pairEnergies[i*acceptorNumber+j]=-parameterStorage->parameters.at("I0")/distances[i*hoppingSiteNumber+j];
+            pairEnergies[j*acceptorNumber+i]=-parameterStorage->parameters.at("I0")/distances[j*hoppingSiteNumber+i];
+            // std::cout<<"pair e "<<pairEnergies[i*hoppingSiteNumber+j]<<std::endl;
+        }
+        pairEnergies[i*(acceptorNumber+1)] = 0; //[i*(hoppingSiteNumber+1)] = [i,i]
+        distances   [i*(hoppingSiteNumber+1)] = 0;
+    }
+    // acc->el
+    for(int i=0;i<acceptorNumber;i++){
+        for(int j=0;j<electrodeNumber;j++){
+            distances[i*hoppingSiteNumber+(j+acceptorNumber)]=std::sqrt(std::pow(acceptorPositionsX[i]-electrodePositionsX[j],2)+std::pow(acceptorPositionsY[i]-electrodePositionsY[j],2));
         }
     }
+    // el->acc
+    for(int i=0;i<electrodeNumber;i++){
+        for(int j=0;j<acceptorNumber;j++){
+            distances[(i+acceptorNumber)*hoppingSiteNumber+j]=std::sqrt(std::pow(electrodePositionsX[i]-acceptorPositionsX[j],2)+std::pow(electrodePositionsY[i]-acceptorPositionsY[j],2));
+        }
+    }
+    // el<->el
+    for(int i=0;i<electrodeNumber;i++){
+        for(int j=0;j<i;j++){
+            distances[(i+acceptorNumber)*hoppingSiteNumber+(j+acceptorNumber)]=std::sqrt(std::pow(electrodePositionsX[i]-electrodePositionsX[j],2)+std::pow(electrodePositionsY[i]-electrodePositionsY[j],2));
+            distances[(j+acceptorNumber)*hoppingSiteNumber+(i+acceptorNumber)]=std::sqrt(std::pow(electrodePositionsX[i]-electrodePositionsX[j],2)+std::pow(electrodePositionsY[i]-electrodePositionsY[j],2));
+        }
+        distances[(i+acceptorNumber)*(hoppingSiteNumber+1)]=0;
+    }
 
-    // set const energy part
-    //donor interaction
+
+    // set acceptor energies
+    // donor interaction
     for(int i=0;i<acceptorNumber;i++){
+        energies[i]=0;
         for(int j=0;j<parameterStorage->parameters.at("donorNumber");j++){
-            hoppingSites[i]->constEnergyPart+=parameterStorage->parameters.at("I0")*1/std::sqrt(std::pow(hoppingSites[i]->posX-donorPositions[j][0],2)+std::pow(hoppingSites[i]->posY-donorPositions[j][1],2));
+            energies[i]+=parameterStorage->parameters.at("I0")*1/std::sqrt(std::pow(acceptorPositionsX[i]-donorPositionsX[j],2)+std::pow(acceptorPositionsY[i]-donorPositionsY[j],2));
         }
     }
     //potential
-    for(int i=0;i<hoppingSiteNumber;i++){
+    for(int i=0;i<acceptorNumber;i++){
+        energies[i]+=finEle->getPotential(acceptorPositionsX[i],acceptorPositionsY[i])*parameterStorage->parameters.at("e")/parameterStorage->parameters.at("kT");
         // std::cout<<i<<" donor interaction "<< hoppingSites[i]->constEnergyPart <<" pot "<< finEle->getPotential(hoppingSites[i]->posX,hoppingSites[i]->posY)*parameterStorage->parameters.at("e")/parameterStorage->parameters.at("kT")<<std::endl;
-        hoppingSites[i]->constEnergyPart+=finEle->getPotential(hoppingSites[i]->posX,hoppingSites[i]->posY)*parameterStorage->parameters.at("e")/parameterStorage->parameters.at("kT");
+    }
+    //set coulomb part (with start occupation)
+    for(int i=0;i<acceptorNumber;i++){ //coulomb interaction only with acceptors and..
+        if (not occupation[i]){ //.. only if they are unoccupied
+            for(int j=0;j<acceptorNumber;j++){ //self interaction is ignored, bc pairEnergies[i][i]=0
+                energies[j]+=pairEnergies[i*acceptorNumber+j];
+            }
+        }
     }
 
     //set electrode energy
+    for(int i=0;i<electrodeNumber;i++){
+        energies[i+acceptorNumber]=finEle->getPotential(electrodePositionsX[i],electrodePositionsY[i])*parameterStorage->parameters.at("e")/parameterStorage->parameters.at("kT");
+    }
+
+
+    //set deltaEnergies and rates (only constant part = el-el interaction)
     for(int i=acceptorNumber;i<hoppingSiteNumber;i++){
-        hoppingSites[i]->energy=hoppingSites[i]->constEnergyPart;
-    }
+        (*rates)[i*(acceptorNumber+1)]=0;
+        for(int j=acceptorNumber;j<i;j++){
+            deltaEnergies[i*hoppingSiteNumber+j]=energies[j]-energies[i];
+            deltaEnergies[j*hoppingSiteNumber+i]=energies[i]-energies[j];
+            // std::cout<<"deltaEnergies el el "<< distances[i*hoppingSiteNumber+j]<<std::endl;
 
-    // -------- new -------------
-    for(int i=0;i<acceptorNumber;i++){
-        hoppingSites[i]->energy2=hoppingSites[i]->constEnergyPart;
+            if (deltaEnergies[i*hoppingSiteNumber+j] < 0){
+                (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
+                (*rates)[j*hoppingSiteNumber+i]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA-deltaEnergies[j*hoppingSiteNumber+i]);
+            }
+            else if (deltaEnergies[i*hoppingSiteNumber+j] > 0){
+                (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA-deltaEnergies[i*hoppingSiteNumber+j]);
+                (*rates)[j*hoppingSiteNumber+i]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
+            }
+            else{
+                (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
+                (*rates)[j*hoppingSiteNumber+i]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
+            }
+        }
     }
-
     DEBUG_FUNC_END
 }
 
-
-
-void System::calcEnergies(){
+void System::updateRates(bool storeKnowStates /* = false*/){
     DEBUG_FUNC_START
 
-    // -------- new -------------
+    std::string state = getState();
 
-    for(int i=0;i<acceptorNumber;i++){
-        hoppingSites[i]->energy2=hoppingSites[i]->constEnergyPart;
+
+    if (knownRates.count(state)){
+        rates    = knownRates   .at(state);
+        ratesSum = knownRatesSum.at(state);
+        // std::cout<<"found state: "<<state<<std::endl;
+        
     }
+    else{
+        ratesSum=0;
 
+        if (storeKnowStates){
+            rates = std::make_shared<std::vector<double>>(hoppingSiteNumber*hoppingSiteNumber);
+        }
 
+        //acc acc hopp
+        for(int i=0;i<acceptorNumber;i++){
+            if (occupation[i]){
+                for(int j=0;j<acceptorNumber;j++){
+                    if (not occupation[j]){
+                        // std::cout<<" ----- "<<i<<" "<<j<<std::endl;
 
+                        deltaEnergies[i*hoppingSiteNumber+j]=energies[j]-energies[i]+pairEnergies[i*acceptorNumber+j];
 
+                        // std::cout<<" ei "<<energies[i]<<" ej "<<energies[j]<<" epair "<<pairEnergies[i*acceptorNumber+j]<<std::endl;
 
-
-
-    // -------- old -------------
-    // calc dopant energies
-    for(int i=0;i<acceptorNumber;i++){
-        hoppingSites[i]->energy=hoppingSites[i]->constEnergyPart;
-    }
-    for(int i=0;i<acceptorNumber;i++){ //coulomb interaction only with acceptors and..
-        if (not hoppingSites[i]->getOccupation()){ //.. only if they are unoccupied
-            for(int j=0;j<acceptorNumber;j++){
-                hoppingSites[j]->energy-=pairEnergies[i][j];
+                        if (deltaEnergies[i*hoppingSiteNumber+j] <= 0){
+                            (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
+                        }
+                        else{
+                            (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA-deltaEnergies[i*hoppingSiteNumber+j]);
+                        }
+                        ratesSum+=(*rates)[i*hoppingSiteNumber+j];
+                    }
+                    else{
+                        (*rates)[i*hoppingSiteNumber+j]=0;
+                        // deltaEnergies[i*hoppingSiteNumber+j]=0;
+                    }
+                }
+            }
+            else{
+                for(int j=0;j<acceptorNumber;j++){ 
+                    (*rates)[i*hoppingSiteNumber+j]=0;
+                    // deltaEnergies[i*hoppingSiteNumber+j]=0;
+                }
             }
         }
-    }
 
-    // Calc delta energie
-    //acceptor acceptor hopp
-    for(int i=0;i<acceptorNumber;i++){
-        if(hoppingSites[i]->getOccupation()){
-            for(int j=0;j<acceptorNumber;j++){ 
-                if (!hoppingSites[j]->getOccupation()){
-                    deltaEnergies[i][j]=hoppingSites[j]->energy-hoppingSites[i]->energy-pairEnergies[i][j];
+        // el-acc hopp
+        for(int i=acceptorNumber;i<hoppingSiteNumber;i++){
+            for(int j=0;j<acceptorNumber;j++){
+                if (not occupation[j]){
+                    deltaEnergies[i*hoppingSiteNumber+j]=energies[j]-energies[i];
+                    if (deltaEnergies[i*hoppingSiteNumber+j] <= 0){
+                        (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
+                    }
+                    else{
+                        (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA-deltaEnergies[i*hoppingSiteNumber+j]);
+                    }
+                    ratesSum+=(*rates)[i*hoppingSiteNumber+j];
                 }
                 else{
-                    deltaEnergies[i][j]=0;
+                    (*rates)[i*hoppingSiteNumber+j]=0;
+                    // deltaEnergies[i*hoppingSiteNumber+j]=0;
                 }
             }
         }
-        else{
-            for(int j=0;j<acceptorNumber;j++){ 
-                deltaEnergies[i][j]=0;
-            }
-        }
-    }
-
-    //acceptor electrode hopp
-    for(int i=0;i<acceptorNumber;i++){
-        if (hoppingSites[i]->getOccupation()){
-            for(int j=acceptorNumber;j<hoppingSiteNumber;j++){ 
-                deltaEnergies[i][j]=hoppingSites[j]->energy-hoppingSites[i]->energy;
-            }
-        }
-        else{
-            for(int j=acceptorNumber;j<hoppingSiteNumber;j++){ 
-                deltaEnergies[i][j]=0;
-            }
-        }
-    }
-    //electrode acceptor hopp
-    for(int j=0;j<acceptorNumber;j++){ 
-        if (!hoppingSites[j]->getOccupation()){
-            for(int i=acceptorNumber;i<hoppingSiteNumber;i++){
-                deltaEnergies[i][j]=hoppingSites[j]->energy-hoppingSites[i]->energy;
-            }
-        }
-        else{
-            for(int i=acceptorNumber;i<hoppingSiteNumber;i++){
-                deltaEnergies[i][j]=0;
-            }
-        }
-    }
-    //electrode electrode hopp
-    for(int i=acceptorNumber;i<hoppingSiteNumber;i++){
-        for(int j=acceptorNumber;j<i;j++){ 
-            deltaEnergies[i][j]=hoppingSites[j]->energy-hoppingSites[i]->energy;
-            deltaEnergies[j][i]=hoppingSites[i]->energy-hoppingSites[j]->energy;
-        }
-    }
-
-    // for(int i=0;i<hoppingSiteNumber;i++){
-    //     for(int j=0;j<hoppingSiteNumber;j++){
-    //         std::cout<<deltaEnergies[i][j]<<" ";
-    //     }
-    //     std::cout<<std::endl;
-    // }
-    // std::cout<<std::endl;
 
 
+        //acc-el hopp
+        for(int i=0;i<acceptorNumber;i++){
+            if (occupation[i]){
+                for(int j=acceptorNumber;j<hoppingSiteNumber;j++){
+                    deltaEnergies[i*hoppingSiteNumber+j]=energies[j]-energies[i];
+                    if (deltaEnergies[i*hoppingSiteNumber+j] <= 0){
+                        (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
+                    }
+                    else{
+                        (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA-deltaEnergies[i*hoppingSiteNumber+j]);
+                    }
+                    ratesSum+=(*rates)[i*hoppingSiteNumber+j];
+                }
+            }
+            else{
+                for(int j=acceptorNumber;j<hoppingSiteNumber;j++){ 
+                    (*rates)[i*hoppingSiteNumber+j]=0;
+                    // deltaEnergies[i*hoppingSiteNumber+j]=0;
+                }
+            }
+        }
+
+        if (storeKnowStates){
+            knownRates   [state]=rates;
+            knownRatesSum[state]=ratesSum;
+        }
+    }
 
     DEBUG_FUNC_END
 }
@@ -292,9 +369,13 @@ void System::updatePotential(){
     DEBUG_FUNC_START
     
     //reset old potential
-    for(int i=0;i<hoppingSiteNumber;i++){
-        hoppingSites[i]->constEnergyPart-=finEle->getPotential(hoppingSites[i]->posX,hoppingSites[i]->posY)*parameterStorage->parameters.at("e")/parameterStorage->parameters.at("kT");
+    for(int i=0;i<acceptorNumber;i++){
+        energies[i]-=finEle->getPotential(acceptorPositionsX[i],acceptorPositionsY[i])*parameterStorage->parameters.at("e")/parameterStorage->parameters.at("kT");
     }
+    for(int i=0;i<electrodeNumber;i++){
+        energies[(i+acceptorNumber)]-=finEle->getPotential(electrodePositionsX[i],electrodePositionsY[i])*parameterStorage->parameters.at("e")/parameterStorage->parameters.at("kT");
+    }
+
 
     //recalc potential
     for(int i=0;i < parameterStorage->electrodes.size();i++){
@@ -303,15 +384,76 @@ void System::updatePotential(){
     finEle->run();
 
     //set new potential
-    for(int i=0;i<hoppingSiteNumber;i++){
-        hoppingSites[i]->constEnergyPart+=finEle->getPotential(hoppingSites[i]->posX,hoppingSites[i]->posY)*parameterStorage->parameters.at("e")/parameterStorage->parameters.at("kT");
+    for(int i=0;i<acceptorNumber;i++){
+        energies[i]+=finEle->getPotential(acceptorPositionsX[i],acceptorPositionsY[i])*parameterStorage->parameters.at("e")/parameterStorage->parameters.at("kT");
     }
+    for(int i=0;i<electrodeNumber;i++){
+        energies[(i+acceptorNumber)]+=finEle->getPotential(electrodePositionsX[i],electrodePositionsY[i])*parameterStorage->parameters.at("e")/parameterStorage->parameters.at("kT");
+    }
+    DEBUG_FUNC_END
+}
+
+void System::makeSwap(){
+    DEBUG_FUNC_START
+    double rndNumber=enhance::random_double(0,ratesSum);
+    double partRatesSum=0;
+    for(int i=0; i<hoppingSiteNumber;i++){
+        for(int j=0; j<hoppingSiteNumber;j++){
+            partRatesSum+=(*rates)[i*hoppingSiteNumber+j];
+            // std::cout<<partRatesSum<<" "<<(*rates)[i*hoppingSiteNumber+j]<<" "<<rndNumber<<" "<<ratesSum<<std::endl;
+            if(partRatesSum > rndNumber){
+                lastSwapped1=i;
+                lastSwapped2=j;
+
+                currentCounter[i]++;
+                currentCounter[j]--;
+
+                // std::cout<<"swapped "<<i<<" "<<j<<" "<<setw(9);
+                goto endDoubleLoop;
+            }
+        }
+        // if(i== hoppingSiteNumber-1){
+        //     std::cout<<"no swapp found!"<<partRatesSum<<" "<<rndNumber<<" "<<ratesSum<<" ";
+        // }
+    }    
+    endDoubleLoop:;
+
+    updateAfterSwap();
+
+
+    // for(int i=0; i<hoppingSiteNumber;i++){
+    //     // std::cout<<"i "<<i<<" curr "<<currentCounter[i]<<" "<<std::endl;;
+    // }
+
+
+    DEBUG_FUNC_END
+}
+
+void System::updateAfterSwap(){
+    DEBUG_FUNC_START
+
+    if (lastSwapped1 < acceptorNumber){ //last swapped1 = acceptor
+        occupation[lastSwapped1]=false;
+        //update energy
+        for(int j=0;j<acceptorNumber;j++){
+            energies[j]+=pairEnergies[lastSwapped1*acceptorNumber+j];
+        }
+    }
+
+    if (lastSwapped2 < acceptorNumber){ //last swapped2 = acceptor
+        occupation[lastSwapped2]=true;
+        for(int j=0;j<acceptorNumber;j++){
+            energies[j]-=pairEnergies[lastSwapped2*acceptorNumber+j];
+        }
+    }
+
+
     DEBUG_FUNC_END
 }
 
 
 
-void System::increaseTime(double const & ratesSum){
+void System::increaseTime(){
     DEBUG_FUNC_START
 
     time+=std::log(enhance::random_double(0,1))/(-1*ratesSum);
@@ -324,7 +466,7 @@ std::string System::getState(){
 
     std::string occupationState="";
     for(int i=0;i<acceptorNumber;i++){
-        occupationState+=hoppingSites[i]->getOccupation() ? "1" : "0";
+        occupationState+=occupation[i] ? "1" : "0";
     }
 
     // std::cout<<occupationState<<std::endl;
