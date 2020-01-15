@@ -71,7 +71,7 @@ void MCHost::singleRun(){
         // check if memory limit is exceeded
         if (storeKnownStates & (i%1000 ==0) & (((hoppingSiteNumber*hoppingSiteNumber+1)*8*system->knownRates.size()) > (parameterStorage->parameters.at("memoryLimit")*1e6))){
             storeKnownStates=false;
-        //     std::cout<<"memory limit exceeded, stopping to store states"<<std::endl;
+            // std::cout<<"memory limit exceeded, stopping to store states"<<std::endl;
         }
         system->updateRates(storeKnownStates);
         system->makeSwap();

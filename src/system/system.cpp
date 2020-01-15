@@ -33,7 +33,9 @@ void System::initilizeMatrices(){
     occupation = new bool[acceptorNumber];
     for(int i=0;i<acceptorNumber;i++){
         occupation[i]=false;
+        // currentState += "0";
     }
+
 
     DEBUG_FUNC_END
 }
@@ -122,6 +124,7 @@ void System::getReadyForRun(){
     for(int i=0;i<acceptorNumber-parameterStorage->parameters.at("donorNumber");i++){
         int index=enhance::random_int(0,acceptorNumber-i-1);
         occupation[indicesUnoccupied[index]]=true;
+        hasedCurrentState+=enhance::fastExp2(indicesUnoccupied[index]); //compute hash
         indicesUnoccupied.erase(indicesUnoccupied.begin()+index);
     }
 
@@ -264,19 +267,18 @@ void System::getReadyForRun(){
 void System::updateRates(bool storeKnowStates /* = false*/){
     DEBUG_FUNC_START
 
-    std::string state = getState();
 
-
-    if (knownRates.count(state)){
-        rates    = knownRates   .at(state);
-        ratesSum = knownRatesSum.at(state);
+    if (knownRates.count(hasedCurrentState)){
+        rates    = knownRates   .at(hasedCurrentState);
+        ratesSum = knownRatesSum.at(hasedCurrentState);
         // std::cout<<"found state: "<<state<<std::endl;
         
     }
     else{
         ratesSum=0;
 
-        if (storeKnowStates){
+
+        if (rates.use_count() > 1){
             rates = std::make_shared<std::vector<double>>(hoppingSiteNumber*hoppingSiteNumber);
         }
 
@@ -357,8 +359,8 @@ void System::updateRates(bool storeKnowStates /* = false*/){
         }
 
         if (storeKnowStates){
-            knownRates   [state]=rates;
-            knownRatesSum[state]=ratesSum;
+            knownRates   [hasedCurrentState]=rates;
+            knownRatesSum[hasedCurrentState]=ratesSum;
         }
     }
 
@@ -438,6 +440,8 @@ void System::updateAfterSwap(){
         for(int j=0;j<acceptorNumber;j++){
             energies[j]+=pairEnergies[lastSwapped1*acceptorNumber+j];
         }
+        //update hashedState
+        hasedCurrentState-=enhance::fastExp2(lastSwapped1); //compute hash
     }
 
     if (lastSwapped2 < acceptorNumber){ //last swapped2 = acceptor
@@ -445,8 +449,10 @@ void System::updateAfterSwap(){
         for(int j=0;j<acceptorNumber;j++){
             energies[j]-=pairEnergies[lastSwapped2*acceptorNumber+j];
         }
+        hasedCurrentState+=enhance::fastExp2(lastSwapped2); //compute hash
     }
 
+    // std::cout<<hasedCurrentState<<std::endl;
 
     DEBUG_FUNC_END
 }
@@ -457,20 +463,6 @@ void System::increaseTime(){
     DEBUG_FUNC_START
 
     time+=std::log(enhance::random_double(0,1))/(-1*ratesSum);
-
-    DEBUG_FUNC_END
-}
-
-std::string System::getState(){
-    DEBUG_FUNC_START
-
-    std::string occupationState="";
-    for(int i=0;i<acceptorNumber;i++){
-        occupationState+=occupation[i] ? "1" : "0";
-    }
-
-    // std::cout<<occupationState<<std::endl;
-    return occupationState;
 
     DEBUG_FUNC_END
 }

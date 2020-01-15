@@ -2,7 +2,7 @@
 #define SYSTEM_H
 #include <iostream>
 #include <memory>
-#include <map>
+#include <unordered_map>
 #include <fstream>
 // #include "datafile.h"
 #include "parameterstorage.h"
@@ -24,7 +24,8 @@ private:
     double * energies; // 1D
     bool * occupation; // 1D
     double * pairEnergies, * distances, * deltaEnergies; //2D
-
+    unsigned long long hasedCurrentState=0; //state is stored hased (better performance compared to string)
+    
     int lastSwapped1,lastSwapped2; // swap 1->2 int = index
 
     double ratesSum=0;
@@ -39,8 +40,8 @@ private:
     
 public:
 
-    std::map<std::string,std::shared_ptr<std::vector<double>>> knownRates;
-    std::map<std::string,double>  knownRatesSum;
+    std::unordered_map<unsigned long long,std::shared_ptr<std::vector<double>>> knownRates;
+    std::unordered_map<unsigned long long,double>  knownRatesSum;
 
     double * currentCounter; // 1D
 
@@ -56,8 +57,6 @@ public:
 
     void initilizeMatrices();
     void getReadyForRun();
-
-    std::string getState();
 
     void makeSwap();
     void updateRates(bool storeKnowStates = false);

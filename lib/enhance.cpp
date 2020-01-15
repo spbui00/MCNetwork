@@ -75,7 +75,14 @@ namespace enhance
         return coeff[0]  / (1 + std::exp(-coeff[1]  * (x - coeff[2] ))) + coeff[3];  
     }
     
-
+    unsigned long long fastExp2(int x){
+        unsigned long long result=1;
+        for(int i=0; i<x; i++){
+            result*=2;
+        }
+        return result;
+        // return std::pow(2,x);
+    }
 
 
 }

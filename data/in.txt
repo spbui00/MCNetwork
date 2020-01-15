@@ -3,7 +3,7 @@ gate XOR
 memoryLimit 1500 #in MB (should be around 100mb under real limit)
 steps 1e9
 finiteElementsResolution 5e3
-equilSteps 1e4
+equilSteps 1e5
 calcCurrentSteps 1e6
 
 
@@ -11,7 +11,7 @@ calcCurrentSteps 1e6
 
 #physical parameters
 T 77
-acceptorNumber 30
+acceptorNumber 30 // more than 64 particles will crash hash as unsigned long long overflows
 lenX 300 #nm
 lenY 300 #nm
 

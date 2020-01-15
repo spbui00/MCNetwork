@@ -26,6 +26,10 @@ namespace enhance
     double polynom(std::vector<double>& coeff, double x);
 
 
+    unsigned long long fastExp2(int x);
+
+
+
     std::string multipliplyString(std::string in, int n);
 
     
