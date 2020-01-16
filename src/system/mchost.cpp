@@ -32,17 +32,22 @@ void MCHost::setup(bool makeNewDevice)
 {
     DEBUG_FUNC_START
 
-    system.reset(new System(parameterStorage));
-    system->initilizeMatrices();
+    // systems.push_back(std::unique_ptr<System>(new System(parameterStorage)));
+    systems.push_back( new System(parameterStorage));
+    systems[0]->initilizeMatrices();
 
     if(!makeNewDevice){
-        system->loadDevice();
+        systems[0]->loadDevice();
     }
     else{
-        system->createRandomNewDevice();
+        systems[0]->createRandomNewDevice();
     }
     
-    system->getReadyForRun();
+    systems[0]->getReadyForRun();
+
+    for(int i=1; i < parameterStorage->parameters.at("threads"); i++){
+        systems.push_back(new System(*systems[0]));
+    }
 
     DEBUG_FUNC_END
 }
@@ -53,66 +58,74 @@ void MCHost::singleRun(){
     //run system until currents are in equilibrium
     DEBUG_FUNC_START
 
-    // std::cout<<"voltages: "<<std::endl;
-    // for(int i=0;i<electrodeNumber;i++){
-    //     std::cout<<i<<" "<<parameterStorage->electrodes[i].voltage<<std::endl;
-    // }
+    // systems[0]->storeKnownStates=false;
+    std::vector<std::thread> threads;
 
-    bool storeKnownStates=true;
 
-    // reset currents
-    for (int i = 0; i < hoppingSiteNumber; i++){
-        system->currentCounter[i] = 0;
-        system->time=0;
-    }
     // run equil steps
     int N=parameterStorage->parameters.at("equilSteps");
-    for(int i=0; i<N;i++){
-        // check if memory limit is exceeded
-        if (storeKnownStates & (i%1000 ==0) & (((hoppingSiteNumber*hoppingSiteNumber+1)*8*system->knownRates.size()) > (parameterStorage->parameters.at("memoryLimit")*1e6))){
-            storeKnownStates=false;
-            // std::cout<<"memory limit exceeded, stopping to store states"<<std::endl;
-        }
-        system->updateRates(storeKnownStates);
-        system->makeSwap();
-        system->increaseTime();
+    for(int k=0; k < parameterStorage->parameters.at("threads"); k++){
+        // systems[k]->time=0; 
+        // for (int i = 0; i < hoppingSiteNumber; i++){
+        //     // std::cout<<i<<" "<<systems[k]->currentCounter[k]<<" "<<systems[k]->time<<std::endl;
+        //     systems[k]->currentCounter[i] = 0;
+        // }
+        // threads.push_back(std::thread(&System::run, systems[k],N));
+        systems[k]->run(N);
+    }
+    // for(int k=0; k < parameterStorage->parameters.at("threads"); k++){
+    //     threads[k].join();
+    // }
+    // threads.clear();
+
+
+    for(int k=0; k < parameterStorage->parameters.at("threads"); k++){
+        systems[k]->run(N);
     }
 
 
     //split up in multiple runs to calc uncertainty of currents
-    int uncertaintySplits=20;
-    N=int(parameterStorage->parameters.at("calcCurrentSteps")/uncertaintySplits);
+    int runsPerThread=std::ceil(30.0/parameterStorage->parameters.at("threads"));
+    
+
+    N=int(parameterStorage->parameters.at("calcCurrentSteps")/(runsPerThread*parameterStorage->parameters.at("threads")));
 
     outputCurrent     = 0;
     outputCurrentSqrt = 0;
 
 
-    for(int j=0; j < uncertaintySplits; j++){
-        // reset currents
-        for (int i = 0; i < hoppingSiteNumber; i++){
-            system->currentCounter[i] = 0;
-            system->time=0;
-        }
-        // run pruductions steps
-        for(int i=0; i<N;i++){
-            // check if memory limit is exceeded
-            if (storeKnownStates & (i%1000 ==0) & (((hoppingSiteNumber*hoppingSiteNumber+1)*8*system->knownRates.size()) > (parameterStorage->parameters.at("memoryLimit")*1e6))){
-                storeKnownStates=false;
-                // std::cout<<"memory limit exceeded, stopping to store states"<<std::endl;
+
+    for(int j=0; j < runsPerThread; j++){
+        for(int k=0; k < parameterStorage->parameters.at("threads"); k++){
+
+            // reset currents
+            systems[k]->time=0;
+            for (int i = 0; i < hoppingSiteNumber; i++){
+                // std::cout<<i<<" "<<systems[k]->currentCounter[k]<<" "<<systems[k]->time<<std::endl;
+                systems[k]->currentCounter[i] = 0;
             }
-            system->updateRates(storeKnownStates);
-            system->makeSwap();
-            system->increaseTime();
+            
+            // run pruductions steps
+            threads.push_back(std::thread(&System::run, systems[k],N));
+            // systems[k]->run(N);
+
 
         }
-        outputCurrent     +=          system->currentCounter[int(parameterStorage->parameters.at("outputElectrode")+parameterStorage->parameters["acceptorNumber"])]/system->time;
-        outputCurrentSqrt += std::pow(system->currentCounter[int(parameterStorage->parameters.at("outputElectrode")+parameterStorage->parameters["acceptorNumber"])]/system->time,2);
-        // std::cout<<"curr: "<<" "<<outputCurrent/(j+1) <<" +- "<<std::sqrt((outputCurrentSqrt-outputCurrent*outputCurrent/(j+1)))/(j+1) <<std::endl;
+
+        for(int k=0; k < parameterStorage->parameters.at("threads"); k++){
+            threads[k].join();
+
+            outputCurrent     +=          systems[k]->currentCounter[int(parameterStorage->parameters.at("outputElectrode")+parameterStorage->parameters["acceptorNumber"])]/systems[k]->time;
+            outputCurrentSqrt += std::pow(systems[k]->currentCounter[int(parameterStorage->parameters.at("outputElectrode")+parameterStorage->parameters["acceptorNumber"])]/systems[k]->time,2);
+            // std::cout<<"curr: "<<" "<<outputCurrent/(j+1) <<" +- "<<std::sqrt((outputCurrentSqrt-outputCurrent*outputCurrent/(j+1)))/(j+1) <<std::endl;
+            std::cout<<"thread: "<<k<<" run: "<<j<<" curr: "<<" "<<systems[k]->currentCounter[int(parameterStorage->parameters.at("outputElectrode")+parameterStorage->parameters["acceptorNumber"])]/systems[k]->time <<std::endl;
+        }
+        threads.clear();
     }
 
 
-    outputCurrentStd=std::sqrt((outputCurrentSqrt-outputCurrent*outputCurrent/uncertaintySplits))/uncertaintySplits;
-    outputCurrent/=uncertaintySplits;
+    outputCurrentStd=std::sqrt((outputCurrentSqrt-outputCurrent*outputCurrent/(runsPerThread*parameterStorage->parameters.at("threads"))))/(runsPerThread*parameterStorage->parameters.at("threads"));
+    outputCurrent/=(runsPerThread*parameterStorage->parameters.at("threads"));
 
     // //print currents
     // for (int i = 0; i < hoppingSiteNumber; i++){
@@ -121,6 +134,79 @@ void MCHost::singleRun(){
    
     DEBUG_FUNC_END
 }
+
+
+
+
+// void MCHost::singleRunMP(int processNumber){
+//     //run system until currents are in equilibrium
+//     DEBUG_FUNC_START
+
+//     bool storeKnownStates=true;
+
+//     // reset currents
+//     for (int i = 0; i < hoppingSiteNumber; i++){
+//         system->currentCounter[i] = 0;
+//         system->time=0;
+//     }
+//     // run equil steps
+//     int N=parameterStorage->parameters.at("equilSteps");
+//     for(int i=0; i<N;i++){
+//         // check if memory limit is exceeded
+//         if (storeKnownStates & (i%1000 ==0) & (((hoppingSiteNumber*hoppingSiteNumber+1)*8*system->knownRates.size()) > (parameterStorage->parameters.at("memoryLimit")*1e6))){
+//             storeKnownStates=false;
+//             // std::cout<<"memory limit exceeded, stopping to store states"<<std::endl;
+//         }
+//         system->updateRates(storeKnownStates);
+//         system->makeSwap();
+//         system->increaseTime();
+//     }
+
+
+//     //split up in multiple runs to calc uncertainty of currents
+//     int uncertaintySplits=20;
+//     N=int(parameterStorage->parameters.at("calcCurrentSteps")/uncertaintySplits);
+
+//     outputCurrent     = 0;
+//     outputCurrentSqrt = 0;
+
+
+//     for(int j=0; j < uncertaintySplits; j++){
+//         // reset currents
+//         for (int i = 0; i < hoppingSiteNumber; i++){
+//             system->currentCounter[i] = 0;
+//             system->time=0;
+//         }
+//         // run pruductions steps
+//         for(int i=0; i<N;i++){
+//             // check if memory limit is exceeded
+//             if (storeKnownStates & (i%1000 ==0) & (((hoppingSiteNumber*hoppingSiteNumber+1)*8*system->knownRates.size()) > (parameterStorage->parameters.at("memoryLimit")*1e6))){
+//                 storeKnownStates=false;
+//                 // std::cout<<"memory limit exceeded, stopping to store states"<<std::endl;
+//             }
+//             system->updateRates(storeKnownStates);
+//             system->makeSwap();
+//             system->increaseTime();
+
+//         }
+//         outputCurrent     +=          system->currentCounter[int(parameterStorage->parameters.at("outputElectrode")+parameterStorage->parameters["acceptorNumber"])]/system->time;
+//         outputCurrentSqrt += std::pow(system->currentCounter[int(parameterStorage->parameters.at("outputElectrode")+parameterStorage->parameters["acceptorNumber"])]/system->time,2);
+//         // std::cout<<"curr: "<<" "<<outputCurrent/(j+1) <<" +- "<<std::sqrt((outputCurrentSqrt-outputCurrent*outputCurrent/(j+1)))/(j+1) <<std::endl;
+//     }
+
+
+//     outputCurrentStd=std::sqrt((outputCurrentSqrt-outputCurrent*outputCurrent/uncertaintySplits))/uncertaintySplits;
+//     outputCurrent/=uncertaintySplits;
+
+//     // //print currents
+//     // for (int i = 0; i < hoppingSiteNumber; i++){
+//     //     std::cout<<i<<" "<<system->hoppingSites[i]->absCurrentCounter<<std::endl;
+//     // }
+   
+//     DEBUG_FUNC_END
+// }
+
+
 
 
 void MCHost::runVoltageSetup(){
@@ -133,11 +219,11 @@ void MCHost::runVoltageSetup(){
             parameterStorage->electrodes[parameterStorage->parameters.at("inputElectrode1")].voltage=parameterStorage->parameters.at("voltageScanMin")+parameterStorage->parameters.at("voltageScanResolution")*i;
             parameterStorage->electrodes[parameterStorage->parameters.at("inputElectrode2")].voltage=parameterStorage->parameters.at("voltageScanMin")+parameterStorage->parameters.at("voltageScanResolution")*j;
 
-            system->updatePotential();
+            systems[0]->updatePotential();
 
-            std::cout<<"maximal size of stored states: "<<(hoppingSiteNumber*hoppingSiteNumber+1)*8/1e6*system->knownRates.size()<<" mb; "<<system->knownRates.size()<<" states"<<std::endl;
-            system->knownRates   .clear();
-            system->knownRatesSum.clear();
+            std::cout<<"maximal size of stored states: "<<(hoppingSiteNumber*hoppingSiteNumber+1)*8/1e6*systems[0]->knownRates->size()<<" mb; "<<systems[0]->knownRates->size()<<" states"<<std::endl;
+            systems[0]->knownRates   ->clear();
+            systems[0]->knownRatesSum->clear();
 
             singleRun();
 
@@ -226,11 +312,18 @@ void MCHost::optimizeMC(bool rndStart /*= false*/){
         }
     }
 
+    auto startTime = chrono::steady_clock::now();
+
     runVoltageSetup();
     calcOptimizationEnergy();
     saveResults();
 
     std::cout<<"optEnergy: "<<optEnergy    <<" fitness: ("<<fitness    <<" +- "<<fitnessUncert    <<") normedDiff: "<<normedDiff<<std::endl;;
+    auto endTime = chrono::steady_clock::now();
+    std::cout << "time per VoltageSetup = " << std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count()/1000.0 << " s" << std::endl;
+    
+
+
 
     double lastFitness       = fitness;
     double lastFitnessUncert = fitnessUncert;

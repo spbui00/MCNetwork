@@ -22,15 +22,13 @@ private:
 
     double outputCurrent,outputCurrentSqrt,outputCurrentStd;
     double * outputCurrentBuffer, * outputCurrentUncertBuffer;
-
-    // std::map<std::string,std::shared_ptr<std::vector<double>>> knownRates;
-    // std::map<std::string,double>  knownRatesSum;
-
-
+    
+    
 
     std::shared_ptr<ParameterStorage> parameterStorage;
     std::shared_ptr<DataFile>         dataFile;
-    std::unique_ptr<System>           system;
+    
+    std::vector<System * > systems;
 
     void calcOptimizationEnergy();
     void saveResults();
@@ -41,12 +39,13 @@ public:
     MCHost(std::shared_ptr<ParameterStorage>);
     void setup(bool makeNewDevice=true);
 
+    void singleRunMP(int processNumber);
     void singleRun();
     void runVoltageSetup();
     void optimizeMC(bool rndStart = false);
     void run();
     
-
 };
+
 
 #endif // MCHOST_H

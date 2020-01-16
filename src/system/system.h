@@ -11,6 +11,8 @@
 
 #include <boost/multi_array.hpp>
 
+#include <thread> 
+#include <shared_mutex>
 
 
 #include <chrono>
@@ -37,17 +39,23 @@ private:
     FiniteElemente * finEle; //finEle device
 
     void updateAfterSwap();
-    
-public:
 
-    std::unordered_map<unsigned long long,std::shared_ptr<std::vector<double>>> knownRates;
-    std::unordered_map<unsigned long long,double>  knownRatesSum;
+    bool readyForRun=false;
+
+
+public:
+    std::shared_ptr<std::shared_mutex> mutex;
+
+    std::shared_ptr< std::unordered_map<unsigned long long,std::shared_ptr<std::vector<double>>>> knownRates;
+    std::shared_ptr< std::unordered_map<unsigned long long,double>>  knownRatesSum;
 
     double * currentCounter; // 1D
+    bool * storeKnownStates;
 
     double time=0;
 
-    System(std::shared_ptr<ParameterStorage>);
+    System(const std::shared_ptr<ParameterStorage> &);
+    System(const System & oldSys);
 
 
 
@@ -62,6 +70,7 @@ public:
     void updateRates(bool storeKnowStates = false);
     void updatePotential();
     void increaseTime();
+    void run(int steps);
 };
 
 

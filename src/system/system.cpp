@@ -2,7 +2,7 @@
 #include "debug.h"
 
 
-System::System(std::shared_ptr<ParameterStorage> parameterStorage) : parameterStorage(parameterStorage) {
+System::System(const std::shared_ptr<ParameterStorage> & parameterStorage) : parameterStorage(parameterStorage) {
     DEBUG_FUNC_START
 
     acceptorNumber    = parameterStorage->parameters.at("acceptorNumber");
@@ -10,9 +10,65 @@ System::System(std::shared_ptr<ParameterStorage> parameterStorage) : parameterSt
     locLenA           = parameterStorage->parameters.at("a");
     electrodeNumber   = hoppingSiteNumber-acceptorNumber;
 
+    knownRates.reset(new std::unordered_map<unsigned long long,std::shared_ptr<std::vector<double>>>());
+    knownRatesSum.reset(new std::unordered_map<unsigned long long,double>());
+
+    storeKnownStates = new bool(true);
+
+    mutex=std::make_shared<std::shared_mutex>();
 
     DEBUG_FUNC_END
 }
+
+System::System(const System & oldSys) : parameterStorage(oldSys.parameterStorage),
+                                        acceptorNumber(oldSys.acceptorNumber),
+                                        hoppingSiteNumber(oldSys.hoppingSiteNumber),
+                                        electrodeNumber(oldSys.electrodeNumber),
+                                        donorPositionsX(oldSys.donorPositionsX),
+                                        donorPositionsY(oldSys.donorPositionsY),
+                                        acceptorPositionsX(oldSys.acceptorPositionsX),
+                                        acceptorPositionsY(oldSys.acceptorPositionsY),
+                                        electrodePositionsX(oldSys.electrodePositionsX),
+                                        electrodePositionsY(oldSys.electrodePositionsY),
+                                        distances(oldSys.distances),
+                                        pairEnergies(oldSys.pairEnergies),
+                                        hasedCurrentState(oldSys.hasedCurrentState),
+                                        locLenA(oldSys.locLenA),
+                                        finEle(oldSys.finEle),
+                                        storeKnownStates(oldSys.storeKnownStates),
+                                        knownRates(oldSys.knownRates),
+                                        knownRatesSum(oldSys.knownRatesSum),
+                                        mutex(oldSys.mutex) {
+    DEBUG_FUNC_START
+
+    if(not oldSys.readyForRun){
+        throw std::invalid_argument("copying system that isnt ready for run is forbidden!");
+    }
+
+    energies       = new double[hoppingSiteNumber];
+    currentCounter = new double[hoppingSiteNumber];
+    for(int i=0;i<hoppingSiteNumber;i++){
+        energies[i]      = oldSys.energies[i];
+        currentCounter[i]= oldSys.currentCounter[i];
+    }
+
+    occupation = new bool[acceptorNumber];
+    for(int i=0;i<acceptorNumber;i++){
+        occupation[i] = oldSys.occupation[i];
+    }
+
+    deltaEnergies = new double[hoppingSiteNumber*hoppingSiteNumber];
+    for(int i=0;i<hoppingSiteNumber*hoppingSiteNumber;i++){
+        deltaEnergies[i] = oldSys.deltaEnergies[i];
+    }
+
+    rates = std::make_shared<std::vector<double>>(hoppingSiteNumber*hoppingSiteNumber);
+
+    readyForRun=true;
+
+    DEBUG_FUNC_END
+}
+
 void System::initilizeMatrices(){
     DEBUG_FUNC_START
     //setup matrices
@@ -261,6 +317,9 @@ void System::getReadyForRun(){
             }
         }
     }
+
+    readyForRun=true;
+
     DEBUG_FUNC_END
 }
 
@@ -268,15 +327,19 @@ void System::updateRates(bool storeKnowStates /* = false*/){
     DEBUG_FUNC_START
 
 
-    if (knownRates.count(hasedCurrentState)){
-        rates    = knownRates   .at(hasedCurrentState);
-        ratesSum = knownRatesSum.at(hasedCurrentState);
-        // std::cout<<"found state: "<<state<<std::endl;
+    mutex->lock_shared();
+    if (knownRates->count(hasedCurrentState)){
+        rates    = knownRates   ->at(hasedCurrentState);
+        ratesSum = knownRatesSum->at(hasedCurrentState);
+        mutex->unlock_shared();
+        // std::cout<<"found state: "<<hasedCurrentState<<std::endl;
         
     }
     else{
+        mutex->unlock_shared();
         ratesSum=0;
 
+        // std::cout<<"not found state: "<<hasedCurrentState<<std::endl;
 
         if (rates.use_count() > 1){
             rates = std::make_shared<std::vector<double>>(hoppingSiteNumber*hoppingSiteNumber);
@@ -287,7 +350,7 @@ void System::updateRates(bool storeKnowStates /* = false*/){
             if (occupation[i]){
                 for(int j=0;j<acceptorNumber;j++){
                     if (not occupation[j]){
-                        // std::cout<<" ----- "<<i<<" "<<j<<std::endl;
+                        // std::cout<<" ----- "<<i<<" "<<j<<"delta E "<<deltaEnergies[i*hoppingSiteNumber+j]<<std::endl;
 
                         deltaEnergies[i*hoppingSiteNumber+j]=energies[j]-energies[i]+pairEnergies[i*acceptorNumber+j];
 
@@ -359,8 +422,10 @@ void System::updateRates(bool storeKnowStates /* = false*/){
         }
 
         if (storeKnowStates){
-            knownRates   [hasedCurrentState]=rates;
-            knownRatesSum[hasedCurrentState]=ratesSum;
+            mutex->lock();
+            (*knownRates)   [hasedCurrentState]=rates;
+            (*knownRatesSum)[hasedCurrentState]=ratesSum;
+            mutex->unlock();
         }
     }
 
@@ -410,22 +475,22 @@ void System::makeSwap(){
                 currentCounter[i]--;
                 currentCounter[j]++;
 
-                // std::cout<<"swapped "<<i<<" "<<j<<" "<<setw(9);
+                // std::cout<<"swapped "<<i<<" "<<j<<" "<<setw(9)<<std::endl;
                 goto endDoubleLoop;
             }
         }
-        // if(i== hoppingSiteNumber-1){
-        //     std::cout<<"no swapp found!"<<partRatesSum<<" "<<rndNumber<<" "<<ratesSum<<" ";
-        // }
+        if(i== hoppingSiteNumber-1){
+            // std::cout<<"no swapp found!"<<partRatesSum<<" "<<rndNumber<<" "<<ratesSum<<" ";
+        }
     }    
     endDoubleLoop:;
 
     updateAfterSwap();
 
 
-    // for(int i=0; i<hoppingSiteNumber;i++){
-    //     // std::cout<<"i "<<i<<" curr "<<currentCounter[i]<<" "<<std::endl;;
-    // }
+    for(int i=0; i<hoppingSiteNumber;i++){
+        // std::cout<<"i "<<i<<" curr "<<currentCounter[i]<<" "<<std::endl;
+    }
 
 
     DEBUG_FUNC_END
@@ -456,6 +521,35 @@ void System::updateAfterSwap(){
 
     DEBUG_FUNC_END
 }
+
+
+
+
+void System::run(int steps){
+    DEBUG_FUNC_START
+
+
+    for(int i=0; i<steps;i++){
+        // check if memory limit is exceeded
+        if (*storeKnownStates & (i%1000 ==0) & (((hoppingSiteNumber*hoppingSiteNumber+1)*8*knownRates->size()) >= (parameterStorage->parameters.at("memoryLimit")*1e6))){
+            *storeKnownStates=false;
+            // std::cout<<"memory limit exceeded, stopping to store states"<<std::endl;
+        }
+        updateRates(storeKnownStates);
+        makeSwap();
+        increaseTime();
+    }
+
+    // std::cout<<"done! curr: "<<" "<<currentCounter[int(parameterStorage->parameters.at("outputElectrode")+parameterStorage->parameters["acceptorNumber"])]/time <<std::endl;
+
+    DEBUG_FUNC_END
+}
+
+
+
+
+
+
 
 
 

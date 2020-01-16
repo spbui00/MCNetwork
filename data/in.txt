@@ -1,17 +1,17 @@
 #simulation parameters
 gate XOR
 memoryLimit 1500 #in MB (should be around 100mb under real limit)
-steps 1e9
+threads 10
 finiteElementsResolution 5e3
-equilSteps 1e5
-calcCurrentSteps 1e6
+equilSteps 1e4 #scaling per thread!!
+calcCurrentSteps 1e5
 
 
 
 
 #physical parameters
 T 77
-acceptorNumber 30 // more than 64 particles will crash hash as unsigned long long overflows
+acceptorNumber 30
 lenX 300 #nm
 lenY 300 #nm
 
@@ -46,7 +46,7 @@ electrode 0.25 3 1
 electrode 0.75 3 1
 
 
-electrodeWidth 30 #nm
+electrodeWidth 60 #nm
 inputElectrode1 0
 inputElectrode2 1
 outputElectrode 2
