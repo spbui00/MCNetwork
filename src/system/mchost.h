@@ -39,7 +39,6 @@ public:
     MCHost(std::shared_ptr<ParameterStorage>);
     void setup(bool makeNewDevice=true);
 
-    void singleRunMP(int processNumber);
     void singleRun();
     void runVoltageSetup();
     void optimizeMC(bool rndStart = false);

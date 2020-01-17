@@ -33,6 +33,7 @@ private:
     double ratesSum=0;
     double locLenA;
     std::shared_ptr<std::vector<double>> rates;
+    std::shared_ptr<std::vector<double>> partRatesSumList;
 
     std::shared_ptr<ParameterStorage> parameterStorage;
     
@@ -41,12 +42,14 @@ private:
     void updateAfterSwap();
 
     bool readyForRun=false;
+    bool storingMode; // if set true performance is optimized by storing known states
 
 
 public:
     std::shared_ptr<std::shared_mutex> mutex;
 
     std::shared_ptr< std::unordered_map<unsigned long long,std::shared_ptr<std::vector<double>>>> knownRates;
+    std::shared_ptr< std::unordered_map<unsigned long long,std::shared_ptr<std::vector<double>>>> konwPartRatesSumList;
     std::shared_ptr< std::unordered_map<unsigned long long,double>>  knownRatesSum;
 
     double * currentCounter; // 1D
@@ -67,10 +70,16 @@ public:
     void getReadyForRun();
 
     void makeSwap();
-    void updateRates(bool storeKnowStates = false);
-    void updatePotential();
+    void updateRates();
     void increaseTime();
     void run(int steps);
+    
+    void updatePotential();
+    void resetPotential();
+    void recalcPotential();
+    void setNewPotential();
+
+
 };
 
 

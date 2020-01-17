@@ -58,7 +58,7 @@ void MCHost::singleRun(){
     //run system until currents are in equilibrium
     DEBUG_FUNC_START
 
-    // systems[0]->storeKnownStates=false;
+    // *(systems[0]->storeKnownStates)=true;
     std::vector<std::thread> threads;
 
 
@@ -70,25 +70,24 @@ void MCHost::singleRun(){
         //     // std::cout<<i<<" "<<systems[k]->currentCounter[k]<<" "<<systems[k]->time<<std::endl;
         //     systems[k]->currentCounter[i] = 0;
         // }
-        // threads.push_back(std::thread(&System::run, systems[k],N));
-        systems[k]->run(N);
+        threads.push_back(std::thread(&System::run, std::ref(*systems[k]),N));
+        // systems[k]->run(N);
+
     }
-    // for(int k=0; k < parameterStorage->parameters.at("threads"); k++){
-    //     threads[k].join();
-    // }
-    // threads.clear();
-
-
     for(int k=0; k < parameterStorage->parameters.at("threads"); k++){
-        systems[k]->run(N);
+        threads[k].join();
+
     }
+    threads.clear();
+
 
 
     //split up in multiple runs to calc uncertainty of currents
     int runsPerThread=std::ceil(30.0/parameterStorage->parameters.at("threads"));
-    
+    // int runsPerThread=10;
 
     N=int(parameterStorage->parameters.at("calcCurrentSteps")/(runsPerThread*parameterStorage->parameters.at("threads")));
+    // N=int(parameterStorage->parameters.at("calcCurrentSteps"));
 
     outputCurrent     = 0;
     outputCurrentSqrt = 0;
@@ -138,7 +137,7 @@ void MCHost::singleRun(){
 
 
 
-// void MCHost::singleRunMP(int processNumber){
+// void MCHost::singleRun(int processNumber){
 //     //run system until currents are in equilibrium
 //     DEBUG_FUNC_START
 
@@ -219,7 +218,15 @@ void MCHost::runVoltageSetup(){
             parameterStorage->electrodes[parameterStorage->parameters.at("inputElectrode1")].voltage=parameterStorage->parameters.at("voltageScanMin")+parameterStorage->parameters.at("voltageScanResolution")*i;
             parameterStorage->electrodes[parameterStorage->parameters.at("inputElectrode2")].voltage=parameterStorage->parameters.at("voltageScanMin")+parameterStorage->parameters.at("voltageScanResolution")*j;
 
+
+            for(int k=0; k < parameterStorage->parameters.at("threads"); k++){
+                systems[k]->resetPotential();
+            }
             systems[0]->updatePotential();
+            for(int k=0; k < parameterStorage->parameters.at("threads"); k++){
+                systems[k]->setNewPotential();
+            }
+
 
             std::cout<<"maximal size of stored states: "<<(hoppingSiteNumber*hoppingSiteNumber+1)*8/1e6*systems[0]->knownRates->size()<<" mb; "<<systems[0]->knownRates->size()<<" states"<<std::endl;
             systems[0]->knownRates   ->clear();

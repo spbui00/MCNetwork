@@ -9,9 +9,11 @@ System::System(const std::shared_ptr<ParameterStorage> & parameterStorage) : par
     hoppingSiteNumber = parameterStorage->parameters.at("hoppingSiteNumber");
     locLenA           = parameterStorage->parameters.at("a");
     electrodeNumber   = hoppingSiteNumber-acceptorNumber;
+    storingMode       = parameterStorage->parameters.at("storingMode");
 
-    knownRates.reset(new std::unordered_map<unsigned long long,std::shared_ptr<std::vector<double>>>());
-    knownRatesSum.reset(new std::unordered_map<unsigned long long,double>());
+    knownRates          .reset(new std::unordered_map<unsigned long long,std::shared_ptr<std::vector<double>>>());
+    konwPartRatesSumList.reset(new std::unordered_map<unsigned long long,std::shared_ptr<std::vector<double>>>());
+    knownRatesSum       .reset(new std::unordered_map<unsigned long long,double>());
 
     storeKnownStates = new bool(true);
 
@@ -37,6 +39,8 @@ System::System(const System & oldSys) : parameterStorage(oldSys.parameterStorage
                                         finEle(oldSys.finEle),
                                         storeKnownStates(oldSys.storeKnownStates),
                                         knownRates(oldSys.knownRates),
+                                        konwPartRatesSumList(oldSys.konwPartRatesSumList),
+                                        storingMode(oldSys.storingMode),
                                         knownRatesSum(oldSys.knownRatesSum),
                                         mutex(oldSys.mutex) {
     DEBUG_FUNC_START
@@ -62,7 +66,8 @@ System::System(const System & oldSys) : parameterStorage(oldSys.parameterStorage
         deltaEnergies[i] = oldSys.deltaEnergies[i];
     }
 
-    rates = std::make_shared<std::vector<double>>(hoppingSiteNumber*hoppingSiteNumber);
+    rates            = std::make_shared<std::vector<double>>(hoppingSiteNumber*hoppingSiteNumber);
+    partRatesSumList = std::make_shared<std::vector<double>>(hoppingSiteNumber*hoppingSiteNumber);
 
     readyForRun=true;
 
@@ -77,7 +82,8 @@ void System::initilizeMatrices(){
     deltaEnergies = new double[hoppingSiteNumber*hoppingSiteNumber];
     energies       = new double[hoppingSiteNumber];
     currentCounter = new double[hoppingSiteNumber];
-    rates = std::make_shared<std::vector<double>>(hoppingSiteNumber*hoppingSiteNumber);
+    rates            = std::make_shared<std::vector<double>>(hoppingSiteNumber*hoppingSiteNumber);
+    partRatesSumList = std::make_shared<std::vector<double>>(hoppingSiteNumber*hoppingSiteNumber);
 
     donorPositionsX     = new double[int(parameterStorage->parameters.at("donorNumber"))];
     donorPositionsY     = new double[int(parameterStorage->parameters.at("donorNumber"))];
@@ -89,7 +95,6 @@ void System::initilizeMatrices(){
     occupation = new bool[acceptorNumber];
     for(int i=0;i<acceptorNumber;i++){
         occupation[i]=false;
-        // currentState += "0";
     }
 
 
@@ -323,17 +328,289 @@ void System::getReadyForRun(){
     DEBUG_FUNC_END
 }
 
-void System::updateRates(bool storeKnowStates /* = false*/){
+// void System::updateRates(){
+//     DEBUG_FUNC_START
+
+
+//     if (storingMode){
+//         /* --------------------------------------- function is splitted in (very similar parts) only to differentiate between storing modes (could be done way more efficient...) ------------------------------------------------- */
+//         mutex->lock_shared();
+//         if (knownRates->count(hasedCurrentState)){
+//             rates    = knownRates   ->at(hasedCurrentState);
+//             ratesSum = knownRatesSum->at(hasedCurrentState);
+//             mutex->unlock_shared();
+//             // std::cout<<"found state: "<<hasedCurrentState<<std::endl;
+//         }
+//         else{
+//             mutex->unlock_shared();
+//             ratesSum=0;
+
+//             // std::cout<<"not found state: "<<hasedCurrentState<<std::endl;
+
+//             if (rates.use_count() > 1){
+//                 rates = std::make_shared<std::vector<double>>(hoppingSiteNumber*hoppingSiteNumber);
+//             }
+
+//             /* --------------------------------------- calc rates if storing mode and still storing ------------------------------------------------- */
+//             if (*storeKnownStates){
+//                  //acc acc hopp
+//                 for(int i=0;i<acceptorNumber;i++){
+//                     if (occupation[i]){
+//                         for(int j=0;j<acceptorNumber;j++){
+//                             if (not occupation[j]){
+//                                 // std::cout<<" ----- "<<i<<" "<<j<<"delta E "<<deltaEnergies[i*hoppingSiteNumber+j]<<std::endl;
+
+//                                 deltaEnergies[i*hoppingSiteNumber+j]=energies[j]-energies[i]+pairEnergies[i*acceptorNumber+j];
+
+//                                 // std::cout<<" ei "<<energies[i]<<" ej "<<energies[j]<<" epair "<<pairEnergies[i*acceptorNumber+j]<<std::endl;
+
+//                                 if (deltaEnergies[i*hoppingSiteNumber+j] <= 0){
+//                                     (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
+//                                 }
+//                                 else{
+//                                     (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA-deltaEnergies[i*hoppingSiteNumber+j]);
+//                                 }
+//                                 ratesSum+=(*rates)[i*hoppingSiteNumber+j];
+//                             }
+//                             else{
+//                                 (*rates)[i*hoppingSiteNumber+j]=0;
+//                                 // deltaEnergies[i*hoppingSiteNumber+j]=0;
+//                             }
+//                         }
+//                     }
+//                     else{
+//                         for(int j=0;j<acceptorNumber;j++){ 
+//                             (*rates)[i*hoppingSiteNumber+j]=0;
+//                             // deltaEnergies[i*hoppingSiteNumber+j]=0;
+//                         }
+//                     }
+//                 }
+
+//                 // el-acc hopp
+//                 for(int i=acceptorNumber;i<hoppingSiteNumber;i++){
+//                     for(int j=0;j<acceptorNumber;j++){
+//                         if (not occupation[j]){
+//                             deltaEnergies[i*hoppingSiteNumber+j]=energies[j]-energies[i];
+//                             if (deltaEnergies[i*hoppingSiteNumber+j] <= 0){
+//                                 (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
+//                             }
+//                             else{
+//                                 (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA-deltaEnergies[i*hoppingSiteNumber+j]);
+//                             }
+//                             ratesSum+=(*rates)[i*hoppingSiteNumber+j];
+//                         }
+//                         else{
+//                             (*rates)[i*hoppingSiteNumber+j]=0;
+//                             // deltaEnergies[i*hoppingSiteNumber+j]=0;
+//                         }
+//                     }
+//                 }
+
+
+//                 //acc-el hopp
+//                 for(int i=0;i<acceptorNumber;i++){
+//                     if (occupation[i]){
+//                         for(int j=acceptorNumber;j<hoppingSiteNumber;j++){
+//                             deltaEnergies[i*hoppingSiteNumber+j]=energies[j]-energies[i];
+//                             if (deltaEnergies[i*hoppingSiteNumber+j] <= 0){
+//                                 (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
+//                             }
+//                             else{
+//                                 (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA-deltaEnergies[i*hoppingSiteNumber+j]);
+//                             }
+//                             ratesSum+=(*rates)[i*hoppingSiteNumber+j];
+//                         }
+//                     }
+//                     else{
+//                         for(int j=acceptorNumber;j<hoppingSiteNumber;j++){ 
+//                             (*rates)[i*hoppingSiteNumber+j]=0;
+//                             // deltaEnergies[i*hoppingSiteNumber+j]=0;
+//                         }
+//                     }
+//                 }
+                
+//                 mutex->lock();
+//                 (*knownRates)   [hasedCurrentState]=rates;
+//                 (*knownRatesSum)[hasedCurrentState]=ratesSum;
+//                 mutex->unlock();
+//             }
+//             /* --------------------------------------- calc rates if storing mode but memory limit reached ------------------------------------------------- */
+
+//             else{
+//                 //acc acc hopp
+//                 for(int i=0;i<acceptorNumber;i++){
+//                     if (occupation[i]){
+//                         for(int j=0;j<acceptorNumber;j++){
+//                             if (not occupation[j]){
+//                                 // std::cout<<" ----- "<<i<<" "<<j<<"delta E "<<deltaEnergies[i*hoppingSiteNumber+j]<<std::endl;
+
+//                                 deltaEnergies[i*hoppingSiteNumber+j]=energies[j]-energies[i]+pairEnergies[i*acceptorNumber+j];
+
+//                                 // std::cout<<" ei "<<energies[i]<<" ej "<<energies[j]<<" epair "<<pairEnergies[i*acceptorNumber+j]<<std::endl;
+
+//                                 if (deltaEnergies[i*hoppingSiteNumber+j] <= 0){
+//                                     (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
+//                                 }
+//                                 else{
+//                                     (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA-deltaEnergies[i*hoppingSiteNumber+j]);
+//                                 }
+//                                 ratesSum+=(*rates)[i*hoppingSiteNumber+j];
+//                             }
+//                             else{
+//                                 (*rates)[i*hoppingSiteNumber+j]=0;
+//                                 // deltaEnergies[i*hoppingSiteNumber+j]=0;
+//                             }
+//                         }
+//                     }
+//                     else{
+//                         for(int j=0;j<acceptorNumber;j++){ 
+//                             (*rates)[i*hoppingSiteNumber+j]=0;
+//                             // deltaEnergies[i*hoppingSiteNumber+j]=0;
+//                         }
+//                     }
+//                 }
+
+//                 // el-acc hopp
+//                 for(int i=acceptorNumber;i<hoppingSiteNumber;i++){
+//                     for(int j=0;j<acceptorNumber;j++){
+//                         if (not occupation[j]){
+//                             deltaEnergies[i*hoppingSiteNumber+j]=energies[j]-energies[i];
+//                             if (deltaEnergies[i*hoppingSiteNumber+j] <= 0){
+//                                 (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
+//                             }
+//                             else{
+//                                 (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA-deltaEnergies[i*hoppingSiteNumber+j]);
+//                             }
+//                             ratesSum+=(*rates)[i*hoppingSiteNumber+j];
+//                         }
+//                         else{
+//                             (*rates)[i*hoppingSiteNumber+j]=0;
+//                             // deltaEnergies[i*hoppingSiteNumber+j]=0;
+//                         }
+//                     }
+//                 }
+
+
+//                 //acc-el hopp
+//                 for(int i=0;i<acceptorNumber;i++){
+//                     if (occupation[i]){
+//                         for(int j=acceptorNumber;j<hoppingSiteNumber;j++){
+//                             deltaEnergies[i*hoppingSiteNumber+j]=energies[j]-energies[i];
+//                             if (deltaEnergies[i*hoppingSiteNumber+j] <= 0){
+//                                 (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
+//                             }
+//                             else{
+//                                 (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA-deltaEnergies[i*hoppingSiteNumber+j]);
+//                             }
+//                             ratesSum+=(*rates)[i*hoppingSiteNumber+j];
+//                         }
+//                     }
+//                     else{
+//                         for(int j=acceptorNumber;j<hoppingSiteNumber;j++){ 
+//                             (*rates)[i*hoppingSiteNumber+j]=0;
+//                             // deltaEnergies[i*hoppingSiteNumber+j]=0;
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+//     }
+//     else{
+//         /* --------------------------------------- calc rates if not in storing mode (locks and so on not needed) ------------------------------------------------- */
+//         //acc acc hopp
+//         for(int i=0;i<acceptorNumber;i++){
+//             if (occupation[i]){
+//                 for(int j=0;j<acceptorNumber;j++){
+//                     if (not occupation[j]){
+//                         // std::cout<<" ----- "<<i<<" "<<j<<"delta E "<<deltaEnergies[i*hoppingSiteNumber+j]<<std::endl;
+
+//                         deltaEnergies[i*hoppingSiteNumber+j]=energies[j]-energies[i]+pairEnergies[i*acceptorNumber+j];
+
+//                         // std::cout<<" ei "<<energies[i]<<" ej "<<energies[j]<<" epair "<<pairEnergies[i*acceptorNumber+j]<<std::endl;
+
+//                         if (deltaEnergies[i*hoppingSiteNumber+j] <= 0){
+//                             (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
+//                         }
+//                         else{
+//                             (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA-deltaEnergies[i*hoppingSiteNumber+j]);
+//                         }
+//                         ratesSum+=(*rates)[i*hoppingSiteNumber+j];
+//                     }
+//                     else{
+//                         (*rates)[i*hoppingSiteNumber+j]=0;
+//                         // deltaEnergies[i*hoppingSiteNumber+j]=0;
+//                     }
+//                 }
+//             }
+//             else{
+//                 for(int j=0;j<acceptorNumber;j++){ 
+//                     (*rates)[i*hoppingSiteNumber+j]=0;
+//                     // deltaEnergies[i*hoppingSiteNumber+j]=0;
+//                 }
+//             }
+//         }
+
+//         // el-acc hopp
+//         for(int i=acceptorNumber;i<hoppingSiteNumber;i++){
+//             for(int j=0;j<acceptorNumber;j++){
+//                 if (not occupation[j]){
+//                     deltaEnergies[i*hoppingSiteNumber+j]=energies[j]-energies[i];
+//                     if (deltaEnergies[i*hoppingSiteNumber+j] <= 0){
+//                         (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
+//                     }
+//                     else{
+//                         (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA-deltaEnergies[i*hoppingSiteNumber+j]);
+//                     }
+//                     ratesSum+=(*rates)[i*hoppingSiteNumber+j];
+//                 }
+//                 else{
+//                     (*rates)[i*hoppingSiteNumber+j]=0;
+//                     // deltaEnergies[i*hoppingSiteNumber+j]=0;
+//                 }
+//             }
+//         }
+
+
+//         //acc-el hopp
+//         for(int i=0;i<acceptorNumber;i++){
+//             if (occupation[i]){
+//                 for(int j=acceptorNumber;j<hoppingSiteNumber;j++){
+//                     deltaEnergies[i*hoppingSiteNumber+j]=energies[j]-energies[i];
+//                     if (deltaEnergies[i*hoppingSiteNumber+j] <= 0){
+//                         (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
+//                     }
+//                     else{
+//                         (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA-deltaEnergies[i*hoppingSiteNumber+j]);
+//                     }
+//                     ratesSum+=(*rates)[i*hoppingSiteNumber+j];
+//                 }
+//             }
+//             else{
+//                 for(int j=acceptorNumber;j<hoppingSiteNumber;j++){ 
+//                     (*rates)[i*hoppingSiteNumber+j]=0;
+//                     // deltaEnergies[i*hoppingSiteNumber+j]=0;
+//                 }
+//             }
+//         }
+//     }
+
+
+
+//     DEBUG_FUNC_END
+// }
+
+
+void System::updateRates(){
     DEBUG_FUNC_START
 
 
+    /* --------------------------------------- function is splitted in (very similar parts) only to differentiate between storing modes (could be done way more efficient...) ------------------------------------------------- */
     mutex->lock_shared();
     if (knownRates->count(hasedCurrentState)){
         rates    = knownRates   ->at(hasedCurrentState);
         ratesSum = knownRatesSum->at(hasedCurrentState);
         mutex->unlock_shared();
         // std::cout<<"found state: "<<hasedCurrentState<<std::endl;
-        
     }
     else{
         mutex->unlock_shared();
@@ -420,8 +697,8 @@ void System::updateRates(bool storeKnowStates /* = false*/){
                 }
             }
         }
-
-        if (storeKnowStates){
+        
+        if(*storeKnownStates){
             mutex->lock();
             (*knownRates)   [hasedCurrentState]=rates;
             (*knownRatesSum)[hasedCurrentState]=ratesSum;
@@ -429,10 +706,26 @@ void System::updateRates(bool storeKnowStates /* = false*/){
         }
     }
 
+
     DEBUG_FUNC_END
 }
 
+
+
 void System::updatePotential(){
+    //this function needs to be splitted up in 3 parts for efficient parallel computing
+    DEBUG_FUNC_START
+
+    resetPotential();
+    recalcPotential();
+    setNewPotential();
+
+
+    DEBUG_FUNC_END
+}
+
+
+void System::resetPotential(){
     DEBUG_FUNC_START
     
     //reset old potential
@@ -443,12 +736,23 @@ void System::updatePotential(){
         energies[(i+acceptorNumber)]-=finEle->getPotential(electrodePositionsX[i],electrodePositionsY[i])*parameterStorage->parameters.at("e")/parameterStorage->parameters.at("kT");
     }
 
+    DEBUG_FUNC_END
+}
+
+void System::recalcPotential(){
+    DEBUG_FUNC_START
 
     //recalc potential
     for(int i=0;i < parameterStorage->electrodes.size();i++){
         finEle->updateElectrodeVoltage(i,parameterStorage->electrodes[i].voltage);
     }
     finEle->run();
+
+    DEBUG_FUNC_END
+}
+
+void System::setNewPotential(){
+    DEBUG_FUNC_START
 
     //set new potential
     for(int i=0;i<acceptorNumber;i++){
@@ -459,6 +763,9 @@ void System::updatePotential(){
     }
     DEBUG_FUNC_END
 }
+
+
+
 
 void System::makeSwap(){
     DEBUG_FUNC_START
@@ -535,7 +842,7 @@ void System::run(int steps){
             *storeKnownStates=false;
             // std::cout<<"memory limit exceeded, stopping to store states"<<std::endl;
         }
-        updateRates(storeKnownStates);
+        updateRates();
         makeSwap();
         increaseTime();
     }
