@@ -117,7 +117,7 @@ void MCHost::singleRun(){
             outputCurrent     +=          systems[k]->currentCounter[int(parameterStorage->parameters.at("outputElectrode")+parameterStorage->parameters["acceptorNumber"])]/systems[k]->time;
             outputCurrentSqrt += std::pow(systems[k]->currentCounter[int(parameterStorage->parameters.at("outputElectrode")+parameterStorage->parameters["acceptorNumber"])]/systems[k]->time,2);
             // std::cout<<"curr: "<<" "<<outputCurrent/(j+1) <<" +- "<<std::sqrt((outputCurrentSqrt-outputCurrent*outputCurrent/(j+1)))/(j+1) <<std::endl;
-            std::cout<<"thread: "<<k<<" run: "<<j<<" curr: "<<" "<<systems[k]->currentCounter[int(parameterStorage->parameters.at("outputElectrode")+parameterStorage->parameters["acceptorNumber"])]/systems[k]->time <<std::endl;
+            // std::cout<<"thread: "<<k<<" run: "<<j<<" curr: "<<" "<<systems[k]->currentCounter[int(parameterStorage->parameters.at("outputElectrode")+parameterStorage->parameters["acceptorNumber"])]/systems[k]->time <<std::endl;
         }
         threads.clear();
     }
@@ -222,7 +222,7 @@ void MCHost::runVoltageSetup(){
             for(int k=0; k < parameterStorage->parameters.at("threads"); k++){
                 systems[k]->resetPotential();
             }
-            systems[0]->updatePotential();
+            systems[0]->recalcPotential();
             for(int k=0; k < parameterStorage->parameters.at("threads"); k++){
                 systems[k]->setNewPotential();
             }

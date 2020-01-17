@@ -21,7 +21,6 @@ System::System(const std::shared_ptr<ParameterStorage> & parameterStorage) : par
 
     DEBUG_FUNC_END
 }
-
 System::System(const System & oldSys) : parameterStorage(oldSys.parameterStorage),
                                         acceptorNumber(oldSys.acceptorNumber),
                                         hoppingSiteNumber(oldSys.hoppingSiteNumber),
@@ -36,6 +35,7 @@ System::System(const System & oldSys) : parameterStorage(oldSys.parameterStorage
                                         pairEnergies(oldSys.pairEnergies),
                                         hasedCurrentState(oldSys.hasedCurrentState),
                                         locLenA(oldSys.locLenA),
+                                        constantRatesSumPart(oldSys.constantRatesSumPart),
                                         finEle(oldSys.finEle),
                                         storeKnownStates(oldSys.storeKnownStates),
                                         knownRates(oldSys.knownRates),
@@ -66,7 +66,7 @@ System::System(const System & oldSys) : parameterStorage(oldSys.parameterStorage
         deltaEnergies[i] = oldSys.deltaEnergies[i];
     }
 
-    rates            = std::make_shared<std::vector<double>>(hoppingSiteNumber*hoppingSiteNumber);
+    rates            = std::make_shared<std::vector<double>>(*oldSys.rates);
     partRatesSumList = std::make_shared<std::vector<double>>(hoppingSiteNumber*hoppingSiteNumber);
 
     readyForRun=true;
@@ -97,6 +97,8 @@ void System::initilizeMatrices(){
         occupation[i]=false;
     }
 
+
+    
 
     DEBUG_FUNC_END
 }
@@ -302,7 +304,7 @@ void System::getReadyForRun(){
 
     //set deltaEnergies and rates (only constant part = el-el interaction)
     for(int i=acceptorNumber;i<hoppingSiteNumber;i++){
-        (*rates)[i*(acceptorNumber+1)]=0;
+        (*rates)[i*(acceptorNumber+1)]=0; //diagonal elements
         for(int j=acceptorNumber;j<i;j++){
             deltaEnergies[i*hoppingSiteNumber+j]=energies[j]-energies[i];
             deltaEnergies[j*hoppingSiteNumber+i]=energies[i]-energies[j];
@@ -320,6 +322,8 @@ void System::getReadyForRun(){
                 (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
                 (*rates)[j*hoppingSiteNumber+i]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
             }
+            constantRatesSumPart+=(*rates)[i*hoppingSiteNumber+j];
+            constantRatesSumPart+=(*rates)[j*hoppingSiteNumber+i];
         }
     }
 
@@ -614,12 +618,12 @@ void System::updateRates(){
     }
     else{
         mutex->unlock_shared();
-        ratesSum=0;
+        ratesSum=constantRatesSumPart;
 
         // std::cout<<"not found state: "<<hasedCurrentState<<std::endl;
 
         if (rates.use_count() > 1){
-            rates = std::make_shared<std::vector<double>>(hoppingSiteNumber*hoppingSiteNumber);
+            rates = std::make_shared<std::vector<double>>(*rates);
         }
 
         //acc acc hopp
@@ -698,6 +702,13 @@ void System::updateRates(){
             }
         }
         
+        double partRatesSum=0;
+        for(int i=0; i<hoppingSiteNumber;i++){
+            for(int j=0; j<hoppingSiteNumber;j++){
+                partRatesSum+=(*rates)[i*hoppingSiteNumber+j];
+            }
+        }
+
         if(*storeKnownStates){
             mutex->lock();
             (*knownRates)   [hasedCurrentState]=rates;
@@ -775,6 +786,7 @@ void System::makeSwap(){
         for(int j=0; j<hoppingSiteNumber;j++){
             partRatesSum+=(*rates)[i*hoppingSiteNumber+j];
             // std::cout<<partRatesSum<<" "<<(*rates)[i*hoppingSiteNumber+j]<<" "<<rndNumber<<" "<<ratesSum<<std::endl;
+            // std::cout<<"i "<<i<<" j "<<j<<" rate: "<<(*rates)[i*hoppingSiteNumber+j]<<std::endl;
             if(partRatesSum > rndNumber){
                 lastSwapped1=i;
                 lastSwapped2=j;
@@ -786,11 +798,14 @@ void System::makeSwap(){
                 goto endDoubleLoop;
             }
         }
-        if(i== hoppingSiteNumber-1){
+        // if(i== hoppingSiteNumber-1){
             // std::cout<<"no swapp found!"<<partRatesSum<<" "<<rndNumber<<" "<<ratesSum<<" ";
-        }
+        // }
     }    
+
     endDoubleLoop:;
+
+    // std::cout<<partRatesSum<<" "<<" "<<rndNumber<<" "<<ratesSum<<" state: "<<hasedCurrentState<<" i "<<lastSwapped1<<" j "<<lastSwapped2<<std::endl;
 
     updateAfterSwap();
 

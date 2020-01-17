@@ -28,9 +28,10 @@ private:
     double * pairEnergies, * distances, * deltaEnergies; //2D
     unsigned long long hasedCurrentState=0; //state is stored hased (better performance compared to string)
     
-    int lastSwapped1,lastSwapped2; // swap 1->2 int = index
+    int lastSwapped1=0,lastSwapped2=0; // swap 1->2 int = index
 
     double ratesSum=0;
+    double constantRatesSumPart=0;
     double locLenA;
     std::shared_ptr<std::vector<double>> rates;
     std::shared_ptr<std::vector<double>> partRatesSumList;

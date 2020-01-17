@@ -1,9 +1,9 @@
 #simulation parameters
 gate XOR
-memoryLimit 0 #in MB (should be around 100mb under real limit)
+memoryLimit 1500 #in MB (should be around 100mb under real limit)
 threads 1
 finiteElementsResolution 5e3
-equilSteps 1e4 #scaling per thread!!
+equilSteps 1e5 #scaling per thread!!
 calcCurrentSteps 1e5
 storingMode 1
 
