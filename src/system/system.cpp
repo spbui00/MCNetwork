@@ -332,279 +332,97 @@ void System::getReadyForRun(){
     DEBUG_FUNC_END
 }
 
-// void System::updateRates(){
-//     DEBUG_FUNC_START
-
-
-//     if (storingMode){
-//         /* --------------------------------------- function is splitted in (very similar parts) only to differentiate between storing modes (could be done way more efficient...) ------------------------------------------------- */
-//         mutex->lock_shared();
-//         if (knownRates->count(hasedCurrentState)){
-//             rates    = knownRates   ->at(hasedCurrentState);
-//             ratesSum = knownRatesSum->at(hasedCurrentState);
-//             mutex->unlock_shared();
-//             // std::cout<<"found state: "<<hasedCurrentState<<std::endl;
-//         }
-//         else{
-//             mutex->unlock_shared();
-//             ratesSum=0;
-
-//             // std::cout<<"not found state: "<<hasedCurrentState<<std::endl;
-
-//             if (rates.use_count() > 1){
-//                 rates = std::make_shared<std::vector<double>>(hoppingSiteNumber*hoppingSiteNumber);
-//             }
-
-//             /* --------------------------------------- calc rates if storing mode and still storing ------------------------------------------------- */
-//             if (*storeKnownStates){
-//                  //acc acc hopp
-//                 for(int i=0;i<acceptorNumber;i++){
-//                     if (occupation[i]){
-//                         for(int j=0;j<acceptorNumber;j++){
-//                             if (not occupation[j]){
-//                                 // std::cout<<" ----- "<<i<<" "<<j<<"delta E "<<deltaEnergies[i*hoppingSiteNumber+j]<<std::endl;
-
-//                                 deltaEnergies[i*hoppingSiteNumber+j]=energies[j]-energies[i]+pairEnergies[i*acceptorNumber+j];
-
-//                                 // std::cout<<" ei "<<energies[i]<<" ej "<<energies[j]<<" epair "<<pairEnergies[i*acceptorNumber+j]<<std::endl;
-
-//                                 if (deltaEnergies[i*hoppingSiteNumber+j] <= 0){
-//                                     (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
-//                                 }
-//                                 else{
-//                                     (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA-deltaEnergies[i*hoppingSiteNumber+j]);
-//                                 }
-//                                 ratesSum+=(*rates)[i*hoppingSiteNumber+j];
-//                             }
-//                             else{
-//                                 (*rates)[i*hoppingSiteNumber+j]=0;
-//                                 // deltaEnergies[i*hoppingSiteNumber+j]=0;
-//                             }
-//                         }
-//                     }
-//                     else{
-//                         for(int j=0;j<acceptorNumber;j++){ 
-//                             (*rates)[i*hoppingSiteNumber+j]=0;
-//                             // deltaEnergies[i*hoppingSiteNumber+j]=0;
-//                         }
-//                     }
-//                 }
-
-//                 // el-acc hopp
-//                 for(int i=acceptorNumber;i<hoppingSiteNumber;i++){
-//                     for(int j=0;j<acceptorNumber;j++){
-//                         if (not occupation[j]){
-//                             deltaEnergies[i*hoppingSiteNumber+j]=energies[j]-energies[i];
-//                             if (deltaEnergies[i*hoppingSiteNumber+j] <= 0){
-//                                 (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
-//                             }
-//                             else{
-//                                 (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA-deltaEnergies[i*hoppingSiteNumber+j]);
-//                             }
-//                             ratesSum+=(*rates)[i*hoppingSiteNumber+j];
-//                         }
-//                         else{
-//                             (*rates)[i*hoppingSiteNumber+j]=0;
-//                             // deltaEnergies[i*hoppingSiteNumber+j]=0;
-//                         }
-//                     }
-//                 }
-
-
-//                 //acc-el hopp
-//                 for(int i=0;i<acceptorNumber;i++){
-//                     if (occupation[i]){
-//                         for(int j=acceptorNumber;j<hoppingSiteNumber;j++){
-//                             deltaEnergies[i*hoppingSiteNumber+j]=energies[j]-energies[i];
-//                             if (deltaEnergies[i*hoppingSiteNumber+j] <= 0){
-//                                 (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
-//                             }
-//                             else{
-//                                 (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA-deltaEnergies[i*hoppingSiteNumber+j]);
-//                             }
-//                             ratesSum+=(*rates)[i*hoppingSiteNumber+j];
-//                         }
-//                     }
-//                     else{
-//                         for(int j=acceptorNumber;j<hoppingSiteNumber;j++){ 
-//                             (*rates)[i*hoppingSiteNumber+j]=0;
-//                             // deltaEnergies[i*hoppingSiteNumber+j]=0;
-//                         }
-//                     }
-//                 }
-                
-//                 mutex->lock();
-//                 (*knownRates)   [hasedCurrentState]=rates;
-//                 (*knownRatesSum)[hasedCurrentState]=ratesSum;
-//                 mutex->unlock();
-//             }
-//             /* --------------------------------------- calc rates if storing mode but memory limit reached ------------------------------------------------- */
-
-//             else{
-//                 //acc acc hopp
-//                 for(int i=0;i<acceptorNumber;i++){
-//                     if (occupation[i]){
-//                         for(int j=0;j<acceptorNumber;j++){
-//                             if (not occupation[j]){
-//                                 // std::cout<<" ----- "<<i<<" "<<j<<"delta E "<<deltaEnergies[i*hoppingSiteNumber+j]<<std::endl;
-
-//                                 deltaEnergies[i*hoppingSiteNumber+j]=energies[j]-energies[i]+pairEnergies[i*acceptorNumber+j];
-
-//                                 // std::cout<<" ei "<<energies[i]<<" ej "<<energies[j]<<" epair "<<pairEnergies[i*acceptorNumber+j]<<std::endl;
-
-//                                 if (deltaEnergies[i*hoppingSiteNumber+j] <= 0){
-//                                     (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
-//                                 }
-//                                 else{
-//                                     (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA-deltaEnergies[i*hoppingSiteNumber+j]);
-//                                 }
-//                                 ratesSum+=(*rates)[i*hoppingSiteNumber+j];
-//                             }
-//                             else{
-//                                 (*rates)[i*hoppingSiteNumber+j]=0;
-//                                 // deltaEnergies[i*hoppingSiteNumber+j]=0;
-//                             }
-//                         }
-//                     }
-//                     else{
-//                         for(int j=0;j<acceptorNumber;j++){ 
-//                             (*rates)[i*hoppingSiteNumber+j]=0;
-//                             // deltaEnergies[i*hoppingSiteNumber+j]=0;
-//                         }
-//                     }
-//                 }
-
-//                 // el-acc hopp
-//                 for(int i=acceptorNumber;i<hoppingSiteNumber;i++){
-//                     for(int j=0;j<acceptorNumber;j++){
-//                         if (not occupation[j]){
-//                             deltaEnergies[i*hoppingSiteNumber+j]=energies[j]-energies[i];
-//                             if (deltaEnergies[i*hoppingSiteNumber+j] <= 0){
-//                                 (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
-//                             }
-//                             else{
-//                                 (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA-deltaEnergies[i*hoppingSiteNumber+j]);
-//                             }
-//                             ratesSum+=(*rates)[i*hoppingSiteNumber+j];
-//                         }
-//                         else{
-//                             (*rates)[i*hoppingSiteNumber+j]=0;
-//                             // deltaEnergies[i*hoppingSiteNumber+j]=0;
-//                         }
-//                     }
-//                 }
-
-
-//                 //acc-el hopp
-//                 for(int i=0;i<acceptorNumber;i++){
-//                     if (occupation[i]){
-//                         for(int j=acceptorNumber;j<hoppingSiteNumber;j++){
-//                             deltaEnergies[i*hoppingSiteNumber+j]=energies[j]-energies[i];
-//                             if (deltaEnergies[i*hoppingSiteNumber+j] <= 0){
-//                                 (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
-//                             }
-//                             else{
-//                                 (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA-deltaEnergies[i*hoppingSiteNumber+j]);
-//                             }
-//                             ratesSum+=(*rates)[i*hoppingSiteNumber+j];
-//                         }
-//                     }
-//                     else{
-//                         for(int j=acceptorNumber;j<hoppingSiteNumber;j++){ 
-//                             (*rates)[i*hoppingSiteNumber+j]=0;
-//                             // deltaEnergies[i*hoppingSiteNumber+j]=0;
-//                         }
-//                     }
-//                 }
-//             }
-//         }
-//     }
-//     else{
-//         /* --------------------------------------- calc rates if not in storing mode (locks and so on not needed) ------------------------------------------------- */
-//         //acc acc hopp
-//         for(int i=0;i<acceptorNumber;i++){
-//             if (occupation[i]){
-//                 for(int j=0;j<acceptorNumber;j++){
-//                     if (not occupation[j]){
-//                         // std::cout<<" ----- "<<i<<" "<<j<<"delta E "<<deltaEnergies[i*hoppingSiteNumber+j]<<std::endl;
-
-//                         deltaEnergies[i*hoppingSiteNumber+j]=energies[j]-energies[i]+pairEnergies[i*acceptorNumber+j];
-
-//                         // std::cout<<" ei "<<energies[i]<<" ej "<<energies[j]<<" epair "<<pairEnergies[i*acceptorNumber+j]<<std::endl;
-
-//                         if (deltaEnergies[i*hoppingSiteNumber+j] <= 0){
-//                             (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
-//                         }
-//                         else{
-//                             (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA-deltaEnergies[i*hoppingSiteNumber+j]);
-//                         }
-//                         ratesSum+=(*rates)[i*hoppingSiteNumber+j];
-//                     }
-//                     else{
-//                         (*rates)[i*hoppingSiteNumber+j]=0;
-//                         // deltaEnergies[i*hoppingSiteNumber+j]=0;
-//                     }
-//                 }
-//             }
-//             else{
-//                 for(int j=0;j<acceptorNumber;j++){ 
-//                     (*rates)[i*hoppingSiteNumber+j]=0;
-//                     // deltaEnergies[i*hoppingSiteNumber+j]=0;
-//                 }
-//             }
-//         }
-
-//         // el-acc hopp
-//         for(int i=acceptorNumber;i<hoppingSiteNumber;i++){
-//             for(int j=0;j<acceptorNumber;j++){
-//                 if (not occupation[j]){
-//                     deltaEnergies[i*hoppingSiteNumber+j]=energies[j]-energies[i];
-//                     if (deltaEnergies[i*hoppingSiteNumber+j] <= 0){
-//                         (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
-//                     }
-//                     else{
-//                         (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA-deltaEnergies[i*hoppingSiteNumber+j]);
-//                     }
-//                     ratesSum+=(*rates)[i*hoppingSiteNumber+j];
-//                 }
-//                 else{
-//                     (*rates)[i*hoppingSiteNumber+j]=0;
-//                     // deltaEnergies[i*hoppingSiteNumber+j]=0;
-//                 }
-//             }
-//         }
-
-
-//         //acc-el hopp
-//         for(int i=0;i<acceptorNumber;i++){
-//             if (occupation[i]){
-//                 for(int j=acceptorNumber;j<hoppingSiteNumber;j++){
-//                     deltaEnergies[i*hoppingSiteNumber+j]=energies[j]-energies[i];
-//                     if (deltaEnergies[i*hoppingSiteNumber+j] <= 0){
-//                         (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
-//                     }
-//                     else{
-//                         (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA-deltaEnergies[i*hoppingSiteNumber+j]);
-//                     }
-//                     ratesSum+=(*rates)[i*hoppingSiteNumber+j];
-//                 }
-//             }
-//             else{
-//                 for(int j=acceptorNumber;j<hoppingSiteNumber;j++){ 
-//                     (*rates)[i*hoppingSiteNumber+j]=0;
-//                     // deltaEnergies[i*hoppingSiteNumber+j]=0;
-//                 }
-//             }
-//         }
-//     }
-
-
-
-//     DEBUG_FUNC_END
-// }
-
 
 void System::updateRates(){
+    DEBUG_FUNC_START
+
+    //acc acc hopp
+    for(int i=0;i<acceptorNumber;i++){
+        if (occupation[i]){
+            for(int j=0;j<acceptorNumber;j++){
+                if (not occupation[j]){
+                    // std::cout<<" ----- "<<i<<" "<<j<<"delta E "<<deltaEnergies[i*hoppingSiteNumber+j]<<std::endl;
+
+                    deltaEnergies[i*hoppingSiteNumber+j]=energies[j]-energies[i]+pairEnergies[i*acceptorNumber+j];
+
+                    // std::cout<<" ei "<<energies[i]<<" ej "<<energies[j]<<" epair "<<pairEnergies[i*acceptorNumber+j]<<std::endl;
+
+                    if (deltaEnergies[i*hoppingSiteNumber+j] <= 0){
+                        (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
+                    }
+                    else{
+                        (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA-deltaEnergies[i*hoppingSiteNumber+j]);
+                    }
+                    ratesSum+=(*rates)[i*hoppingSiteNumber+j];
+                }
+                else{
+                    (*rates)[i*hoppingSiteNumber+j]=0;
+                    // deltaEnergies[i*hoppingSiteNumber+j]=0;
+                }
+            }
+        }
+        else{
+            for(int j=0;j<acceptorNumber;j++){ 
+                (*rates)[i*hoppingSiteNumber+j]=0;
+                // deltaEnergies[i*hoppingSiteNumber+j]=0;
+            }
+        }
+    }
+
+    // el-acc hopp
+    for(int i=acceptorNumber;i<hoppingSiteNumber;i++){
+        for(int j=0;j<acceptorNumber;j++){
+            if (not occupation[j]){
+                deltaEnergies[i*hoppingSiteNumber+j]=energies[j]-energies[i];
+                if (deltaEnergies[i*hoppingSiteNumber+j] <= 0){
+                    (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
+                }
+                else{
+                    (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA-deltaEnergies[i*hoppingSiteNumber+j]);
+                }
+                ratesSum+=(*rates)[i*hoppingSiteNumber+j];
+            }
+            else{
+                (*rates)[i*hoppingSiteNumber+j]=0;
+                // deltaEnergies[i*hoppingSiteNumber+j]=0;
+            }
+        }
+    }
+
+
+    //acc-el hopp
+    for(int i=0;i<acceptorNumber;i++){
+        if (occupation[i]){
+            for(int j=acceptorNumber;j<hoppingSiteNumber;j++){
+                deltaEnergies[i*hoppingSiteNumber+j]=energies[j]-energies[i];
+                if (deltaEnergies[i*hoppingSiteNumber+j] <= 0){
+                    (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
+                }
+                else{
+                    (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA-deltaEnergies[i*hoppingSiteNumber+j]);
+                }
+                ratesSum+=(*rates)[i*hoppingSiteNumber+j];
+            }
+        }
+        else{
+            for(int j=acceptorNumber;j<hoppingSiteNumber;j++){ 
+                (*rates)[i*hoppingSiteNumber+j]=0;
+                // deltaEnergies[i*hoppingSiteNumber+j]=0;
+            }
+        }
+    }
+    
+    double partRatesSum=0;
+    for(int i=0; i<hoppingSiteNumber;i++){
+        for(int j=0; j<hoppingSiteNumber;j++){
+            partRatesSum+=(*rates)[i*hoppingSiteNumber+j];
+        }
+    }
+
+    DEBUG_FUNC_END
+}
+
+void System::updateRatesMPStoring(){
     DEBUG_FUNC_START
 
 
@@ -721,7 +539,115 @@ void System::updateRates(){
     DEBUG_FUNC_END
 }
 
+void System::updateRatesSPStoring(){
+    DEBUG_FUNC_START
 
+    if (knownRates->count(hasedCurrentState)){
+        rates    = knownRates   ->at(hasedCurrentState);
+        ratesSum = knownRatesSum->at(hasedCurrentState);
+        // std::cout<<"found state: "<<hasedCurrentState<<std::endl;
+    }
+    else{
+        ratesSum=constantRatesSumPart;
+
+        // std::cout<<"not found state: "<<hasedCurrentState<<std::endl;
+
+        if (rates.use_count() > 1){
+            rates = std::make_shared<std::vector<double>>(*rates);
+        }
+
+        //acc acc hopp
+        for(int i=0;i<acceptorNumber;i++){
+            if (occupation[i]){
+                for(int j=0;j<acceptorNumber;j++){
+                    if (not occupation[j]){
+                        // std::cout<<" ----- "<<i<<" "<<j<<"delta E "<<deltaEnergies[i*hoppingSiteNumber+j]<<std::endl;
+
+                        deltaEnergies[i*hoppingSiteNumber+j]=energies[j]-energies[i]+pairEnergies[i*acceptorNumber+j];
+
+                        // std::cout<<" ei "<<energies[i]<<" ej "<<energies[j]<<" epair "<<pairEnergies[i*acceptorNumber+j]<<std::endl;
+
+                        if (deltaEnergies[i*hoppingSiteNumber+j] <= 0){
+                            (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
+                        }
+                        else{
+                            (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA-deltaEnergies[i*hoppingSiteNumber+j]);
+                        }
+                        ratesSum+=(*rates)[i*hoppingSiteNumber+j];
+                    }
+                    else{
+                        (*rates)[i*hoppingSiteNumber+j]=0;
+                        // deltaEnergies[i*hoppingSiteNumber+j]=0;
+                    }
+                }
+            }
+            else{
+                for(int j=0;j<acceptorNumber;j++){ 
+                    (*rates)[i*hoppingSiteNumber+j]=0;
+                    // deltaEnergies[i*hoppingSiteNumber+j]=0;
+                }
+            }
+        }
+
+        // el-acc hopp
+        for(int i=acceptorNumber;i<hoppingSiteNumber;i++){
+            for(int j=0;j<acceptorNumber;j++){
+                if (not occupation[j]){
+                    deltaEnergies[i*hoppingSiteNumber+j]=energies[j]-energies[i];
+                    if (deltaEnergies[i*hoppingSiteNumber+j] <= 0){
+                        (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
+                    }
+                    else{
+                        (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA-deltaEnergies[i*hoppingSiteNumber+j]);
+                    }
+                    ratesSum+=(*rates)[i*hoppingSiteNumber+j];
+                }
+                else{
+                    (*rates)[i*hoppingSiteNumber+j]=0;
+                    // deltaEnergies[i*hoppingSiteNumber+j]=0;
+                }
+            }
+        }
+
+
+        //acc-el hopp
+        for(int i=0;i<acceptorNumber;i++){
+            if (occupation[i]){
+                for(int j=acceptorNumber;j<hoppingSiteNumber;j++){
+                    deltaEnergies[i*hoppingSiteNumber+j]=energies[j]-energies[i];
+                    if (deltaEnergies[i*hoppingSiteNumber+j] <= 0){
+                        (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
+                    }
+                    else{
+                        (*rates)[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA-deltaEnergies[i*hoppingSiteNumber+j]);
+                    }
+                    ratesSum+=(*rates)[i*hoppingSiteNumber+j];
+                }
+            }
+            else{
+                for(int j=acceptorNumber;j<hoppingSiteNumber;j++){ 
+                    (*rates)[i*hoppingSiteNumber+j]=0;
+                    // deltaEnergies[i*hoppingSiteNumber+j]=0;
+                }
+            }
+        }
+        
+        double partRatesSum=0;
+        for(int i=0; i<hoppingSiteNumber;i++){
+            for(int j=0; j<hoppingSiteNumber;j++){
+                partRatesSum+=(*rates)[i*hoppingSiteNumber+j];
+            }
+        }
+
+        if(*storeKnownStates){
+            (*knownRates)   [hasedCurrentState]=rates;
+            (*knownRatesSum)[hasedCurrentState]=ratesSum;
+        }
+    }
+
+
+    DEBUG_FUNC_END
+}
 
 void System::updatePotential(){
     //this function needs to be splitted up in 3 parts for efficient parallel computing
@@ -734,7 +660,6 @@ void System::updatePotential(){
 
     DEBUG_FUNC_END
 }
-
 
 void System::resetPotential(){
     DEBUG_FUNC_START
@@ -775,10 +700,7 @@ void System::setNewPotential(){
     DEBUG_FUNC_END
 }
 
-
-
-
-void System::makeSwap(){
+void System::findSwap(){
     DEBUG_FUNC_START
     double rndNumber=enhance::random_double(0,ratesSum);
     double partRatesSum=0;
@@ -807,12 +729,50 @@ void System::makeSwap(){
 
     // std::cout<<partRatesSum<<" "<<" "<<rndNumber<<" "<<ratesSum<<" state: "<<hasedCurrentState<<" i "<<lastSwapped1<<" j "<<lastSwapped2<<std::endl;
 
-    updateAfterSwap();
 
 
-    for(int i=0; i<hoppingSiteNumber;i++){
+    // for(int i=0; i<hoppingSiteNumber;i++){
         // std::cout<<"i "<<i<<" curr "<<currentCounter[i]<<" "<<std::endl;
-    }
+    // }
+
+
+    DEBUG_FUNC_END
+}
+
+void System::findSwapBS(){
+    DEBUG_FUNC_START
+    double rndNumber=enhance::random_double(0,ratesSum);
+    double partRatesSum=0;
+    for(int i=0; i<hoppingSiteNumber;i++){
+        for(int j=0; j<hoppingSiteNumber;j++){
+            partRatesSum+=(*rates)[i*hoppingSiteNumber+j];
+            // std::cout<<partRatesSum<<" "<<(*rates)[i*hoppingSiteNumber+j]<<" "<<rndNumber<<" "<<ratesSum<<std::endl;
+            // std::cout<<"i "<<i<<" j "<<j<<" rate: "<<(*rates)[i*hoppingSiteNumber+j]<<std::endl;
+            if(partRatesSum > rndNumber){
+                lastSwapped1=i;
+                lastSwapped2=j;
+
+                currentCounter[i]--;
+                currentCounter[j]++;
+
+                // std::cout<<"swapped "<<i<<" "<<j<<" "<<setw(9)<<std::endl;
+                goto endDoubleLoop;
+            }
+        }
+        // if(i== hoppingSiteNumber-1){
+            // std::cout<<"no swapp found!"<<partRatesSum<<" "<<rndNumber<<" "<<ratesSum<<" ";
+        // }
+    }    
+
+    endDoubleLoop:;
+
+    // std::cout<<partRatesSum<<" "<<" "<<rndNumber<<" "<<ratesSum<<" state: "<<hasedCurrentState<<" i "<<lastSwapped1<<" j "<<lastSwapped2<<std::endl;
+
+
+
+    // for(int i=0; i<hoppingSiteNumber;i++){
+        // std::cout<<"i "<<i<<" curr "<<currentCounter[i]<<" "<<std::endl;
+    // }
 
 
     DEBUG_FUNC_END
@@ -851,16 +811,56 @@ void System::run(int steps){
     DEBUG_FUNC_START
 
 
-    for(int i=0; i<steps;i++){
-        // check if memory limit is exceeded
-        if (*storeKnownStates & (i%1000 ==0) & (((hoppingSiteNumber*hoppingSiteNumber+1)*8*knownRates->size()) >= (parameterStorage->parameters.at("memoryLimit")*1e6))){
-            *storeKnownStates=false;
-            // std::cout<<"memory limit exceeded, stopping to store states"<<std::endl;
+    if (storingMode) {
+        if (parameterStorage->parameters.at("threads") > 1){
+            //multi processor mode
+            for(int i=0; i<steps;i++){
+                // check if memory limit is exceeded
+                if (*storeKnownStates & (i%1000 ==0) & (((hoppingSiteNumber*hoppingSiteNumber+1)*8*knownRates->size()) >= (parameterStorage->parameters.at("memoryLimit")*1e6))){
+                    *storeKnownStates=false;
+                    // std::cout<<"memory limit exceeded, stopping to store states"<<std::endl;
+                }
+                updateRatesMPStoring();
+                if (ratesInMemory){
+                    findSwapBS();
+                }
+                else{
+                    findSwap();
+                }
+                updateAfterSwap();
+                increaseTime();
+            }
         }
-        updateRates();
-        makeSwap();
-        increaseTime();
+        else {
+            //single processor mode
+            for(int i=0; i<steps;i++){
+                // check if memory limit is exceeded
+                if (*storeKnownStates & (i%1000 ==0) & (((hoppingSiteNumber*hoppingSiteNumber+1)*8*knownRates->size()) >= (parameterStorage->parameters.at("memoryLimit")*1e6))){
+                    *storeKnownStates=false;
+                    // std::cout<<"memory limit exceeded, stopping to store states"<<std::endl;
+                }
+                updateRatesSPStoring();
+                if (ratesInMemory){
+                    findSwapBS();
+                }
+                else{
+                    findSwap();
+                }
+                updateAfterSwap();
+                increaseTime();
+            }
+        }
     }
+    else {
+        for(int i=0; i<steps;i++){
+            updateRates();
+            findSwap();
+            updateAfterSwap();
+            increaseTime();
+        }
+    }
+    
+
 
     // std::cout<<"done! curr: "<<" "<<currentCounter[int(parameterStorage->parameters.at("outputElectrode")+parameterStorage->parameters["acceptorNumber"])]/time <<std::endl;
 

@@ -61,33 +61,29 @@ void MCHost::singleRun(){
     // *(systems[0]->storeKnownStates)=true;
     std::vector<std::thread> threads;
 
+    bool multiProcessingMode = parameterStorage->parameters.at("threads") > 1 ;
 
     // run equil steps
     int N=parameterStorage->parameters.at("equilSteps");
-    for(int k=0; k < parameterStorage->parameters.at("threads"); k++){
-        // systems[k]->time=0; 
-        // for (int i = 0; i < hoppingSiteNumber; i++){
-        //     // std::cout<<i<<" "<<systems[k]->currentCounter[k]<<" "<<systems[k]->time<<std::endl;
-        //     systems[k]->currentCounter[i] = 0;
-        // }
-        threads.push_back(std::thread(&System::run, std::ref(*systems[k]),N));
-        // systems[k]->run(N);
-
+    if (multiProcessingMode){
+        for(int k=0; k < parameterStorage->parameters.at("threads"); k++){
+            threads.push_back(std::thread(&System::run, std::ref(*systems[k]),N));
+        }
+        for(int k=0; k < parameterStorage->parameters.at("threads"); k++){
+            threads[k].join();
+        }
+        threads.clear();
     }
-    for(int k=0; k < parameterStorage->parameters.at("threads"); k++){
-        threads[k].join();
-
+    else{
+        systems[0]->run(N);
     }
-    threads.clear();
 
 
 
     //split up in multiple runs to calc uncertainty of currents
-    int runsPerThread=std::ceil(30.0/parameterStorage->parameters.at("threads"));
-    // int runsPerThread=10;
+    int runsPerThread=std::ceil(20.0/parameterStorage->parameters.at("threads"));
 
     N=int(parameterStorage->parameters.at("calcCurrentSteps")/(runsPerThread*parameterStorage->parameters.at("threads")));
-    // N=int(parameterStorage->parameters.at("calcCurrentSteps"));
 
     outputCurrent     = 0;
     outputCurrentSqrt = 0;
@@ -96,7 +92,6 @@ void MCHost::singleRun(){
 
     for(int j=0; j < runsPerThread; j++){
         for(int k=0; k < parameterStorage->parameters.at("threads"); k++){
-
             // reset currents
             systems[k]->time=0;
             for (int i = 0; i < hoppingSiteNumber; i++){
@@ -105,21 +100,29 @@ void MCHost::singleRun(){
             }
             
             // run pruductions steps
-            threads.push_back(std::thread(&System::run, systems[k],N));
-            // systems[k]->run(N);
+            if (multiProcessingMode){
+                threads.push_back(std::thread(&System::run, systems[k],N));
+            }
+            else{
+                systems[k]->run(N); // anyway k == 0
+            }
 
 
         }
 
         for(int k=0; k < parameterStorage->parameters.at("threads"); k++){
-            threads[k].join();
+            if (multiProcessingMode){
+                threads[k].join();
+            }
 
             outputCurrent     +=          systems[k]->currentCounter[int(parameterStorage->parameters.at("outputElectrode")+parameterStorage->parameters["acceptorNumber"])]/systems[k]->time;
             outputCurrentSqrt += std::pow(systems[k]->currentCounter[int(parameterStorage->parameters.at("outputElectrode")+parameterStorage->parameters["acceptorNumber"])]/systems[k]->time,2);
             // std::cout<<"curr: "<<" "<<outputCurrent/(j+1) <<" +- "<<std::sqrt((outputCurrentSqrt-outputCurrent*outputCurrent/(j+1)))/(j+1) <<std::endl;
             // std::cout<<"thread: "<<k<<" run: "<<j<<" curr: "<<" "<<systems[k]->currentCounter[int(parameterStorage->parameters.at("outputElectrode")+parameterStorage->parameters["acceptorNumber"])]/systems[k]->time <<std::endl;
         }
-        threads.clear();
+        if (multiProcessingMode){
+            threads.clear();
+        }
     }
 
 
@@ -133,78 +136,6 @@ void MCHost::singleRun(){
    
     DEBUG_FUNC_END
 }
-
-
-
-
-// void MCHost::singleRun(int processNumber){
-//     //run system until currents are in equilibrium
-//     DEBUG_FUNC_START
-
-//     bool storeKnownStates=true;
-
-//     // reset currents
-//     for (int i = 0; i < hoppingSiteNumber; i++){
-//         system->currentCounter[i] = 0;
-//         system->time=0;
-//     }
-//     // run equil steps
-//     int N=parameterStorage->parameters.at("equilSteps");
-//     for(int i=0; i<N;i++){
-//         // check if memory limit is exceeded
-//         if (storeKnownStates & (i%1000 ==0) & (((hoppingSiteNumber*hoppingSiteNumber+1)*8*system->knownRates.size()) > (parameterStorage->parameters.at("memoryLimit")*1e6))){
-//             storeKnownStates=false;
-//             // std::cout<<"memory limit exceeded, stopping to store states"<<std::endl;
-//         }
-//         system->updateRates(storeKnownStates);
-//         system->makeSwap();
-//         system->increaseTime();
-//     }
-
-
-//     //split up in multiple runs to calc uncertainty of currents
-//     int uncertaintySplits=20;
-//     N=int(parameterStorage->parameters.at("calcCurrentSteps")/uncertaintySplits);
-
-//     outputCurrent     = 0;
-//     outputCurrentSqrt = 0;
-
-
-//     for(int j=0; j < uncertaintySplits; j++){
-//         // reset currents
-//         for (int i = 0; i < hoppingSiteNumber; i++){
-//             system->currentCounter[i] = 0;
-//             system->time=0;
-//         }
-//         // run pruductions steps
-//         for(int i=0; i<N;i++){
-//             // check if memory limit is exceeded
-//             if (storeKnownStates & (i%1000 ==0) & (((hoppingSiteNumber*hoppingSiteNumber+1)*8*system->knownRates.size()) > (parameterStorage->parameters.at("memoryLimit")*1e6))){
-//                 storeKnownStates=false;
-//                 // std::cout<<"memory limit exceeded, stopping to store states"<<std::endl;
-//             }
-//             system->updateRates(storeKnownStates);
-//             system->makeSwap();
-//             system->increaseTime();
-
-//         }
-//         outputCurrent     +=          system->currentCounter[int(parameterStorage->parameters.at("outputElectrode")+parameterStorage->parameters["acceptorNumber"])]/system->time;
-//         outputCurrentSqrt += std::pow(system->currentCounter[int(parameterStorage->parameters.at("outputElectrode")+parameterStorage->parameters["acceptorNumber"])]/system->time,2);
-//         // std::cout<<"curr: "<<" "<<outputCurrent/(j+1) <<" +- "<<std::sqrt((outputCurrentSqrt-outputCurrent*outputCurrent/(j+1)))/(j+1) <<std::endl;
-//     }
-
-
-//     outputCurrentStd=std::sqrt((outputCurrentSqrt-outputCurrent*outputCurrent/uncertaintySplits))/uncertaintySplits;
-//     outputCurrent/=uncertaintySplits;
-
-//     // //print currents
-//     // for (int i = 0; i < hoppingSiteNumber; i++){
-//     //     std::cout<<i<<" "<<system->hoppingSites[i]->absCurrentCounter<<std::endl;
-//     // }
-   
-//     DEBUG_FUNC_END
-// }
-
 
 
 

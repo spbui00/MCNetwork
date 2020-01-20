@@ -44,6 +44,7 @@ private:
 
     bool readyForRun=false;
     bool storingMode; // if set true performance is optimized by storing known states
+    bool ratesInMemory =false; //save if last step was found in stored states. if true, binary search is done to find swap
 
 
 public:
@@ -70,8 +71,12 @@ public:
     void initilizeMatrices();
     void getReadyForRun();
 
-    void makeSwap();
+    void findSwap();
+    void findSwapBS(); //using binary search
     void updateRates();
+    void updateRatesMPStoring(); //multi  processor, storing mode
+    void updateRatesSPStoring(); //single processor, storing mode
+
     void increaseTime();
     void run(int steps);
     
