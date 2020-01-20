@@ -12,13 +12,14 @@ MCHost::MCHost(std::shared_ptr<ParameterStorage> parameterStorage) : parameterSt
     std::string dataFileName = parameterStorage->workingDirecotry+ "data.hdf5";
     dataFile = std::shared_ptr<DataFile>(new DataFile(dataFileName));
 
-    voltageScanPointsNumber = (parameterStorage->parameters.at("voltageScanMax")-parameterStorage->parameters.at("voltageScanMin"))/parameterStorage->parameters.at("voltageScanResolution")+1;
+    voltageScanPoints = parameterStorage->parameters.at("voltageScanPoints");
+    voltageScanResolution=(parameterStorage->parameters.at("voltageScanMax")-parameterStorage->parameters.at("voltageScanMin"))/double(voltageScanPoints-1);
 
-    outputCurrentBuffer       = new double[voltageScanPointsNumber*voltageScanPointsNumber];
-    outputCurrentUncertBuffer = new double[voltageScanPointsNumber*voltageScanPointsNumber];
+    outputCurrentBuffer       = new double[voltageScanPoints*voltageScanPoints];
+    outputCurrentUncertBuffer = new double[voltageScanPoints*voltageScanPoints];
 
-    dataFile->createDataset("outputCurrent",       {voltageScanPointsNumber*voltageScanPointsNumber} );
-    dataFile->createDataset("outputCurrentUncert", {voltageScanPointsNumber*voltageScanPointsNumber} );
+    dataFile->createDataset("outputCurrent",       {voltageScanPoints,voltageScanPoints} );
+    dataFile->createDataset("outputCurrentUncert", {voltageScanPoints,voltageScanPoints} );
     dataFile->createDataset("fitness",             {1});
     dataFile->createDataset("fitnessUncert",       {1});
     dataFile->createDataset("optEnergy",           {1});
@@ -46,7 +47,7 @@ void MCHost::setup(bool makeNewDevice)
     systems[0]->getReadyForRun();
 
     for(int i=1; i < parameterStorage->parameters.at("threads"); i++){
-        systems.push_back(new System(*systems[0]));
+        systems.push_back(new System(*systems[0],bool(parameterStorage->parameters.at("shareMemory"))));
     }
 
     DEBUG_FUNC_END
@@ -142,14 +143,15 @@ void MCHost::singleRun(){
 void MCHost::runVoltageSetup(){
     DEBUG_FUNC_START
 
-    for(int i=0; i < voltageScanPointsNumber; i++){            
-        for(int j=0; j < voltageScanPointsNumber; j++){
-            std::cout<<"scanning... "<<parameterStorage->parameters.at("voltageScanMin")+parameterStorage->parameters.at("voltageScanResolution")*i<<" "
-                                     <<parameterStorage->parameters.at("voltageScanMin")+parameterStorage->parameters.at("voltageScanResolution")*j<<" ";
-            parameterStorage->electrodes[parameterStorage->parameters.at("inputElectrode1")].voltage=parameterStorage->parameters.at("voltageScanMin")+parameterStorage->parameters.at("voltageScanResolution")*i;
-            parameterStorage->electrodes[parameterStorage->parameters.at("inputElectrode2")].voltage=parameterStorage->parameters.at("voltageScanMin")+parameterStorage->parameters.at("voltageScanResolution")*j;
+    for(int i=0; i < voltageScanPoints; i++){            
+        for(int j=0; j < voltageScanPoints; j++){
+            std::cout<<"scanning... "<<parameterStorage->parameters.at("voltageScanMin")+voltageScanResolution*i<<" "
+                                     <<parameterStorage->parameters.at("voltageScanMin")+voltageScanResolution*j<<" ";
+            parameterStorage->electrodes[parameterStorage->parameters.at("inputElectrode1")].voltage=parameterStorage->parameters.at("voltageScanMin")+voltageScanResolution*i;
+            parameterStorage->electrodes[parameterStorage->parameters.at("inputElectrode2")].voltage=parameterStorage->parameters.at("voltageScanMin")+voltageScanResolution*j;
 
 
+            //recalc potential
             for(int k=0; k < parameterStorage->parameters.at("threads"); k++){
                 systems[k]->resetPotential();
             }
@@ -158,16 +160,25 @@ void MCHost::runVoltageSetup(){
                 systems[k]->setNewPotential();
             }
 
-
-            std::cout<<"maximal size of stored states: "<<(hoppingSiteNumber*hoppingSiteNumber+1)*8/1e6*systems[0]->knownRates->size()<<" mb; "<<systems[0]->knownRates->size()<<" states"<<std::endl;
-            systems[0]->knownRates   ->clear();
-            systems[0]->knownRatesSum->clear();
+            //reset stored states
+            if (parameterStorage->parameters.at("shareMemory")){
+                std::cout<<"maximal size of stored states: "<<(hoppingSiteNumber*hoppingSiteNumber+1)*8/1e6*systems[0]->knownRatesSum->size()<<" mb; "<<systems[0]->knownRatesSum->size()<<" states"<<std::endl;
+                systems[0]->konwnPartRatesSumList->clear();
+                systems[0]->knownRatesSum        ->clear();
+            }
+            else{
+                for(int k=0; k < parameterStorage->parameters.at("threads"); k++){
+                    std::cout<<"maximal size of stored states: "<<(hoppingSiteNumber*hoppingSiteNumber+1)*8/1e6*systems[k]->knownRatesSum->size()<<" mb; "<<systems[k]->knownRatesSum->size()<<" states"<<std::endl;
+                    systems[k]->konwnPartRatesSumList->clear();
+                    systems[k]->knownRatesSum        ->clear();
+                }
+            }
 
             singleRun();
 
-            outputCurrentBuffer      [i*voltageScanPointsNumber+j]=outputCurrent;
-            outputCurrentUncertBuffer[i*voltageScanPointsNumber+j]=outputCurrentStd;
-            std:cout<<"current: "<<outputCurrentBuffer[i*voltageScanPointsNumber+j]<<" +- "<<outputCurrentUncertBuffer[i*voltageScanPointsNumber+j]<<std::endl;
+            outputCurrentBuffer      [i*voltageScanPoints+j]=outputCurrent;
+            outputCurrentUncertBuffer[i*voltageScanPoints+j]=outputCurrentStd;
+            std:cout<<"current: "<<outputCurrentBuffer[i*voltageScanPoints+j]<<" +- "<<outputCurrentUncertBuffer[i*voltageScanPoints+j]<<std::endl;
         }
     }
 
@@ -200,31 +211,31 @@ void MCHost::calcOptimizationEnergy(){
 
     int maxIndex=0,minIndex=0;
 
-    for(int i=0; i < voltageScanPointsNumber; i++){            
-        for(int j=0; j < voltageScanPointsNumber; j++){
-            if (outputCurrentBuffer[i*voltageScanPointsNumber+j]<outputCurrentBuffer[minIndex]){minIndex=i*voltageScanPointsNumber+j;}
-            if (outputCurrentBuffer[i*voltageScanPointsNumber+j]>outputCurrentBuffer[maxIndex]){maxIndex=i*voltageScanPointsNumber+j;}
+    for(int i=0; i < voltageScanPoints; i++){            
+        for(int j=0; j < voltageScanPoints; j++){
+            if (outputCurrentBuffer[i*voltageScanPoints+j]<outputCurrentBuffer[minIndex]){minIndex=i*voltageScanPoints+j;}
+            if (outputCurrentBuffer[i*voltageScanPoints+j]>outputCurrentBuffer[maxIndex]){maxIndex=i*voltageScanPoints+j;}
         }
     }
 
     fitness=0;
     fitnessUncert=0;
     double normed,desiredVal,normedUncert;
-    for(int i=0; i < voltageScanPointsNumber; i++){            
-        for(int j=0; j < voltageScanPointsNumber; j++){
-            normed=(outputCurrentBuffer[i*voltageScanPointsNumber+j]-outputCurrentBuffer[minIndex])/(outputCurrentBuffer[maxIndex]-outputCurrentBuffer[minIndex]);
-            normedUncert=std::sqrt(std::pow(outputCurrentUncertBuffer[i*voltageScanPointsNumber+j]/(outputCurrentBuffer[maxIndex]-outputCurrentBuffer[minIndex]),2)
-                                  +std::pow((outputCurrentBuffer[i*voltageScanPointsNumber+j]-outputCurrentBuffer[minIndex])/std::pow(outputCurrentBuffer[maxIndex]-outputCurrentBuffer[minIndex],2)*outputCurrentUncertBuffer[maxIndex],2)
-                                  +std::pow(((outputCurrentBuffer[i*voltageScanPointsNumber+j]-outputCurrentBuffer[minIndex])/std::pow(outputCurrentBuffer[maxIndex]-outputCurrentBuffer[minIndex],2)-1/(outputCurrentBuffer[maxIndex]-outputCurrentBuffer[minIndex]))*outputCurrentUncertBuffer[minIndex],2));
-            desiredVal = desiredLogicFunction(parameterStorage->parameters.at("voltageScanMin")+parameterStorage->parameters.at("voltageScanResolution")*i,parameterStorage->parameters.at("voltageScanMin")+parameterStorage->parameters.at("voltageScanResolution")*j,parameterStorage->gate);
+    for(int i=0; i < voltageScanPoints; i++){            
+        for(int j=0; j < voltageScanPoints; j++){
+            normed=(outputCurrentBuffer[i*voltageScanPoints+j]-outputCurrentBuffer[minIndex])/(outputCurrentBuffer[maxIndex]-outputCurrentBuffer[minIndex]);
+            normedUncert=std::sqrt(std::pow(outputCurrentUncertBuffer[i*voltageScanPoints+j]/(outputCurrentBuffer[maxIndex]-outputCurrentBuffer[minIndex]),2)
+                                  +std::pow((outputCurrentBuffer[i*voltageScanPoints+j]-outputCurrentBuffer[minIndex])/std::pow(outputCurrentBuffer[maxIndex]-outputCurrentBuffer[minIndex],2)*outputCurrentUncertBuffer[maxIndex],2)
+                                  +std::pow(((outputCurrentBuffer[i*voltageScanPoints+j]-outputCurrentBuffer[minIndex])/std::pow(outputCurrentBuffer[maxIndex]-outputCurrentBuffer[minIndex],2)-1/(outputCurrentBuffer[maxIndex]-outputCurrentBuffer[minIndex]))*outputCurrentUncertBuffer[minIndex],2));
+            desiredVal = desiredLogicFunction(parameterStorage->parameters.at("voltageScanMin")+voltageScanResolution*i,parameterStorage->parameters.at("voltageScanMin")+voltageScanResolution*j,parameterStorage->gate);
             fitness+=std::abs(normed-desiredVal);
             fitnessUncert+=normedUncert*normedUncert;
         }
     }
-    fitness/=voltageScanPointsNumber*voltageScanPointsNumber;
+    fitness/=voltageScanPoints*voltageScanPoints;
     fitness=1-fitness;
     fitnessUncert=std::sqrt(fitnessUncert);
-    fitnessUncert/=voltageScanPointsNumber*voltageScanPointsNumber;
+    fitnessUncert/=voltageScanPoints*voltageScanPoints;
     normedDiff= (outputCurrentBuffer[maxIndex]-outputCurrentBuffer[minIndex])/(2*std::max(std::abs(outputCurrentBuffer[maxIndex]),std::abs(outputCurrentBuffer[minIndex])));
 
     optEnergy = fitness - fitnessUncert*parameterStorage->parameters.at("fitnessUncertWeight") + normedDiff*parameterStorage->parameters.at("diffWeight");

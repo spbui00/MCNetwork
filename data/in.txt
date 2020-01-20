@@ -1,11 +1,13 @@
 #simulation parameters
 gate XOR
-memoryLimit 1500 #in MB (should be around 100mb under real limit)
-threads 1
+memoryLimit 1500 #in MB (should be around 100mb under real limit), if memory is not shared real memory consumption is memoryLimit*threads
+shareMemory 1
+threads 4
 finiteElementsResolution 5e3
-equilSteps 1e5 #scaling per thread!!
-calcCurrentSteps 1e5
+equilSteps 1e5   #scaling per thread!!
+calcCurrentSteps 5e7
 storingMode 1
+
 
 
 
@@ -17,7 +19,7 @@ lenX 300 #nm
 lenY 300 #nm
 
 I0 660 #meV (bram found 600)
-a 50 #nm
+a 14 #nm
 compensationFactor 0.1 #donors per acceptor
 
 
@@ -40,11 +42,11 @@ eps0 8.854187817620389e-12
 electrode 0.25 0 0
 electrode 0.75 0 0
 electrode 0.25 1 0
-electrode 0.75 1 1
-electrode 0.25 2 1
-electrode 0.75 2 1
-electrode 0.25 3 1
-electrode 0.75 3 1
+electrode 0.75 1 0.36867162
+electrode 0.25 2 -0.9877607
+electrode 0.75 2 -0.11412408
+electrode 0.25 3 -0.19157536
+electrode 0.75 3 0.65473457
 
 
 electrodeWidth 60 #nm
@@ -57,9 +59,9 @@ controlVoltageMin -1
 controlVoltageMax 1
 
 
-voltageScanMin 0
-voltageScanMax 0.5
-voltageScanResolution 0.5
+voltageScanMin -0.2
+voltageScanMax 0.7
+voltageScanPoints 19 # 0 and 0.5 should be in hit exactly
 seperationVoltage 0.25
 
 

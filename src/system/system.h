@@ -25,7 +25,7 @@ private:
     double * donorPositionsX, * donorPositionsY, * acceptorPositionsX, * acceptorPositionsY, * electrodePositionsX, * electrodePositionsY; // 1D
     double * energies; // 1D
     bool * occupation; // 1D
-    double * pairEnergies, * distances, * deltaEnergies; //2D
+    double * pairEnergies, * rates, * distances, * deltaEnergies; //2D
     unsigned long long hasedCurrentState=0; //state is stored hased (better performance compared to string)
     
     int lastSwapped1=0,lastSwapped2=0; // swap 1->2 int = index
@@ -33,8 +33,7 @@ private:
     double ratesSum=0;
     double constantRatesSumPart=0;
     double locLenA;
-    std::shared_ptr<std::vector<double>> rates;
-    std::shared_ptr<std::vector<double>> partRatesSumList;
+    std::shared_ptr<std::vector<double>> partRatesSumList; //list of accumulated rates for binary search
 
     std::shared_ptr<ParameterStorage> parameterStorage;
     
@@ -50,8 +49,7 @@ private:
 public:
     std::shared_ptr<std::shared_mutex> mutex;
 
-    std::shared_ptr< std::unordered_map<unsigned long long,std::shared_ptr<std::vector<double>>>> knownRates;
-    std::shared_ptr< std::unordered_map<unsigned long long,std::shared_ptr<std::vector<double>>>> konwPartRatesSumList;
+    std::shared_ptr< std::unordered_map<unsigned long long,std::shared_ptr<std::vector<double>>>> konwnPartRatesSumList; //map of lists of accumulated rates for binary search, to store known states
     std::shared_ptr< std::unordered_map<unsigned long long,double>>  knownRatesSum;
 
     double * currentCounter; // 1D
@@ -60,7 +58,7 @@ public:
     double time=0;
 
     System(const std::shared_ptr<ParameterStorage> &);
-    System(const System & oldSys);
+    System(const System & oldSys, bool shareMemory = true);
 
 
 
@@ -73,9 +71,11 @@ public:
 
     void findSwap();
     void findSwapBS(); //using binary search
-    void updateRates();
+
     void updateRatesMPStoring(); //multi  processor, storing mode
     void updateRatesSPStoring(); //single processor, storing mode
+    void updateRates();// core calculation of rates
+    
 
     void increaseTime();
     void run(int steps);

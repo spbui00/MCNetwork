@@ -22,11 +22,9 @@ with h5py.File(join(pathToSimFolder,"data.hdf5"),"r") as dataFile:
     voltages=np.array(dataFile["/voltages"][:])
     optEnergy=np.array(dataFile["/optEnergy"][:])
 
-voltageScanPointsNumber = int((parameters["voltageScanMax"]-parameters["voltageScanMin"])/parameters["voltageScanResolution"]+1)
-parameters["voltageScanMax"]=parameters["voltageScanMin"]+(voltageScanPointsNumber-1)*parameters["voltageScanResolution"]
+voltageScanPoints=int(parameters["voltageScanPoints"])
 
-currents.resize((currents.shape[0],voltageScanPointsNumber,voltageScanPointsNumber))
-sigma   .resize((sigma   .shape[0],voltageScanPointsNumber,voltageScanPointsNumber))
+resolution=(parameters["voltageScanMax"]-parameters["voltageScanMin"])/(voltageScanPoints-1)
 
 
 best=np.argmax(optEnergy,axis=0)
@@ -39,7 +37,7 @@ print(voltages[best])
 
 
 
-if voltageScanPointsNumber==2:
+if voltageScanPoints==2:
     fig, ax=plt.subplots(1,1,figsize=(4.980614173228346,3.2))
 
 
@@ -57,8 +55,8 @@ if voltageScanPointsNumber==2:
 
 
 
-falseIndex=int((0  -parameters["voltageScanMin"])/parameters["voltageScanResolution"])
-trueIndex =int((0.5-parameters["voltageScanMin"])/parameters["voltageScanResolution"])
+falseIndex=round((0  -parameters["voltageScanMin"])/resolution)
+trueIndex =round((0.5-parameters["voltageScanMin"])/resolution)
 
 
 maxTrue=-np.inf
@@ -85,12 +83,12 @@ for b1 in [0,1]:
             if minTrue > currents[best[0],i1,i2]:
                 minTrue = currents[best[0],i1,i2]
                 
-
+print(currents2x2)
 
 fig, ax=plt.subplots(1,1,figsize=(4.980614173228346,3.2))
 
-im=ax.imshow((currents[best[0],::-1,:]-minTrue)/(maxTrue-minTrue),cmap="Greys",extent=[parameters["voltageScanMin"]-parameters["voltageScanResolution"]/2,parameters["voltageScanMax"]+parameters["voltageScanResolution"]/2,
-                                                                                     parameters["voltageScanMin"]-parameters["voltageScanResolution"]/2,parameters["voltageScanMax"]+parameters["voltageScanResolution"]/2])
+im=ax.imshow((currents[best[0],::-1,:]-minTrue)/(maxTrue-minTrue),cmap="Spectral",extent=[parameters["voltageScanMin"]-resolution/2,parameters["voltageScanMax"]+resolution/2,
+                                                                                          parameters["voltageScanMin"]-resolution/2,parameters["voltageScanMax"]+resolution/2])
 
 ax.scatter([0,0,0.5,0.5],[0,0.5,0,0.5],c="r",marker="x")
 
@@ -100,12 +98,12 @@ ax.scatter([0,0,0.5,0.5],[0,0.5,0,0.5],c="r",marker="x")
 plt.colorbar(im)
 
 plt.savefig(join(pathToSimFolder,"fitness_2D.png"),bbox_inches="tight",dpi=300)    
-# plt.show()
+plt.show()
 plt.close()
 fig=None
 
 
-if voltageScanPointsNumber!=2:
+if voltageScanPoints!=2:
     fig, ax=plt.subplots(1,1,figsize=(4.980614173228346,3.2))
 
 
