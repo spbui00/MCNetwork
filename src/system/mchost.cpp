@@ -162,13 +162,13 @@ void MCHost::runVoltageSetup(){
 
             //reset stored states
             if (parameterStorage->parameters.at("shareMemory")){
-                std::cout<<"maximal size of stored states: "<<(hoppingSiteNumber*hoppingSiteNumber+1)*8/1e6*systems[0]->knownRatesSum->size()<<" mb; "<<systems[0]->knownRatesSum->size()<<" states"<<std::endl;
+                // std::cout<<"maximal size of stored states: "<<(hoppingSiteNumber*hoppingSiteNumber+1)*8/1e6*systems[0]->knownRatesSum->size()<<" mb; "<<systems[0]->knownRatesSum->size()<<" states"<<std::endl;
                 systems[0]->konwnPartRatesSumList->clear();
                 systems[0]->knownRatesSum        ->clear();
             }
             else{
                 for(int k=0; k < parameterStorage->parameters.at("threads"); k++){
-                    std::cout<<"maximal size of stored states: "<<(hoppingSiteNumber*hoppingSiteNumber+1)*8/1e6*systems[k]->knownRatesSum->size()<<" mb; "<<systems[k]->knownRatesSum->size()<<" states"<<std::endl;
+                    // std::cout<<"maximal size of stored states: "<<(hoppingSiteNumber*hoppingSiteNumber+1)*8/1e6*systems[k]->knownRatesSum->size()<<" mb; "<<systems[k]->knownRatesSum->size()<<" states"<<std::endl;
                     systems[k]->konwnPartRatesSumList->clear();
                     systems[k]->knownRatesSum        ->clear();
                 }
@@ -246,32 +246,75 @@ void MCHost::calcOptimizationEnergy(){
 
 void MCHost::optimizeMC(bool rndStart /*= false*/){
     DEBUG_FUNC_START
-    std::cout<<"running optimization"<<std::endl;
+
+    dataFile->createDataset("accepted",{1});
+    double accepted=-1;
+
+    std::cout<<"running MC optimization"<<std::endl;
 
     parameterStorage->electrodes[parameterStorage->parameters.at("outputElectrode")].voltage=0;
     
     // init random voltages
     if (rndStart){
-        std::cout<<"new random voltages: "<<std::endl;
+        std::cout<<"------ searching for start point ------"<<std::endl;
+
+        std::vector<int> controlElectrodeIndices;
         for(int i=0;i<electrodeNumber;i++){
             if((i !=parameterStorage->parameters.at("outputElectrode")) & (i !=parameterStorage->parameters.at("inputElectrode1")) &(i !=parameterStorage->parameters.at("inputElectrode2"))){
-                parameterStorage->electrodes[i].voltage=enhance::random_double(parameterStorage->parameters.at("controlVoltageMin"),parameterStorage->parameters.at("controlVoltageMax"));
-                std::cout<<i<<" "<<parameterStorage->electrodes[i].voltage<<std::endl;
+                controlElectrodeIndices.push_back(i);
             }
         }
+        int controlElectrodes=controlElectrodeIndices.size();
+        
+        std::vector<std::pair<std::vector<double>,double>> voltagesSet; //pair of control voltages and optEnergy
+        auto voltagesSetComparator = []( const std::pair<std::vector<double>,double>& l, const std::pair<std::vector<double>,double>& r) { return l.second > r.second; }; //needed to find best start point
+
+        for(int k=0; k < parameterStorage->parameters.at("MCOptStartPoints"); k++){
+            voltagesSet.push_back(std::pair<std::vector<double>,double>(std::vector<double>(controlElectrodes),0));
+            for(int j=0; j < controlElectrodes; j++){
+                voltagesSet[k].first[j]=enhance::random_double(parameterStorage->parameters.at("controlVoltageMin"),parameterStorage->parameters.at("controlVoltageMax"));
+            }
+        }
+
+        //run rnd start candidates
+        for(int k=0; k < parameterStorage->parameters.at("MCOptStartPoints"); k++){
+            std::cout<<"rnd start point: "<<k<<" voltages:";
+            for(int i=0; i < controlElectrodes; i++){
+                parameterStorage->electrodes[controlElectrodeIndices[i]].voltage=voltagesSet[k].first[i];
+                std::cout<<" "<<controlElectrodeIndices[i]<<": "<<parameterStorage->electrodes[controlElectrodeIndices[i]].voltage;
+            }
+            std::cout<<std::endl;
+
+            auto startTime = chrono::steady_clock::now();
+
+            runVoltageSetup();
+            calcOptimizationEnergy();
+            saveResults();
+            dataFile->addData("accepted",& accepted);
+            
+            voltagesSet[k].second=optEnergy;
+
+
+            std::cout<<"optEnergy: "<<optEnergy    <<" fitness: ("<<fitness    <<" +- "<<fitnessUncert    <<") normedDiff: "<<normedDiff<<std::endl;
+            auto endTime = chrono::steady_clock::now();
+            std::cout << "time per VoltageSetup = " << std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count()/1000.0 << " s" << std::endl;
+        }
+
+        std::cout<<"start search done! sorted results: "<<std::endl;
+        std::sort(voltagesSet.begin(),voltagesSet.end(),voltagesSetComparator);
+        for(int k=0; k < parameterStorage->parameters.at("MCOptStartPoints"); k++){
+            std::cout<<"genome: "<<k+1<<" optEnergy: "<<voltagesSet[k].second<<" voltages: ";
+            for(int i=0; i < controlElectrodes; i++){
+                std::cout<<" "<<controlElectrodeIndices[i]<<": "<<voltagesSet[k].first[i];
+            }
+            std::cout<<std::endl;
+        }
+
+        //set best start
+        for(int i=0; i < controlElectrodes; i++){
+            parameterStorage->electrodes[controlElectrodeIndices[i]].voltage=voltagesSet[0].first[i];
+        }
     }
-
-    auto startTime = chrono::steady_clock::now();
-
-    runVoltageSetup();
-    calcOptimizationEnergy();
-    saveResults();
-
-    std::cout<<"optEnergy: "<<optEnergy    <<" fitness: ("<<fitness    <<" +- "<<fitnessUncert    <<") normedDiff: "<<normedDiff<<std::endl;;
-    auto endTime = chrono::steady_clock::now();
-    std::cout << "time per VoltageSetup = " << std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count()/1000.0 << " s" << std::endl;
-    
-
 
 
     double lastFitness       = fitness;
@@ -304,6 +347,7 @@ void MCHost::optimizeMC(bool rndStart /*= false*/){
         std::cout<<"now:  optEnergy: "<<optEnergy    <<" fitness: ("<<fitness    <<" +- "<<fitnessUncert    <<") normedDiff: "<<normedDiff<<"\nlast: optEnergy: "<<lastOptEnergy<<" fitness: ("<<lastFitness<<" +- "<<lastFitnessUncert<<") normedDiff: "<<lastNormedDiff<<std::endl;
         if((optEnergy < lastOptEnergy) & (enhance::fastExp((optEnergy-lastOptEnergy)/parameterStorage->parameters.at("acceptanceFactor"))<enhance::random_double(0,1))){
             std::cout<<"-- not accepted --"<<std::endl;
+            accepted=0;
             //swap back
             for(int i=0;i<electrodeNumber;i++){
                 parameterStorage->electrodes[i].voltage=lastVoltages[i];
@@ -311,6 +355,7 @@ void MCHost::optimizeMC(bool rndStart /*= false*/){
         }
         else{
             std::cout<<"-- accepted --"<<std::endl;
+            accepted=1;
             //setup for next iteration
             for(int i=0;i<electrodeNumber;i++){
                 lastVoltages[i]=parameterStorage->electrodes[i].voltage;
@@ -321,6 +366,9 @@ void MCHost::optimizeMC(bool rndStart /*= false*/){
             lastNormedDiff    = normedDiff;
 
         }
+        dataFile->addData("accepted",& accepted);
+
+
         auto endTime = chrono::steady_clock::now();
         std::cout << "time per VoltageSetup = " << std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count()/1000.0 << " s" << std::endl;
     
@@ -332,6 +380,181 @@ void MCHost::optimizeMC(bool rndStart /*= false*/){
         }
     }
     
+
+
+    DEBUG_FUNC_END
+}
+
+
+void MCHost::optimizeGenetic(){
+    DEBUG_FUNC_START
+
+    dataFile->createDataset("generation",{1});
+
+    // lambda function needed later to sort genome set
+    auto genomeComparator = []( const std::pair<std::vector<double>,double>& l, const std::pair<std::vector<double>,double>& r) { return l.second > r.second; };
+
+
+    std::cout<<"running optimization - genetic"<<std::endl;
+
+    parameterStorage->electrodes[parameterStorage->parameters.at("outputElectrode")].voltage=0;
+
+    std::vector<int> controlElectrodeIndices;
+    for(int i=0;i<electrodeNumber;i++){
+        if((i !=parameterStorage->parameters.at("outputElectrode")) & (i !=parameterStorage->parameters.at("inputElectrode1")) &(i !=parameterStorage->parameters.at("inputElectrode2"))){
+            controlElectrodeIndices.push_back(i);
+        }
+    }
+    int controlElectrodes=controlElectrodeIndices.size();
+
+    std::vector<std::pair<std::vector<double>,double>> genomeSet; //pair of control voltages and optEnergy
+    for(int i=0; i < 25; i++){
+        genomeSet.push_back(std::pair<std::vector<double>,double>(std::vector<double>(controlElectrodes),0));
+        for(int j=0; j < controlElectrodes; j++){
+            genomeSet[i].first[j]=enhance::random_double(parameterStorage->parameters.at("controlVoltageMin"),parameterStorage->parameters.at("controlVoltageMax"));
+        }
+
+    }
+
+    //run first generation
+    int generation=1;
+    std::cout<<"------------------------------ run geneartion "<<generation<< " ------------------------------"<<std::endl;
+    for(int k=0; k < 25; k++){
+        std::cout<<"genome: "<<k<<" voltages:";
+        for(int i=0; i < controlElectrodes; i++){
+            parameterStorage->electrodes[controlElectrodeIndices[i]].voltage=genomeSet[k].first[i];
+            std::cout<<" "<<controlElectrodeIndices[i]<<": "<<parameterStorage->electrodes[controlElectrodeIndices[i]].voltage;
+        }
+        std::cout<<std::endl;
+
+        auto startTime = chrono::steady_clock::now();
+
+        runVoltageSetup();
+        calcOptimizationEnergy();
+        saveResults();
+        dataFile->addData("generation",& generation);
+        
+        genomeSet[k].second=optEnergy;
+
+
+        std::cout<<"optEnergy: "<<optEnergy    <<" fitness: ("<<fitness    <<" +- "<<fitnessUncert    <<") normedDiff: "<<normedDiff<<std::endl;
+        auto endTime = chrono::steady_clock::now();
+        std::cout << "time per VoltageSetup = " << std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count()/1000.0 << " s" << std::endl;
+    }
+
+    std::cout<<"generation "<<generation<< " done! sorted results: "<<std::endl;
+    std::sort(genomeSet.begin(),genomeSet.end(),genomeComparator);
+    for(int k=0; k < 25; k++){
+        std::cout<<"genome: "<<k+1<<" optEnergy: "<<genomeSet[k].second<<" voltages: ";
+        for(int i=0; i < controlElectrodes; i++){
+            std::cout<<" "<<controlElectrodeIndices[i]<<": "<<genomeSet[k].first[i];
+        }
+        std::cout<<std::endl;
+    }
+
+    while(true){
+        // ---------- setup next generation -------------
+        generation++;
+
+        //first 5 genomes dont need to be changed
+
+        //genome 6-10, rnd Bias
+        for(int k=5; k < 10; k++){
+            for(int i=0; i < controlElectrodes; i++){
+                genomeSet[k].first[i]=enhance::random_double(std::max(parameterStorage->parameters.at("controlVoltageMin"),genomeSet[k-5].first[i]-parameterStorage->parameters.at("maxDeltaV")),std::min(parameterStorage->parameters.at("controlVoltageMax"),genomeSet[k-5].first[i]+parameterStorage->parameters.at("maxDeltaV")));
+            }
+            genomeSet[k].second=0;
+        }
+
+        //genome 11-15, crossover
+        for(int k=10; k < 15; k++){
+            for(int i=0; i < controlElectrodes; i++){
+                if (enhance::random_double(0,1)>0.5){
+                    genomeSet[k].first[i]=genomeSet[k-10].first[i];
+                }
+                else{
+                    genomeSet[k].first[i]=genomeSet[k-9].first[i];
+                }
+            }
+            genomeSet[k].second=0;
+        }
+
+        //genome 16-20, rnd crossover
+        for(int k=15; k < 20; k++){
+            for(int i=0; i < controlElectrodes; i++){
+                if (enhance::random_double(0,1)>0.5){
+                    genomeSet[k].first[i]=genomeSet[k-15].first[i];
+                }
+                else{
+                    genomeSet[k].first[i]=enhance::random_double(parameterStorage->parameters.at("controlVoltageMin"),parameterStorage->parameters.at("controlVoltageMax"));
+                }
+            }
+            genomeSet[k].second=0;
+        }
+
+        //genome 20-25, rnd
+        for(int k=20; k < 25; k++){
+            for(int i=0; i < controlElectrodes; i++){
+                genomeSet[k].first[i]=enhance::random_double(parameterStorage->parameters.at("controlVoltageMin"),parameterStorage->parameters.at("controlVoltageMax"));
+            }
+            genomeSet[k].second=0;
+        }
+
+
+        //mutate
+        bool mutatedThisGenome;
+        for(int k=0; k < 25; k++){
+            mutatedThisGenome=false;
+            for(int i=0; i < controlElectrodes; i++){
+                if (enhance::random_double(0,1)>0.9){
+                    genomeSet[k].first[i]=enhance::random_triangle(parameterStorage->parameters.at("controlVoltageMin"),genomeSet[k].first[i],parameterStorage->parameters.at("controlVoltageMax"));
+                    mutatedThisGenome=true;
+                }
+            }
+            if (mutatedThisGenome){
+                genomeSet[k].second=0;
+            }
+        }
+        // genomeSet[k].second=0 for all changed genomeSets
+
+        // ------------ run generation ------
+        std::cout<<"------------------------------ run geneartion "<<generation<< " ------------------------------"<<std::endl;
+        for(int k=0; k < 25; k++){
+            std::cout<<"genome: "<<k<<" voltages:";
+            for(int i=0; i < controlElectrodes; i++){
+                parameterStorage->electrodes[controlElectrodeIndices[i]].voltage=genomeSet[k].first[i];
+                std::cout<<" "<<controlElectrodeIndices[i]<<": "<<parameterStorage->electrodes[controlElectrodeIndices[i]].voltage;
+            }
+            std::cout<<std::endl;
+
+            auto startTime = chrono::steady_clock::now();
+
+            runVoltageSetup();
+            calcOptimizationEnergy();
+            saveResults();
+            dataFile->addData("generation",& generation);
+            
+            genomeSet[k].second=optEnergy;
+
+
+            std::cout<<"optEnergy: "<<optEnergy    <<" fitness: ("<<fitness    <<" +- "<<fitnessUncert    <<") normedDiff: "<<normedDiff<<std::endl;
+            auto endTime = chrono::steady_clock::now();
+            std::cout << "time per VoltageSetup = " << std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count()/1000.0 << " s" << std::endl;
+        }
+
+        std::cout<<"generation "<<generation<< " done! sorted results: "<<std::endl;
+        std::sort(genomeSet.begin(),genomeSet.end(),genomeComparator);
+        for(int k=0; k < 25; k++){
+            std::cout<<"genome: "<<k+1<<" optEnergy: "<<genomeSet[k].second<<" voltages: ";
+            for(int i=0; i < controlElectrodes; i++){
+                std::cout<<" "<<controlElectrodeIndices[i]<<": "<<genomeSet[k].first[i];
+            }
+            std::cout<<std::endl;
+        }
+
+    }    
+
+
 
 
     DEBUG_FUNC_END

@@ -70,6 +70,14 @@ System::System(const System & oldSys, bool shareMemory /*= true*/) :
     if (not shareMemory){
         konwnPartRatesSumList.reset(new std::unordered_map<unsigned long long,std::shared_ptr<std::vector<double>>>());
         knownRatesSum        .reset(new std::unordered_map<unsigned long long,double>());
+        // distances      = new double[hoppingSiteNumber*hoppingSiteNumber];
+        // for(int i=0;i<hoppingSiteNumber*hoppingSiteNumber;i++){
+        //     distances[i]=oldSys.distances[i];
+        // }
+        // pairEnergies   = new double[acceptorNumber*acceptorNumber];
+        // for(int i=0;i<acceptorNumber*acceptorNumber;i++){
+        //     pairEnergies[i]=oldSys.pairEnergies[i];
+        // }
     }
 
     readyForRun=true;
@@ -305,7 +313,7 @@ void System::getReadyForRun(){
 
     //set deltaEnergies and rates (only constant part = el-el interaction)
     for(int i=acceptorNumber;i<hoppingSiteNumber;i++){
-        rates[i*(acceptorNumber+1)]=0; //diagonal elements
+        rates[i*(hoppingSiteNumber+1)]=0; //diagonal elements
         for(int j=acceptorNumber;j<i;j++){
             deltaEnergies[i*hoppingSiteNumber+j]=energies[j]-energies[i];
             deltaEnergies[j*hoppingSiteNumber+i]=energies[i]-energies[j];
@@ -422,14 +430,6 @@ void System::updateRatesMPStoring(){ //same function as updateRatesSPStoring onl
                     }
                 }
             }
-
-            partRatesSumList = std::make_shared<std::vector<double>>(hoppingSiteNumber*hoppingSiteNumber+1);
-            (*partRatesSumList)[0]=0;
-            for(int i=0; i < hoppingSiteNumber*hoppingSiteNumber; i++){
-                (*partRatesSumList)[i+1]=(*partRatesSumList)[i]+rates[i];
-            }
-            ratesSum=(*partRatesSumList)[hoppingSiteNumber*hoppingSiteNumber+1];
-
 
             partRatesSumList = std::make_shared<std::vector<double>>(hoppingSiteNumber*hoppingSiteNumber+1);
             (*partRatesSumList)[0]=0;
@@ -722,9 +722,11 @@ void System::findSwapBS(){
     int l=0, r=hoppingSiteNumber*hoppingSiteNumber+1;
     int mid=-1;
 
+
     //binary search algorithm
     while (true){
         mid=(l+r)/2;
+        // std::cout<<mid<<" ";
 
         if((*partRatesSumList)[mid]>rndNumber){
             if((*partRatesSumList)[mid-1]<rndNumber){

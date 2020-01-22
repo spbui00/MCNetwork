@@ -103,6 +103,23 @@ plt.close()
 fig=None
 
 
+fig, ax=plt.subplots(1,1,figsize=(4.980614173228346,3.2))
+
+im=ax.imshow((currents[best[0],::-1,:]-minTrue)/(maxTrue-minTrue),cmap="Spectral",vmin=0,vmax=1,extent=[parameters["voltageScanMin"]-resolution/2,parameters["voltageScanMax"]+resolution/2,
+                                                                                          parameters["voltageScanMin"]-resolution/2,parameters["voltageScanMax"]+resolution/2])
+
+ax.scatter([0,0,0.5,0.5],[0,0.5,0,0.5],c="r",marker="x")
+
+# ax.set_xlim(-0.15,0.65)
+# ax.set_ylim(-0.15,0.65)
+
+plt.colorbar(im)
+
+plt.savefig(join(pathToSimFolder,"fitness_2D_normed.png"),bbox_inches="tight",dpi=300)    
+plt.show()
+plt.close()
+fig=None
+
 if voltageScanPoints!=2:
     fig, ax=plt.subplots(1,1,figsize=(4.980614173228346,3.2))
 
@@ -114,7 +131,7 @@ if voltageScanPoints!=2:
 
     plt.savefig(join(pathToSimFolder,"fitness_1D.png"),bbox_inches="tight",dpi=300)    
 
-    plt.show()
+    # plt.show()
     plt.close()
     fig=None
 

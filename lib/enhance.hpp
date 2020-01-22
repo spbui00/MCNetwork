@@ -8,6 +8,7 @@
 #include <iterator>
 #include <type_traits>
 #include <string>
+#include <array>
 #include <sys/stat.h>
 
 namespace enhance
@@ -19,6 +20,8 @@ namespace enhance
     inline double random_double(double, double);
     inline unsigned int    random_uns_int(int, int);
     inline int    random_int(int, int);
+
+    double random_triangle(double min, double peak, double max);
 
     float fastExp(float x);
     float mediumFastExp(float x);
@@ -57,6 +60,7 @@ namespace enhance
         std::uniform_int_distribution<int> intdistribution(a,b);
         return intdistribution(rand_engine);
     }
+
 
 
     // float fastExp(float x)

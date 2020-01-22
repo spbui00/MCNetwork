@@ -43,6 +43,7 @@ public:
     void singleRun();
     void runVoltageSetup();
     void optimizeMC(bool rndStart = false);
+    void optimizeGenetic();
     void run();
     
 };

@@ -33,12 +33,13 @@ int main(int argc, char *argv[]){
 
    po::options_description desc("Allowed options");
    desc.add_options()
-      ("mnd", "make new device")
-      ("opt", "optimize control voltages")
-      ("run", "just run control voltages defined in in.txt")
-      ("rSV", "random start voltages (only in combination with opt)")
+      ("mnd"   , "make new device")
+      ("optMC" , "optimize control voltages using Monte Carlo Search")
+      ("optGen", "optimize control voltages using GeneticAlgorithm")
+      ("run"   , "just run control voltages defined in in.txt")
+      ("rSV"   , "random start voltages (only in combination with opt)")
       // ("dir", po::value<std::string>(),"define working dir. has to contain 'in.txt'")
-      ("help", "produce help message");
+      ("help"  , "produce help message");
    
    po::variables_map vm;
    po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -68,8 +69,11 @@ int main(int argc, char *argv[]){
    mchost.setup(vm.count("mnd"));
 
 
-   if (vm.count("opt")){
+   if (vm.count("optMC")){
       mchost.optimizeMC(vm.count("rSV"));
+   }
+   else if (vm.count("optGen")){
+      mchost.optimizeGenetic();
    }
    else if (vm.count("run")){
       mchost.run();

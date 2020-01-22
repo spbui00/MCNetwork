@@ -84,5 +84,13 @@ namespace enhance
         // return std::pow(2,x);
     }
 
+    // triangle dist
+    double random_triangle(double min, double peak, double max)
+    {
+        std::array<double, 3> i{min, peak, max};
+        std::array<double, 3> w{0, 1, 0};
+        auto dist = std::piecewise_linear_distribution<double>{i.begin(), i.end(), w.begin()};
+        return dist(rand_engine);
+    }
 
 }
