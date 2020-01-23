@@ -1,11 +1,11 @@
 #simulation parameters
-gate XOR
+gate AND
 memoryLimit 1500 #in MB (should be around 100mb under real limit), if memory is not shared real memory consumption is memoryLimit*threads
 shareMemory 0
-threads 2
+threads 1
 finiteElementsResolution 5e3
-equilSteps 1e5   #scaling per thread!!
-calcCurrentSteps 1e7
+equilSteps 1e4   #scaling per thread!!
+calcCurrentSteps 1e5
 storingMode 1
 
 
@@ -42,11 +42,11 @@ eps0 8.854187817620389e-12
 electrode 0.25 0 0
 electrode 0.75 0 0
 electrode 0.25 1 0
-electrode 0.75 1 0.36867162
-electrode 0.25 2 -0.9877607
-electrode 0.75 2 -0.11412408
-electrode 0.25 3 -0.19157536
-electrode 0.75 3 0.65473457
+electrode 0.75 1 -0.56006077
+electrode 0.25 2 0.59950066
+electrode 0.75 2 0.27571588
+electrode 0.25 3 -0.6412815
+electrode 0.75 3 -0.61696852
 
 
 electrodeWidth 60 #nm
@@ -66,10 +66,9 @@ seperationVoltage 0.25
 
 
 #optimization parameters
+acceptanceFactor 0.03 #big factor -> all accepted
 maxDeltaV 0.05
+
 fitnessUncertWeight 2
 diffWeight 0.0
 
-#MC opt
-acceptanceFactor 0.03 #big factor -> all accepted
-MCOptStartPoints 20

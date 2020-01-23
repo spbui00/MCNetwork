@@ -45,6 +45,9 @@ private:
     bool storingMode; // if set true performance is optimized by storing known states
     bool ratesInMemory =false; //save if last step was found in stored states. if true, binary search is done to find swap
 
+    ofstream swapTrackFile; // swapTracker
+    int fileNumber=1; // swapTracker
+
 
 public:
     std::shared_ptr<std::shared_mutex> mutex;
