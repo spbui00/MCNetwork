@@ -65,7 +65,7 @@ ax.set_ylim(0,parameters["lenY"])
 ax.set_aspect('equal')
 
 
-fileNumber=1
+fileNumber=4
 data=np.genfromtxt(join(pathToSimFolder,f"swapTrackFile{fileNumber}.txt"),delimiter=";",dtype=int)
 
 maxIndex=np.max(data)

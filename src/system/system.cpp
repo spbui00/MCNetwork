@@ -691,10 +691,9 @@ void System::setNewPotential(){
     }
 
 
-    swapTrackFile.close();
-    swapTrackFile.open(std::string("swapTrackFile")+std::to_string(fileNumber)+std::string(".txt"), ios::out); // swapTracker
-    fileNumber++;
-    std::cout<<"neww file "<<fileNumber<<std::endl;
+    // swapTrackFile.close(); // swapTracker
+    // swapTrackFile.open(std::string("swapTrackFile")+std::to_string(fileNumber)+std::string(".txt"), ios::out); // swapTracker
+    // fileNumber++; // swapTracker
 
     DEBUG_FUNC_END
 }
@@ -778,7 +777,7 @@ void System::updateAfterSwap(){
     currentCounter[lastSwapped1]--;
     currentCounter[lastSwapped2]++;
 
-    swapTrackFile<<lastSwapped1<<";"<<lastSwapped2<<std::endl; // swapTracker
+    // swapTrackFile<<lastSwapped1<<";"<<lastSwapped2<<std::endl; // swapTracker
 
     if (lastSwapped1 < acceptorNumber){ //last swapped1 = acceptor
         occupation[lastSwapped1]=false;
