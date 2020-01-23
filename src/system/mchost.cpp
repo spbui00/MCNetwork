@@ -417,7 +417,7 @@ void MCHost::optimizeGenetic(){
     }
 
     //run first generation
-    int generation=1;
+    double generation=1;
     std::cout<<"------------------------------ run geneartion "<<generation<< " ------------------------------"<<std::endl;
     for(int k=0; k < 25; k++){
         std::cout<<"genome: "<<k<<" voltages:";
