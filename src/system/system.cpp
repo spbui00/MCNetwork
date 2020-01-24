@@ -70,6 +70,7 @@ System::System(const System & oldSys, bool shareMemory /*= true*/) :
     if (not shareMemory){
         konwnPartRatesSumList.reset(new std::unordered_map<unsigned long long,std::shared_ptr<std::vector<double>>>());
         knownRatesSum        .reset(new std::unordered_map<unsigned long long,double>());
+        storeKnownStates = new bool(true);
         // distances      = new double[hoppingSiteNumber*hoppingSiteNumber];
         // for(int i=0;i<hoppingSiteNumber*hoppingSiteNumber;i++){
         //     distances[i]=oldSys.distances[i];
@@ -115,10 +116,56 @@ void System::initilizeMatrices(){
 void System::createRandomNewDevice(){
     DEBUG_FUNC_START
 
+    // need to set electrodes first, to hold minDist for acceptors. (redundance to getReadyForRun)
+    //set electrodes
+    for(int i=0; i< electrodeNumber; i++){
+        switch (parameterStorage->electrodes[i].edge){
+            case 0:
+                electrodePositionsX[i]=0;
+                electrodePositionsY[i]=parameterStorage->parameters.at("lenY")*parameterStorage->electrodes[i].pos;
+                break;
+            case 1:
+                electrodePositionsX[i]=parameterStorage->parameters.at("lenX");
+                electrodePositionsY[i]=parameterStorage->parameters.at("lenY")*parameterStorage->electrodes[i].pos;
+                break;
+            case 2:
+                electrodePositionsX[i]=parameterStorage->parameters.at("lenX")*parameterStorage->electrodes[i].pos;
+                electrodePositionsY[i]=0;
+                break;
+            case 3:
+                electrodePositionsX[i]=parameterStorage->parameters.at("lenX")*parameterStorage->electrodes[i].pos;
+                electrodePositionsY[i]=parameterStorage->parameters.at("lenY");
+                break;
+        }
+    }
+
+
+
     // create acceptors, setup position (first part of hoppingSites, rest are electrodes)
+    // check minDist to other acceptors and electrodes
+    int iteration=0;
     for(int i=0;i<acceptorNumber;i++){
+        iteration=0;
+
+        rollAgain:
+        iteration++;
+        if (iteration>10000){
+            throw std::logic_error("could not find device, reduce minDist or acceptorNumber");
+        }
         acceptorPositionsX[i]=parameterStorage->parameters.at("lenX")*enhance::random_double(0,1);
         acceptorPositionsY[i]=parameterStorage->parameters.at("lenY")*enhance::random_double(0,1);
+        //check acc-acc dist
+        for(int j=0;j<i;j++){
+            if(std::sqrt(std::pow(acceptorPositionsX[i]-acceptorPositionsX[j],2)+std::pow(acceptorPositionsY[i]-acceptorPositionsY[j],2)) < parameterStorage->parameters.at("minDist")){
+                goto rollAgain;
+            }
+        }
+        //check el-acc dist
+        for(int j=0;j<electrodeNumber;j++){
+            if(std::sqrt(std::pow(acceptorPositionsX[i]-electrodePositionsX[j],2)+std::pow(acceptorPositionsY[i]-electrodePositionsY[j],2)) < parameterStorage->parameters.at("minDist")){
+                goto rollAgain;
+            }
+        }
     }
 
     // set donor positions
@@ -690,10 +737,11 @@ void System::setNewPotential(){
         energies[(i+acceptorNumber)]+=finEle->getPotential(electrodePositionsX[i],electrodePositionsY[i])*parameterStorage->parameters.at("e")/parameterStorage->parameters.at("kT");
     }
 
-
-    // swapTrackFile.close(); // swapTracker
-    // swapTrackFile.open(std::string("swapTrackFile")+std::to_string(fileNumber)+std::string(".txt"), ios::out); // swapTracker
-    // fileNumber++; // swapTracker
+    #ifdef SWAPTRACKER
+    swapTrackFile.close(); // swapTracker
+    swapTrackFile.open(std::string("swapTrackFile")+std::to_string(fileNumber)+std::string(".txt"), ios::out); // swapTracker
+    fileNumber++; // swapTracker
+    #endif
 
     DEBUG_FUNC_END
 }
@@ -708,7 +756,7 @@ void System::findSwap(){
             lastSwapped1=k/hoppingSiteNumber;
             lastSwapped2=k%hoppingSiteNumber;
 
-            std::cout<<"swapped1 "<<lastSwapped1<<" "<<lastSwapped2<<" k: "<<k<<std::endl;
+            // std::cout<<"swapped1 "<<lastSwapped1<<" "<<lastSwapped2<<" k: "<<k<<std::endl;
             break;
         }
     }    
@@ -777,7 +825,9 @@ void System::updateAfterSwap(){
     currentCounter[lastSwapped1]--;
     currentCounter[lastSwapped2]++;
 
-    // swapTrackFile<<lastSwapped1<<";"<<lastSwapped2<<std::endl; // swapTracker
+    #ifdef SWAPTRACKER
+    swapTrackFile<<lastSwapped1<<";"<<lastSwapped2<<std::endl; // swapTracker
+    #endif
 
     if (lastSwapped1 < acceptorNumber){ //last swapped1 = acceptor
         occupation[lastSwapped1]=false;

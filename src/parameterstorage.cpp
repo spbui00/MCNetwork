@@ -53,6 +53,7 @@ ParameterStorage::ParameterStorage(std::string filename)
     parameters["lenX"]=parameters["lenX"]/parameters["R"];
     parameters["lenY"]=parameters["lenY"]/parameters["R"];
     parameters["a"]=parameters["a"]/parameters["R"];
+    parameters["minDist"]=parameters["minDist"]/parameters["R"];
     parameters["electrodeWidth"]=parameters["electrodeWidth"]/parameters["R"];
 
     std::cout<<"R = "<<parameters["R"]<<" nm, a/R = "<<parameters["a"]<<", I0 = "<<parameters["I0"]<<" meV == "<<parameters["I0"]*0.001*parameters["e"]/parameters["kT"]<<"kT corresponds to eps = "<< parameters["e"]*parameters["e"]/(4*M_PI*parameters["eps0"]*parameters["R"]*1e-9*parameters["I0"]*0.001*parameters["e"]) <<std::endl;

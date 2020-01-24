@@ -18,6 +18,10 @@
 #include <chrono>
 #include <ctime>
 
+
+//(un)comment to (en/dis)able swap tracker
+// #define SWAPTRACKER 
+
 class System
 {
 private:
@@ -45,8 +49,10 @@ private:
     bool storingMode; // if set true performance is optimized by storing known states
     bool ratesInMemory =false; //save if last step was found in stored states. if true, binary search is done to find swap
 
-    // ofstream swapTrackFile; // swapTracker
-    // int fileNumber=1; // swapTracker
+    #ifdef SWAPTRACKER
+    ofstream swapTrackFile;
+    int fileNumber=1;
+    #endif
 
 
 public:

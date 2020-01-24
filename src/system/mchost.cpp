@@ -162,15 +162,17 @@ void MCHost::runVoltageSetup(){
 
             //reset stored states
             if (parameterStorage->parameters.at("shareMemory")){
-                // std::cout<<"maximal size of stored states: "<<(hoppingSiteNumber*hoppingSiteNumber+1)*8/1e6*systems[0]->knownRatesSum->size()<<" mb; "<<systems[0]->knownRatesSum->size()<<" states"<<std::endl;
+                std::cout<<"maximal size of stored states: "<<(hoppingSiteNumber*hoppingSiteNumber+1)*8/1e6*systems[0]->knownRatesSum->size()<<" mb; "<<systems[0]->knownRatesSum->size()<<" states"<<std::endl;
                 systems[0]->konwnPartRatesSumList->clear();
                 systems[0]->knownRatesSum        ->clear();
+                *(systems[0]->storeKnownStates)=true;
             }
             else{
                 for(int k=0; k < parameterStorage->parameters.at("threads"); k++){
-                    // std::cout<<"maximal size of stored states: "<<(hoppingSiteNumber*hoppingSiteNumber+1)*8/1e6*systems[k]->knownRatesSum->size()<<" mb; "<<systems[k]->knownRatesSum->size()<<" states"<<std::endl;
+                    std::cout<<"maximal size of stored states: "<<(hoppingSiteNumber*hoppingSiteNumber+1)*8/1e6*systems[k]->knownRatesSum->size()<<" mb; "<<systems[k]->knownRatesSum->size()<<" states"<<std::endl;
                     systems[k]->konwnPartRatesSumList->clear();
                     systems[k]->knownRatesSum        ->clear();
+                    *(systems[k]->storeKnownStates)=true;
                 }
             }
 

@@ -19,7 +19,7 @@ private:
     int voltageScanPoints;
     double voltageScanResolution;
     int electrodeNumber;
-    double fitness,fitnessUncert,optEnergy,normedDiff;
+    double fitness = 0,fitnessUncert = 0,optEnergy = 0,normedDiff = 0;
 
     double outputCurrent,outputCurrentSqrt,outputCurrentStd;
     double * outputCurrentBuffer, * outputCurrentUncertBuffer;

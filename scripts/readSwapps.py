@@ -39,56 +39,6 @@ for i in range(len(electrodes)):
 
 # print(electrodePositions)
 
-
-import matplotlib.pylab as plt
-
-
-fig, ax=plt.subplots(1,1,figsize=(4.980614173228346,3.2))
-
-for i in range(len(electrodes)):
-    if   i == parameters["outputElectrode"]: color= "blue"
-    elif i == parameters["inputElectrode1"]: color= "red"
-    elif i == parameters["inputElectrode2"]: color= "red"
-    else:                                    color= "green"
-    
-    ax.scatter(*electrodePositions[i],c=color,marker=".",s=200)
-
-
-
-ax.scatter(acceptorPos[:,0],acceptorPos[:,1],c="k",marker=".",s=20)
-ax.scatter(donorPos[:,0],donorPos[:,1],c="k",marker="x",s=20)
-
-
-ax.set_xlim(0,parameters["lenX"])
-ax.set_ylim(0,parameters["lenY"])
-
-ax.set_aspect('equal')
-
-
-fileNumber=4
-data=np.genfromtxt(join(pathToSimFolder,f"swapTrackFile{fileNumber}.txt"),delimiter=";",dtype=int)
-
-maxIndex=np.max(data)
-added=(maxIndex+1)*data[:,0]+data[:,1]
-
-
-
-bins=np.bincount(added)
-bins.resize(maxIndex+1,maxIndex+1)
-
-
-#log
-# bins[np.where(bins==0)]=1
-# bins=np.log(bins)
-
-#sqrt
-bins=np.sqrt(bins)
-
-absBins=bins+bins.T
-absBins=absBins/np.max(absBins)
-
-
-
 def colorMaker(x):
     from matplotlib import colors
     from scipy.interpolate import interp1d
@@ -101,57 +51,96 @@ def colorMaker(x):
     bInterpolater=interp1d(np.linspace(0,1,len(cols)),rgbaData[:,2])
     return np.array([rInterpolater(x),gInterpolater(x),bInterpolater(x),1])
     
-
-# fig, ax=plt.subplots(1,1,figsize=(4.980614173228346,3.2))
-
-
-# for i in range(100):
-#     ax.plot([i],[1],".",color=colorMaker(i/100))
-
-
-# plt.show()
-# plt.close()
-# fig=None
-
-
-
-
-
-
-
-for i in range(bins.shape[0]):
-    if i>=parameters["acceptorNumber"]:
-        x1,y1=electrodePositions[i-int(parameters["acceptorNumber"])][0],electrodePositions[i-int(parameters["acceptorNumber"])][1]
-    else:
-        x1,y1=acceptorPos[i,0],acceptorPos[i,1]
         
-    for j in range(i):
-        if j>=parameters["acceptorNumber"]:
-            x2,y2=electrodePositions[j-int(parameters["acceptorNumber"])][0],electrodePositions[j-int(parameters["acceptorNumber"])][1]
-        else:
-            x2,y2=acceptorPos[j,0],acceptorPos[j,1]
+inp=["0_0","1_0","0_1","1_1"]
+for fileNumber in [1,2,3,4]:
 
-        #which index is next to center?
-        if np.sqrt(x1**2+y1**2)>np.sqrt(x2**2+y2**2):
-            index1=i
-            index2=j
-        else:
-            index1=j
-            index2=i
+    data=np.genfromtxt(join(pathToSimFolder,f"swapTrackFile{fileNumber}.txt"),delimiter=";",dtype=int)
 
-        # ax.plot([x1,x2],[y1,y2],"k-",alpha=bins[i,j])
-        if (bins[i,j]+bins[j,i]) !=0:
-            ax.plot([x1,x2],[y1,y2],"-",alpha=absBins[i,j],color=colorMaker(bins[index1,index2]/(bins[i,j]+bins[j,i])),linewidth=5)
-
-ax.set_xlim(-0.01*parameters["lenX"],1.01*parameters["lenX"])
-ax.set_ylim(-0.01*parameters["lenY"],1.01*parameters["lenY"])
+    maxIndex=np.max(data)
+    added=(maxIndex+1)*data[:,0]+data[:,1]
 
 
-plt.savefig(join(pathToSimFolder,f"swapTrack{fileNumber}.png"),bbox_inches="tight",dpi=300)    
+    for mode in ["raw","sqrt","log"]:
 
-# plt.show()
-plt.close()
-fig=None
+        bins=np.bincount(added)
+        bins.resize(maxIndex+1,maxIndex+1)
+
+
+
+
+        if mode =="log":
+            bins[np.where(bins==0)]=1
+            bins=np.log(bins)
+            
+        if mode =="sqrt":
+            bins=np.sqrt(bins)
+
+        absBins=bins+bins.T
+        absBins=absBins/np.max(absBins)
+
+
+
+
+
+
+        fig, ax=plt.subplots(1,1,figsize=(4.980614173228346,3.2))
+
+
+        for i in range(len(electrodes)):
+            if   i == parameters["outputElectrode"]: color= "blue"
+            elif i == parameters["inputElectrode1"]: color= "red"
+            elif i == parameters["inputElectrode2"]: color= "red"
+            else:                                    color= "green"
+            
+            ax.scatter(*electrodePositions[i],c=color,marker=".",s=200)
+
+
+
+        ax.scatter(acceptorPos[:,0],acceptorPos[:,1],c="k",marker=".",s=20)
+        ax.scatter(donorPos[:,0],donorPos[:,1],c="k",marker="x",s=20)
+
+
+
+
+        for i in range(bins.shape[0]):
+            if i>=parameters["acceptorNumber"]:
+                x1,y1=electrodePositions[i-int(parameters["acceptorNumber"])][0],electrodePositions[i-int(parameters["acceptorNumber"])][1]
+            else:
+                x1,y1=acceptorPos[i,0],acceptorPos[i,1]
+                
+            for j in range(i):
+                if j>=parameters["acceptorNumber"]:
+                    x2,y2=electrodePositions[j-int(parameters["acceptorNumber"])][0],electrodePositions[j-int(parameters["acceptorNumber"])][1]
+                else:
+                    x2,y2=acceptorPos[j,0],acceptorPos[j,1]
+
+                #which index is next to center?
+                if np.sqrt(x1**2+y1**2)>np.sqrt(x2**2+y2**2):
+                    index1=i
+                    index2=j
+                else:
+                    index1=j
+                    index2=i
+
+                # ax.plot([x1,x2],[y1,y2],"k-",alpha=bins[i,j])
+                if (bins[i,j]+bins[j,i]) !=0:
+                    ax.plot([x1,x2],[y1,y2],"-",alpha=absBins[i,j],color=colorMaker(bins[index1,index2]/(bins[i,j]+bins[j,i])),linewidth=5)
+
+    
+    
+    
+    
+        ax.set_xlim(-0.01*parameters["lenX"],1.01*parameters["lenX"])
+        ax.set_ylim(-0.01*parameters["lenY"],1.01*parameters["lenY"])
+
+        ax.set_aspect('equal')
+
+        plt.savefig(join(pathToSimFolder,f"swapTrack_{mode}_{inp[fileNumber-1]}.png"),bbox_inches="tight",dpi=300)    
+
+        # plt.show()
+        plt.close()
+        fig=None
 
 
 
