@@ -11,9 +11,10 @@ System::System(const std::shared_ptr<ParameterStorage> & parameterStorage) : par
     storingMode       = parameterStorage->parameters.at("storingMode"      );
     electrodeNumber   = hoppingSiteNumber-acceptorNumber;
 
-    konwnPartRatesSumList.reset(new std::unordered_map<unsigned long long,std::shared_ptr<std::vector<double>>>());
-    knownRatesSum        .reset(new std::unordered_map<unsigned long long,double>());
+    konwnPartRatesSumList.reset(new std::unordered_map<std::vector<bool>,std::shared_ptr<std::vector<double>>>());
+    knownRatesSum        .reset(new std::unordered_map<std::vector<bool>,double>());
 
+    occupation       = std::vector<bool>(acceptorNumber);
     storeKnownStates = new bool(true);
 
     mutex=std::make_shared<std::shared_mutex>();
@@ -33,7 +34,7 @@ System::System(const System & oldSys, bool shareMemory /*= true*/) :
                                         electrodePositionsY  (oldSys.electrodePositionsY  ),
                                         distances            (oldSys.distances            ),
                                         pairEnergies         (oldSys.pairEnergies         ),
-                                        hasedCurrentState    (oldSys.hasedCurrentState    ),
+                                        occupation           (oldSys.occupation           ),
                                         locLenA              (oldSys.locLenA              ),
                                         constantRatesSumPart (oldSys.constantRatesSumPart ),
                                         finEle               (oldSys.finEle               ),
@@ -55,11 +56,6 @@ System::System(const System & oldSys, bool shareMemory /*= true*/) :
         currentCounter[i] = oldSys.currentCounter[i];
     }
 
-    occupation = new bool[acceptorNumber];
-    for(int i=0;i<acceptorNumber;i++){
-        occupation[i] = oldSys.occupation[i];
-    }
-
     deltaEnergies = new double[hoppingSiteNumber*hoppingSiteNumber];
     rates         = new double[hoppingSiteNumber*hoppingSiteNumber];
     for(int i=0;i<hoppingSiteNumber*hoppingSiteNumber;i++){
@@ -68,8 +64,8 @@ System::System(const System & oldSys, bool shareMemory /*= true*/) :
     }
 
     if (not shareMemory){
-        konwnPartRatesSumList.reset(new std::unordered_map<unsigned long long,std::shared_ptr<std::vector<double>>>());
-        knownRatesSum        .reset(new std::unordered_map<unsigned long long,double>());
+        konwnPartRatesSumList.reset(new std::unordered_map<std::vector<bool>,std::shared_ptr<std::vector<double>>>());
+        knownRatesSum        .reset(new std::unordered_map<std::vector<bool>,double>());
         storeKnownStates = new bool(true);
         // distances      = new double[hoppingSiteNumber*hoppingSiteNumber];
         // for(int i=0;i<hoppingSiteNumber*hoppingSiteNumber;i++){
@@ -102,7 +98,6 @@ void System::initilizeMatrices(){
     electrodePositionsX = new double[electrodeNumber];
     electrodePositionsY = new double[electrodeNumber];
 
-    occupation = new bool[acceptorNumber];
     for(int i=0;i<acceptorNumber;i++){
         occupation[i]=false;
     }
@@ -243,7 +238,6 @@ void System::getReadyForRun(){
     for(int i=0;i<acceptorNumber-parameterStorage->parameters.at("donorNumber");i++){
         int index=enhance::random_int(0,acceptorNumber-i-1);
         occupation[indicesUnoccupied[index]]=true;
-        hasedCurrentState+=enhance::fastExp2(indicesUnoccupied[index]); //compute hash
         indicesUnoccupied.erase(indicesUnoccupied.begin()+index);
     }
 
@@ -393,14 +387,14 @@ void System::updateRatesMPStoring(){ //same function as updateRatesSPStoring onl
     DEBUG_FUNC_START
 
     mutex->lock_shared();
-    if (knownRatesSum->count(hasedCurrentState)){ //state known
-        ratesSum         = knownRatesSum->at(hasedCurrentState);
-        partRatesSumList = konwnPartRatesSumList->at(hasedCurrentState);
+    if (knownRatesSum->count(occupation)){ //state known
+        ratesSum         = knownRatesSum->at(occupation);
+        partRatesSumList = konwnPartRatesSumList->at(occupation);
         mutex->unlock_shared();
 
         ratesInMemory=true; //tell findSwap to use binary search
 
-        // std::cout<<"found state: "<<hasedCurrentState<<std::endl;
+        // std::cout<<"found state: "<<occupation<<std::endl;
     }
     else{ //state unknown
         mutex->unlock_shared();
@@ -486,8 +480,8 @@ void System::updateRatesMPStoring(){ //same function as updateRatesSPStoring onl
             ratesSum=(*partRatesSumList)[hoppingSiteNumber*hoppingSiteNumber];
 
             mutex->lock();
-            (*knownRatesSum)[hasedCurrentState]=ratesSum;
-            (*konwnPartRatesSumList)[hasedCurrentState]=partRatesSumList;
+            knownRatesSum->emplace(occupation,ratesSum);
+            konwnPartRatesSumList->emplace(occupation,partRatesSumList);
             mutex->unlock();
             ratesInMemory=true; //tell findSwap to use binary search
 
@@ -506,12 +500,12 @@ void System::updateRatesMPStoring(){ //same function as updateRatesSPStoring onl
 void System::updateRatesSPStoring(){
     DEBUG_FUNC_START
 
-    if (knownRatesSum->count(hasedCurrentState)){ //state known
-        ratesSum         = knownRatesSum->at(hasedCurrentState);
-        partRatesSumList = konwnPartRatesSumList->at(hasedCurrentState);
+    if (knownRatesSum->count(occupation)){ //state known
+        ratesSum         = knownRatesSum->at(occupation);
+        partRatesSumList = konwnPartRatesSumList->at(occupation);
         ratesInMemory=true; //tell findSwap to use binary search
 
-        // std::cout<<"found state: "<<hasedCurrentState<<std::endl;
+        // std::cout<<"found state: "<<occupation<<std::endl;
     }
     else{ //state unknown
         if (*storeKnownStates){ //still saving (memory limit not exceeded)
@@ -595,8 +589,8 @@ void System::updateRatesSPStoring(){
             }
             ratesSum=(*partRatesSumList)[hoppingSiteNumber*hoppingSiteNumber];
 
-            (*knownRatesSum)[hasedCurrentState]=ratesSum;
-            (*konwnPartRatesSumList)[hasedCurrentState]=partRatesSumList;
+            knownRatesSum->emplace(occupation,ratesSum);
+            konwnPartRatesSumList->emplace(occupation,partRatesSumList);
             ratesInMemory=true; //tell findSwap to use binary search
 
         }
@@ -738,9 +732,9 @@ void System::setNewPotential(){
     }
 
     #ifdef SWAPTRACKER
-    swapTrackFile.close(); // swapTracker
-    swapTrackFile.open(std::string("swapTrackFile")+std::to_string(fileNumber)+std::string(".txt"), ios::out); // swapTracker
-    fileNumber++; // swapTracker
+        swapTrackFile.close(); // swapTracker
+        swapTrackFile.open(std::string("swapTrackFile")+std::to_string(fileNumber)+std::string(".txt"), ios::out); // swapTracker
+        fileNumber++; // swapTracker
     #endif
 
     DEBUG_FUNC_END
@@ -835,8 +829,6 @@ void System::updateAfterSwap(){
         for(int j=0;j<acceptorNumber;j++){
             energies[j]+=pairEnergies[lastSwapped1*acceptorNumber+j];
         }
-        //update hashedState
-        hasedCurrentState-=enhance::fastExp2(lastSwapped1); //compute hash
     }
 
     if (lastSwapped2 < acceptorNumber){ //last swapped2 = acceptor
@@ -844,10 +836,9 @@ void System::updateAfterSwap(){
         for(int j=0;j<acceptorNumber;j++){
             energies[j]-=pairEnergies[lastSwapped2*acceptorNumber+j];
         }
-        hasedCurrentState+=enhance::fastExp2(lastSwapped2); //compute hash
     }
 
-    // std::cout<<hasedCurrentState<<std::endl;
+    // std::cout<<occupation<<std::endl;
 
     DEBUG_FUNC_END
 }

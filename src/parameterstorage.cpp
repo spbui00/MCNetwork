@@ -40,12 +40,7 @@ ParameterStorage::ParameterStorage(std::string filename)
     }
 
 
-    if (parameters.at("acceptorNumber") > 64){
-        std::cout<<"############################### WARNING acceptorNumber > 64 might cause overflow in hash calculation ###############################"<<std::endl;
-    }
-
     parameters["kT"]=parameters["k"]*parameters["T"];
-    parameters["donorNumber"]=int(parameters["acceptorNumber"]*parameters["compensationFactor"]);
     parameters["hoppingSiteNumber"]=parameters["acceptorNumber"]+electrodes.size();
 
     // convert lens in dimensions of R    

@@ -52,7 +52,7 @@ if mode=="MC":
 ax.plot(np.maximum.accumulate(optEnergy),color="darkorange",label="best")
 
 # ax.set_xlim(-0.15,0.65)
-ax.set_ylim(-1.1,1.1)
+ax.set_ylim(0.25,1.1)
 
 ax.set_xlabel("iteration")
 ax.set_ylabel("optEnergy")

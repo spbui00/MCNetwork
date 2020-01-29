@@ -18,15 +18,21 @@ def readParameters(pathToSimFolder):
         for line in parameterFile:
             line = sub(r' #.*', "", line)
             line = sub(r'#.*', "", line)
+            
+            if line == "\n": continue
 
             splitted=line.split(" ")
-            if len(splitted)==2:
+            if splitted[0]=="electrode":
+                electrodes.append([float(splitted[1]),float(splitted[2]),float(splitted[3])])
+            else:
                 try:
                     parameters[splitted[0]]=float(splitted[1])
                 except ValueError:
                     parameters[splitted[0]]=str(splitted[1]).replace("\n","")
-            elif splitted[0]=="electrode":
-                electrodes.append([float(splitted[1]),float(splitted[2]),float(splitted[3])])
+                except IndexError as e:
+                    raise ValueError ("cant read line: \n\n" + line)
+                
+
 
     return parameters,electrodes
 

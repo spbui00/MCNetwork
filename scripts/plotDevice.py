@@ -14,8 +14,8 @@ else:
 parameters,electrodes=readParameters(pathToSimFolder)
 
 
-acceptorPos=np.zeros((int(parameters["acceptorNumber"]),2))
-donorPos   =np.zeros((int(parameters["acceptorNumber"]*parameters["compensationFactor"]),2))
+acceptorPos = np.zeros((int(parameters["acceptorNumber"]),2))
+donorPos    = np.zeros((int(parameters["donorNumber"]),2))
 with open(join(pathToSimFolder,"device.txt")) as deviceFile:
     line=next(deviceFile)
     for i in range(acceptorPos.shape[0]):

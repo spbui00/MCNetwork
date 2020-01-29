@@ -201,7 +201,7 @@ void FiniteElemente::initRun(){
     if (mesh->bdr_attributes.Size())
     {
         Array<int> ess_bdr(2);
-        ess_bdr[0]    = 1; // <<<<<<<<<<<<--------------  change this to 0 to make only part of boundaries essential
+        ess_bdr[0]    = 0; // <<<<<<<<<<<<--------------  change this to 1 to make all of boundaries essential
         ess_bdr[1] = 1;
         fespace->GetEssentialTrueDofs(ess_bdr, ess_tdof_list);
     }

@@ -38,7 +38,7 @@ int main(int argc, char *argv[]){
       ("optGen", "optimize control voltages using GeneticAlgorithm")
       ("run"   , "just run control voltages defined in in.txt")
       ("rSV"   , "random start voltages (only in combination with opt)")
-      // ("dir", po::value<std::string>(),"define working dir. has to contain 'in.txt'")
+      ("dir", po::value<std::string>(),"define working dir. has to contain 'in.txt'")
       ("help"  , "produce help message");
    
    po::variables_map vm;

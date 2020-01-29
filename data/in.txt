@@ -1,0 +1,74 @@
+#simulation parameters
+gate AND
+memoryLimit 2000 #in MB (should be around 100mb under real limit). if memory is not shared the real memory limit is memoryLimit*threads
+shareMemory 1
+threads 2
+finiteElementsResolution 5e3
+equilSteps 1e4   #scaling per thread!!
+calcCurrentSteps 1e5
+storingMode 1
+
+
+
+
+#physical parameters
+T 77
+acceptorNumber 64
+donorNumber 3
+lenX 300 #nm
+lenY 300 #nm
+
+I0 30 #meV (bram found 660)
+a 10 #nm
+minDist 0
+
+
+
+#fundamental constants
+k 1.380649e-23 #boltzmann
+e 1.60217662e-19 #elementary charge
+eps0 8.854187817620389e-12
+
+
+
+#electrode positions (positions given in fractions of lens)  
+#edges:
+# 0 --> x=0
+# 1 --> x=len
+# 2 --> y=0
+# 3 --> y=width
+
+#pos edge voltage
+electrode 0.25 0 0
+electrode 0.75 0 0
+electrode 0.25 1 0
+electrode 0.75 1 0
+electrode 0.25 2 0
+electrode 0.75 2 0
+electrode 0.25 3 0
+electrode 0.75 3 0
+
+
+electrodeWidth 60 #nm
+inputElectrode1 0
+inputElectrode2 1
+outputElectrode 2
+
+
+controlVoltageMin -1
+controlVoltageMax 1
+
+
+voltageScanMin 0
+voltageScanMax 0.5
+voltageScanPoints 2 # 0 and 0.5 should be in hit exactly
+seperationVoltage 0.25 # if input > seperationVoltage => input=true, else => input=false
+
+
+#optimization parameters
+acceptanceFactor 0.03 #big factor -> all accepted
+maxDeltaV 0.05
+
+fitnessUncertWeight 2
+diffWeight 0.0
+
