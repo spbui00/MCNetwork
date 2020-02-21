@@ -52,7 +52,7 @@ def colorMaker(x):
     return np.array([rInterpolater(x),gInterpolater(x),bInterpolater(x),1])
     
         
-inp=["0_0","1_0","0_1","1_1"]
+inp=["0_0","0_1","1_0","1_1"]
 for fileNumber in [1,2,3,4]:
 # for fileNumber in [1]:
 
@@ -91,8 +91,12 @@ for fileNumber in [1,2,3,4]:
 
         for i in range(len(electrodes)):
             if   i == parameters["outputElectrode"]: color= "blue"
-            elif i == parameters["inputElectrode1"]: color= "red"
-            elif i == parameters["inputElectrode2"]: color= "red"
+            elif i == parameters["inputElectrode1"]:
+                if fileNumber in [3,4]: color = "red"
+                else:                   color = "rosybrown"
+            elif i == parameters["inputElectrode2"]:
+                if fileNumber in [2,4]: color = "red"
+                else:                   color = "rosybrown"
             else:                                    color= "green"
             
             ax.scatter(*electrodePositions[i],c=color,marker=".",s=200)

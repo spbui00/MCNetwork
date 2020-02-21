@@ -62,7 +62,7 @@ ax.legend()
 
 
 plt.savefig(join(pathToSimFolder,"convergence.png"),bbox_inches="tight",dpi=300)    
-# plt.show()
+plt.show()
 plt.close()
 fig=None
 

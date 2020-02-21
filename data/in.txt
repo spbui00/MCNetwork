@@ -1,26 +1,27 @@
 #simulation parameters
-gate AND
-memoryLimit 2000 #in MB (should be around 100mb under real limit). if memory is not shared the real memory limit is memoryLimit*threads
-shareMemory 1
-threads 2
+gate XOR
+memoryLimit 1000 #in MB (should be around 100mb under real limit), if memory is not shared real memory consumption is memoryLimit*threads
+shareMemory 0
+threads 7 
 finiteElementsResolution 5e3
-equilSteps 1e4   #scaling per thread!!
-calcCurrentSteps 1e5
+equilSteps 1e5   #scaling per thread!!
+calcCurrentSteps 1e6
 storingMode 1
+
 
 
 
 
 #physical parameters
 T 77
-acceptorNumber 64
+acceptorNumber 200
 donorNumber 3
 lenX 300 #nm
 lenY 300 #nm
 
-I0 30 #meV (bram found 660)
+I0 20 #meV (bram found 600)
 a 10 #nm
-minDist 0
+minDist 0 #nm
 
 
 
@@ -32,21 +33,21 @@ eps0 8.854187817620389e-12
 
 
 #electrode positions (positions given in fractions of lens)  
+#pos edge voltage
 #edges:
 # 0 --> x=0
 # 1 --> x=len
 # 2 --> y=0
 # 3 --> y=width
 
-#pos edge voltage
 electrode 0.25 0 0
 electrode 0.75 0 0
 electrode 0.25 1 0
-electrode 0.75 1 0
-electrode 0.25 2 0
-electrode 0.75 2 0
-electrode 0.25 3 0
-electrode 0.75 3 0
+electrode 0.75 1 0.14860514
+electrode 0.25 2 -0.8625645
+electrode 0.75 2 -0.20119567
+electrode 0.25 3 0.8354498
+electrode 0.75 3 0.90560784
 
 
 electrodeWidth 60 #nm
@@ -61,14 +62,15 @@ controlVoltageMax 1
 
 voltageScanMin 0
 voltageScanMax 0.5
-voltageScanPoints 2 # 0 and 0.5 should be in hit exactly
-seperationVoltage 0.25 # if input > seperationVoltage => input=true, else => input=false
+voltageScanPoints 2 # 0 and 0.5 should be hit exactly
+seperationVoltage 0.25
 
 
 #optimization parameters
-acceptanceFactor 0.03 #big factor -> all accepted
 maxDeltaV 0.05
-
 fitnessUncertWeight 2
 diffWeight 0.0
 
+#MC opt
+acceptanceFactor 0.02 #big factor -> all accepted
+MCOptStartPoints 20
