@@ -48,7 +48,7 @@ std::pair<std::vector<double>,std::vector<double>>  JobManager::runControlVoltag
     
 
 
-    if (parameterStorage->parameters.at("threads") >= 1){
+    if (parameterStorage->parameters.at("threads") > 1){
         std::vector<std::thread> threads;
         for(int k=0; k < parameterStorage->parameters.at("threads"); k++){
             threads.push_back(std::thread(&JobManager::handleJobList, std::ref(jobs), systems[k], std::ref(jobSearchMutex)));

@@ -39,13 +39,14 @@ if (NOT (${HDF5_FOUND} OR ${MFEM_FOUND}))
 
 endif (NOT (${HDF5_FOUND} OR ${MFEM_FOUND}))
 
+include_directories(${HDF5_INCLUDE_DIRS})
+
 
 add_executable(MCnetwork ${MCnetwork_SRC} ${sources} ${BAGHEERA_SRC})
 
 
 add_library(enhance SHARED lib/enhance.cpp)
 add_library(finiteElemente SHARED lib/finiteElemente/finiteElemente.cpp)
-
 
 
 target_link_libraries(MCnetwork enhance)

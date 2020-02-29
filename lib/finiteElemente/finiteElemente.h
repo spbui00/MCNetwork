@@ -47,7 +47,7 @@ public:
     FiniteElemente(double const & len,double const & width, int const & maxNumberOfElments, bool saveSolution=false);
     ~FiniteElemente();
 
-    void initRun();
+    void initRun(bool initDevice = false);
     void run();
     void setElectrode(double const & begin, double const & end, int const & edge, double const & voltage);
     void updateElectrodeVoltage(int const & electrodeIndex, double const & voltage);

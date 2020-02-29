@@ -2,10 +2,10 @@
 gate AND
 memoryLimit 1500 #in MB (should be around 100mb under real limit), if memory is not shared real memory consumption is memoryLimit*threads
 shareMemory 0
-threads 2 
+threads 4 
 finiteElementsResolution 5e3
 equilSteps 1e5   #scaling per thread!!
-calcCurrentSteps 1e6
+calcCurrentSteps 1e7
 storingMode 1
 
 

@@ -37,8 +37,6 @@ System::System(const System & oldSys) :
                                         occupation           (oldSys.occupation           ),
                                         locLenA              (oldSys.locLenA              ),
                                         constantRatesSumPart (oldSys.constantRatesSumPart ),
-                                        storeKnownStates     (oldSys.storeKnownStates     ),
-                                        konwnPartRatesSumList(oldSys.konwnPartRatesSumList),
                                         storingMode          (oldSys.storingMode          ),
                                         knownRatesSum        (oldSys.knownRatesSum        ),
                                         mutex                (oldSys.mutex                ) {
@@ -91,6 +89,7 @@ System::System(const System & oldSys) :
                 break;
         }
     }
+    finEle->initRun();
 
     for (size_t i = 0; i < finEle->solutionVector->Size(); i++){
         (*(finEle->solutionVector))[i] = (*(oldSys.finEle->solutionVector))[i];
@@ -306,9 +305,8 @@ void System::getReadyForRun(){
         }
     }
 
-    finEle->initRun();
-    finEle->run(); //not really necessary
-
+    finEle->initRun(true);
+    // finEle->run(); //not really necessary
 
 
     // calc distances and pair energies
@@ -716,7 +714,7 @@ void System::updatePotential(const std::vector<double> & voltages){
     }
 
     //recalc potential
-    for(int i=0;i < parameterStorage->electrodes.size();i++){
+    for(int i=0;i < electrodeNumber;i++){
         finEle->updateElectrodeVoltage(i,voltages[i]);
     }
     finEle->run();
@@ -731,6 +729,8 @@ void System::updatePotential(const std::vector<double> & voltages){
         energies[(i+acceptorNumber)]+=finEle->getPotential(electrodePositionsX[i],electrodePositionsY[i])*parameterStorage->parameters.at("e")/parameterStorage->parameters.at("kT");
         // std::cout<<i+acceptorNumber<<" "<<finEle->getPotential(electrodePositionsX[i],electrodePositionsY[i])*parameterStorage->parameters.at("e")/parameterStorage->parameters.at("kT")<<std::endl;
     }
+
+
 
     constantRatesSumPart = 0;
     //set deltaEnergies and rates (only constant part = el-el interaction)

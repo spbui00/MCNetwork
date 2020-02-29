@@ -185,12 +185,14 @@ void FiniteElemente::updateElectrodeVoltage(int const & electrodeIndex, double c
 }
 
 
-void FiniteElemente::initRun(){
+void FiniteElemente::initRun(bool initDevice /* = false */){
     // see mfem ex1.cpp in mfem lib
 
 
     // 2.--> see see mfem ex1.cpp in mfem lib
-    Device device("cpu");
+    if (initDevice){
+        Device device("cpu");
+    } 
     //    device.Print();
 
 
