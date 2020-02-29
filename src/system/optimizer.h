@@ -1,35 +1,35 @@
-#ifndef MCHOST_H
-#define MCHOST_H
+#ifndef OPTIMIZER
+#define OPTIMIZER
 #include <iostream>
 #include <memory>
 #include <algorithm>
 #include <fstream>
 #include "parameterstorage.h"
 #include "system.h"
+#include "jobhandling.h"
 #include "datafile.h"
 #include <float.h>
 #include <chrono>
 #include <vector>
 #include <map>
 
-class MCHost
+class Optimizer
 {
 private:
-    int hoppingSiteNumber=0;
-    int voltageScanPoints;
-    double voltageScanResolution;
-    int electrodeNumber;
+    int electrodeNumber, voltageScanPoints;
+    // int electrodeNumber;
     double fitness = 0,fitnessUncert = 0,optEnergy = 0,normedDiff = 0;
 
-    double outputCurrent,outputCurrentSqrt,outputCurrentStd;
-    double * outputCurrentBuffer, * outputCurrentUncertBuffer;
-    
+    std::vector<std::vector<double>> voltageSets;
+    std::vector<std::vector<double>> outputCurrents;
+    std::vector<std::vector<double>> outputCurrentUncerts;
     
 
     std::shared_ptr<ParameterStorage> parameterStorage;
     std::shared_ptr<DataFile>         dataFile;
     
-    std::vector<System * > systems;
+    std::shared_ptr<std::vector<System * >> systems;
+    JobManager jobManager;
 
     void calcOptimizationEnergy();
     void saveResults();
@@ -37,11 +37,8 @@ private:
 
 
 public:
-    MCHost(std::shared_ptr<ParameterStorage>);
-    void setup(bool makeNewDevice=true);
+    Optimizer(std::shared_ptr<ParameterStorage>);
 
-    void singleRun();
-    void runVoltageSetup();
     void optimizeMC(bool rndStart = false);
     void optimizeGenetic();
     void run();
@@ -49,4 +46,4 @@ public:
 };
 
 
-#endif // MCHOST_H
+#endif // OPTIMIZER_H

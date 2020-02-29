@@ -57,7 +57,34 @@ ParameterStorage::ParameterStorage(std::string filename)
     parameters["I0"]=parameters["I0"]*0.001*parameters["e"]/parameters["kT"]; //I0 given in meV
 
 
-  
 
+    // voltage scan points
+    double a = parameters.at("voltageScanMin");
+    while (true){
+        a = std::round( a * 10000.0 ) / 10000.0; //round to 4 digits
+        if (a > std::round( parameters.at("voltageScanMax") * 10000.0 ) / 10000.0){
+            break;
+        }
+        else{
+            inputVoltages.push_back(a);
+        }
+        a += parameters.at("voltageScanResoultion");
+    }
+
+    parameters["voltageScanPoints"] = inputVoltages.size();
+
+    std::cout<<"Searching on "<<parameters["voltageScanPoints"] <<" Voltage Points";
+    if (inputVoltages.size() < 8){
+        std::cout<<":"<<std::endl;
+        for (size_t i = 0; i < parameters["voltageScanPoints"]; i++){
+            std::cout<<inputVoltages[i]<<" ";
+        }
+        std::cout<<std::endl;
+    }
+    else{
+        std::cout<<std::endl;
+    }
+    
+    
     DEBUG_FUNC_END
 }

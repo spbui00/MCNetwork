@@ -33,16 +33,17 @@ private:
     //mfem stuff
     FiniteElementCollection *fec;
     FiniteElementSpace *fespace;
-    GridFunction *solutionVector; // changed to pointer, named x in example
     BilinearForm * a; 
     LinearForm * b;
     OperatorPtr A;
     Vector B, X;
     GSSmoother M;
-   Array<int> ess_tdof_list;
+    Array<int> ess_tdof_list;
 
 
 public:
+    GridFunction * solutionVector; // changed to pointer, named x in example
+
     FiniteElemente(double const & len,double const & width, int const & maxNumberOfElments, bool saveSolution=false);
     ~FiniteElemente();
 

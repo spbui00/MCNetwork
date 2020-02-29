@@ -24,6 +24,10 @@ public:
     std::map<std::string,double> parameters; //general parameter map
     std::vector<ElectrodeParameters> electrodes;
     std::string workingDirecotry ="./";
+    
+    bool makeNewDevice = false;
+    std::vector<double> inputVoltages; //input voltage points to scan
+
 
     ParameterStorage(std::string);
 };

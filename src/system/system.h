@@ -4,7 +4,7 @@
 #include <memory>
 #include <unordered_map>
 #include <fstream>
-// #include "datafile.h"
+
 #include "parameterstorage.h"
 #include "../lib/enhance.hpp"
 #include "../lib/finiteElemente/finiteElemente.h"
@@ -40,7 +40,6 @@ private:
 
     std::shared_ptr<ParameterStorage> parameterStorage;
     
-    FiniteElemente * finEle; //finEle device
 
     void updateAfterSwap();
 
@@ -55,19 +54,24 @@ private:
 
 
 public:
+
+    std::unique_ptr<FiniteElemente> finEle; //finEle device
+
+
     std::shared_ptr<std::shared_mutex> mutex;
 
 
     std::shared_ptr< std::unordered_map<std::vector<bool>,std::shared_ptr<std::vector<double>>>> konwnPartRatesSumList; //map of lists of accumulated rates for binary search, to store known states
     std::shared_ptr< std::unordered_map<std::vector<bool>,double>>  knownRatesSum;
 
-    double * currentCounter; // 1D
+    int * currentCounter; // 1D
+    int * outputCurrentCounter;
     bool * storeKnownStates;
 
     double time=0;
 
     System(const std::shared_ptr<ParameterStorage> &);
-    System(const System & oldSys, bool shareMemory = true);
+    System(const System & oldSys);
 
 
 
@@ -87,14 +91,13 @@ public:
     
 
     void increaseTime();
+    void reset();
     void run(int steps);
     
-    void updatePotential();
-    void resetPotential();
-    void recalcPotential();
-    void setNewPotential();
+    void updatePotential(const std::vector<double> & voltages);
+    void updatePotential(const mfem::GridFunction &  potential);
 
-
+    mfem::GridFunction getPotential();
 };
 
 

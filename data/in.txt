@@ -1,8 +1,8 @@
 #simulation parameters
-gate XOR
-memoryLimit 1000 #in MB (should be around 100mb under real limit), if memory is not shared real memory consumption is memoryLimit*threads
+gate AND
+memoryLimit 1500 #in MB (should be around 100mb under real limit), if memory is not shared real memory consumption is memoryLimit*threads
 shareMemory 0
-threads 7 
+threads 2 
 finiteElementsResolution 5e3
 equilSteps 1e5   #scaling per thread!!
 calcCurrentSteps 1e6
@@ -14,13 +14,13 @@ storingMode 1
 
 #physical parameters
 T 77
-acceptorNumber 200
+acceptorNumber 30
 donorNumber 3
 lenX 300 #nm
 lenY 300 #nm
 
-I0 20 #meV (bram found 600)
-a 10 #nm
+I0 660 #meV (bram found 600)
+a 14 #nm
 minDist 0 #nm
 
 
@@ -43,11 +43,11 @@ eps0 8.854187817620389e-12
 electrode 0.25 0 0
 electrode 0.75 0 0
 electrode 0.25 1 0
-electrode 0.75 1 0.14860514
-electrode 0.25 2 -0.8625645
-electrode 0.75 2 -0.20119567
-electrode 0.25 3 0.8354498
-electrode 0.75 3 0.90560784
+electrode 0.75 1 0.818063
+electrode 0.25 2 0.979638
+electrode 0.75 2 0.5
+electrode 0.25 3 1
+electrode 0.75 3 0.880551
 
 
 electrodeWidth 60 #nm
@@ -60,9 +60,9 @@ controlVoltageMin -1
 controlVoltageMax 1
 
 
-voltageScanMin 0
+voltageScanMin 0 
 voltageScanMax 0.5
-voltageScanPoints 2 # 0 and 0.5 should be hit exactly
+voltageScanResoultion 0.5 # 0 and 0.5 should be hit exactly
 seperationVoltage 0.25
 
 
@@ -74,3 +74,4 @@ diffWeight 0.0
 #MC opt
 acceptanceFactor 0.02 #big factor -> all accepted
 MCOptStartPoints 20
+

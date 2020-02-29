@@ -48,7 +48,6 @@ void FiniteElemente::initMesh(int const & maxNumberOfElments){
             quadIndx[1]=vertexIndexMap[i+1][j  ];
             quadIndx[2]=vertexIndexMap[i+1][j+1];
             quadIndx[3]=vertexIndexMap[i  ][j+1];
-
             // std::cout<<vertexIndexMap[i][j]<<vertexIndexMap[i+1][j]<<vertexIndexMap[i+1][j+1]<<vertexIndexMap[i][j+1]<<std::endl;
             mesh->AddQuad(quadIndx);
         }

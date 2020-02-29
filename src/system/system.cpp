@@ -21,7 +21,7 @@ System::System(const std::shared_ptr<ParameterStorage> & parameterStorage) : par
 
     DEBUG_FUNC_END
 }
-System::System(const System & oldSys, bool shareMemory /*= true*/) : 
+System::System(const System & oldSys) : 
                                         parameterStorage     (oldSys.parameterStorage     ),
                                         acceptorNumber       (oldSys.acceptorNumber       ),
                                         hoppingSiteNumber    (oldSys.hoppingSiteNumber    ),
@@ -37,7 +37,6 @@ System::System(const System & oldSys, bool shareMemory /*= true*/) :
                                         occupation           (oldSys.occupation           ),
                                         locLenA              (oldSys.locLenA              ),
                                         constantRatesSumPart (oldSys.constantRatesSumPart ),
-                                        finEle               (oldSys.finEle               ),
                                         storeKnownStates     (oldSys.storeKnownStates     ),
                                         konwnPartRatesSumList(oldSys.konwnPartRatesSumList),
                                         storingMode          (oldSys.storingMode          ),
@@ -50,7 +49,8 @@ System::System(const System & oldSys, bool shareMemory /*= true*/) :
     }
 
     energies       = new double[hoppingSiteNumber];
-    currentCounter = new double[hoppingSiteNumber];
+    currentCounter = new int   [hoppingSiteNumber];
+    outputCurrentCounter = & currentCounter[int(parameterStorage->parameters.at("outputElectrode")+parameterStorage->parameters["acceptorNumber"])];  
     for(int i=0;i<hoppingSiteNumber;i++){
         energies      [i] = oldSys.energies      [i];
         currentCounter[i] = oldSys.currentCounter[i];
@@ -63,20 +63,40 @@ System::System(const System & oldSys, bool shareMemory /*= true*/) :
         rates        [i] = oldSys.rates        [i];
     }
 
-    if (not shareMemory){
-        konwnPartRatesSumList.reset(new std::unordered_map<std::vector<bool>,std::shared_ptr<std::vector<double>>>());
-        knownRatesSum        .reset(new std::unordered_map<std::vector<bool>,double>());
-        storeKnownStates = new bool(true);
-        // distances      = new double[hoppingSiteNumber*hoppingSiteNumber];
-        // for(int i=0;i<hoppingSiteNumber*hoppingSiteNumber;i++){
-        //     distances[i]=oldSys.distances[i];
-        // }
-        // pairEnergies   = new double[acceptorNumber*acceptorNumber];
-        // for(int i=0;i<acceptorNumber*acceptorNumber;i++){
-        //     pairEnergies[i]=oldSys.pairEnergies[i];
-        // }
+    konwnPartRatesSumList.reset(new std::unordered_map<std::vector<bool>,std::shared_ptr<std::vector<double>>>());
+    knownRatesSum        .reset(new std::unordered_map<std::vector<bool>,double>());
+    storeKnownStates = new bool(true);
+    // distances      = new double[hoppingSiteNumber*hoppingSiteNumber];
+    // for(int i=0;i<hoppingSiteNumber*hoppingSiteNumber;i++){
+    //     distances[i]=oldSys.distances[i];
+    // }
+    // pairEnergies   = new double[acceptorNumber*acceptorNumber];
+    // for(int i=0;i<acceptorNumber*acceptorNumber;i++){
+    //     pairEnergies[i]=oldSys.pairEnergies[i];
+    // }
+
+
+    //setup finEle
+    finEle = std::make_unique<FiniteElemente>(parameterStorage->parameters.at("lenX"),parameterStorage->parameters.at("lenY"),parameterStorage->parameters.at("finiteElementsResolution"));
+    //set electrodes
+    for(int i=0; i< electrodeNumber; i++){
+        switch (parameterStorage->electrodes[i].edge){
+            case 0:
+            case 1:
+                finEle->setElectrode(parameterStorage->parameters.at("lenY")*parameterStorage->electrodes[i].pos-0.5*parameterStorage->parameters.at("electrodeWidth"),parameterStorage->parameters.at("lenY")*parameterStorage->electrodes[i].pos+0.5*parameterStorage->parameters.at("electrodeWidth"),parameterStorage->electrodes[i].edge,parameterStorage->electrodes[i].voltage);
+                break;
+            case 2:
+            case 3:
+                finEle->setElectrode(  parameterStorage->parameters.at("lenX")*parameterStorage->electrodes[i].pos-0.5*parameterStorage->parameters.at("electrodeWidth"),parameterStorage->parameters.at("lenX")*parameterStorage->electrodes[i].pos+0.5*parameterStorage->parameters.at("electrodeWidth"),parameterStorage->electrodes[i].edge,parameterStorage->electrodes[i].voltage);
+                break;
+        }
     }
 
+    for (size_t i = 0; i < finEle->solutionVector->Size(); i++){
+        (*(finEle->solutionVector))[i] = (*(oldSys.finEle->solutionVector))[i];
+    }
+    
+    
     readyForRun=true;
     DEBUG_FUNC_END
 }
@@ -89,7 +109,9 @@ void System::initilizeMatrices(){
     deltaEnergies  = new double[hoppingSiteNumber*hoppingSiteNumber];
     rates          = new double[hoppingSiteNumber*hoppingSiteNumber];
     energies       = new double[hoppingSiteNumber];
-    currentCounter = new double[hoppingSiteNumber];
+    currentCounter = new int   [hoppingSiteNumber];
+    outputCurrentCounter = & currentCounter[int(parameterStorage->parameters.at("outputElectrode")+parameterStorage->parameters["acceptorNumber"])];  
+
 
     donorPositionsX     = new double[int(parameterStorage->parameters.at("donorNumber"))];
     donorPositionsY     = new double[int(parameterStorage->parameters.at("donorNumber"))];
@@ -269,7 +291,7 @@ void System::getReadyForRun(){
 
 
     //solve laplace eq
-    finEle= new FiniteElemente(parameterStorage->parameters.at("lenX"),parameterStorage->parameters.at("lenY"),parameterStorage->parameters.at("finiteElementsResolution"));
+    finEle= std::make_unique<FiniteElemente>(parameterStorage->parameters.at("lenX"),parameterStorage->parameters.at("lenY"),parameterStorage->parameters.at("finiteElementsResolution"));
     //set electrodes
     for(int i=0; i< electrodeNumber; i++){
         switch (parameterStorage->electrodes[i].edge){
@@ -285,7 +307,7 @@ void System::getReadyForRun(){
     }
 
     finEle->initRun();
-    finEle->run();
+    finEle->run(); //not really necessary
 
 
 
@@ -682,21 +704,9 @@ void System::updateRates(){
 }
 
 
-void System::updatePotential(){
-    //this function needs to be splitted up in 3 parts for efficient parallel computing
+void System::updatePotential(const std::vector<double> & voltages){
     DEBUG_FUNC_START
 
-    resetPotential();
-    recalcPotential();
-    setNewPotential();
-
-
-    DEBUG_FUNC_END
-}
-
-void System::resetPotential(){
-    DEBUG_FUNC_START
-    
     //reset old potential
     for(int i=0;i<acceptorNumber;i++){
         energies[i]-=finEle->getPotential(acceptorPositionsX[i],acceptorPositionsY[i])*parameterStorage->parameters.at("e")/parameterStorage->parameters.at("kT");
@@ -705,23 +715,73 @@ void System::resetPotential(){
         energies[(i+acceptorNumber)]-=finEle->getPotential(electrodePositionsX[i],electrodePositionsY[i])*parameterStorage->parameters.at("e")/parameterStorage->parameters.at("kT");
     }
 
-    DEBUG_FUNC_END
-}
-
-void System::recalcPotential(){
-    DEBUG_FUNC_START
-
     //recalc potential
     for(int i=0;i < parameterStorage->electrodes.size();i++){
-        finEle->updateElectrodeVoltage(i,parameterStorage->electrodes[i].voltage);
+        finEle->updateElectrodeVoltage(i,voltages[i]);
     }
     finEle->run();
 
+    //set new potential
+    for(int i=0;i<acceptorNumber;i++){
+        energies[i]+=finEle->getPotential(acceptorPositionsX[i],acceptorPositionsY[i])*parameterStorage->parameters.at("e")/parameterStorage->parameters.at("kT");
+        // std::cout<<acceptorPositionsX[i]<<" "<<acceptorPositionsY[i]<<std::endl;
+        // std::cout<<i<<" "<<finEle->getPotential(acceptorPositionsX[i],acceptorPositionsY[i])*parameterStorage->parameters.at("e")/parameterStorage->parameters.at("kT")<<std::endl;
+    }
+    for(int i=0;i<electrodeNumber;i++){
+        energies[(i+acceptorNumber)]+=finEle->getPotential(electrodePositionsX[i],electrodePositionsY[i])*parameterStorage->parameters.at("e")/parameterStorage->parameters.at("kT");
+        // std::cout<<i+acceptorNumber<<" "<<finEle->getPotential(electrodePositionsX[i],electrodePositionsY[i])*parameterStorage->parameters.at("e")/parameterStorage->parameters.at("kT")<<std::endl;
+    }
+
+    constantRatesSumPart = 0;
+    //set deltaEnergies and rates (only constant part = el-el interaction)
+    for(int i=acceptorNumber;i<hoppingSiteNumber;i++){
+        rates[i*(hoppingSiteNumber+1)]=0; //diagonal elements
+        for(int j=acceptorNumber;j<i;j++){
+            deltaEnergies[i*hoppingSiteNumber+j]=energies[j]-energies[i];
+            deltaEnergies[j*hoppingSiteNumber+i]=energies[i]-energies[j];
+            // std::cout<<i<<" "<<j<<" "<<deltaEnergies[j*hoppingSiteNumber+i]<<" "<<energies[i]<<" "<<energies[j]<<" "<<std::endl;
+            // std::cout<<"deltaEnergies el el "<< distances[i*hoppingSiteNumber+j]<<std::endl;
+
+            if (deltaEnergies[i*hoppingSiteNumber+j] < 0){
+                rates[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
+                rates[j*hoppingSiteNumber+i]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA-deltaEnergies[j*hoppingSiteNumber+i]);
+            }
+            else if (deltaEnergies[i*hoppingSiteNumber+j] > 0){
+                rates[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA-deltaEnergies[i*hoppingSiteNumber+j]);
+                rates[j*hoppingSiteNumber+i]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
+            }
+            else{
+                rates[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
+                rates[j*hoppingSiteNumber+i]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
+            }
+            constantRatesSumPart+=rates[i*hoppingSiteNumber+j];
+            constantRatesSumPart+=rates[j*hoppingSiteNumber+i];
+        }
+    }
+
+    #ifdef SWAPTRACKER
+        swapTrackFile.close(); // swapTracker
+        swapTrackFile.open(std::string("swapTrackFile")+std::to_string(fileNumber)+std::string(".txt"), ios::out); // swapTracker
+        fileNumber++; // swapTracker
+    #endif
+
+
     DEBUG_FUNC_END
 }
 
-void System::setNewPotential(){
+void System::updatePotential(const mfem::GridFunction &  potential){
     DEBUG_FUNC_START
+
+    //reset old potential
+    for(int i=0;i<acceptorNumber;i++){
+        energies[i]-=finEle->getPotential(acceptorPositionsX[i],acceptorPositionsY[i])*parameterStorage->parameters.at("e")/parameterStorage->parameters.at("kT");
+    }
+    for(int i=0;i<electrodeNumber;i++){
+        energies[(i+acceptorNumber)]-=finEle->getPotential(electrodePositionsX[i],electrodePositionsY[i])*parameterStorage->parameters.at("e")/parameterStorage->parameters.at("kT");
+    }
+
+    //set new potential
+    *finEle->solutionVector = potential;
 
     //set new potential
     for(int i=0;i<acceptorNumber;i++){
@@ -731,13 +791,39 @@ void System::setNewPotential(){
         energies[(i+acceptorNumber)]+=finEle->getPotential(electrodePositionsX[i],electrodePositionsY[i])*parameterStorage->parameters.at("e")/parameterStorage->parameters.at("kT");
     }
 
-    #ifdef SWAPTRACKER
-        swapTrackFile.close(); // swapTracker
-        swapTrackFile.open(std::string("swapTrackFile")+std::to_string(fileNumber)+std::string(".txt"), ios::out); // swapTracker
-        fileNumber++; // swapTracker
-    #endif
+    constantRatesSumPart = 0;
+    //set deltaEnergies and rates (only constant part = el-el interaction)
+    for(int i=acceptorNumber;i<hoppingSiteNumber;i++){
+        rates[i*(hoppingSiteNumber+1)]=0; //diagonal elements
+        for(int j=acceptorNumber;j<i;j++){
+            deltaEnergies[i*hoppingSiteNumber+j]=energies[j]-energies[i];
+            deltaEnergies[j*hoppingSiteNumber+i]=energies[i]-energies[j];
+            // std::cout<<"deltaEnergies el el "<< distances[i*hoppingSiteNumber+j]<<std::endl;
+
+            if (deltaEnergies[i*hoppingSiteNumber+j] < 0){
+                rates[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
+                rates[j*hoppingSiteNumber+i]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA-deltaEnergies[j*hoppingSiteNumber+i]);
+            }
+            else if (deltaEnergies[i*hoppingSiteNumber+j] > 0){
+                rates[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA-deltaEnergies[i*hoppingSiteNumber+j]);
+                rates[j*hoppingSiteNumber+i]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
+            }
+            else{
+                rates[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
+                rates[j*hoppingSiteNumber+i]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
+            }
+            constantRatesSumPart+=rates[i*hoppingSiteNumber+j];
+            constantRatesSumPart+=rates[j*hoppingSiteNumber+i];
+        }
+    }
 
     DEBUG_FUNC_END
+}
+
+mfem::GridFunction System::getPotential(){
+    DEBUG_FUNC_START
+    DEBUG_FUNC_END
+    return *finEle->solutionVector;
 }
 
 void System::findSwap(){
@@ -908,6 +994,17 @@ void System::increaseTime(){
     DEBUG_FUNC_START
 
     time+=std::log(enhance::random_double(0,1))/(-1*ratesSum);
+
+    DEBUG_FUNC_END
+}
+
+void System::reset(){
+    DEBUG_FUNC_START
+
+    time=0;
+    for (int i = 0; i < hoppingSiteNumber; i++){
+        currentCounter[i] = 0;
+    }
 
     DEBUG_FUNC_END
 }

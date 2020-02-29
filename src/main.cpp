@@ -1,6 +1,6 @@
 #include "../lib/enhance.hpp"
 
-#include "system/mchost.h"
+#include "system/optimizer.h"
 
 #include "debug.h"
 
@@ -63,20 +63,19 @@ int main(int argc, char *argv[]){
    std::string inputFileName=workingDirecotry + "in.txt";
    std::shared_ptr<ParameterStorage> parameterStorage(new ParameterStorage(inputFileName));//all input parameters are stored in the shared pointer "inputfile". all classes get the pointer 
    parameterStorage->workingDirecotry=workingDirecotry;
+   parameterStorage->makeNewDevice = vm.count("mnd");
 
-
-   MCHost mchost(parameterStorage);
-   mchost.setup(vm.count("mnd"));
+   Optimizer optimizer(parameterStorage);
 
 
    if (vm.count("optMC")){
-      mchost.optimizeMC(vm.count("rSV"));
+      optimizer.optimizeMC(vm.count("rSV"));
    }
    else if (vm.count("optGen")){
-      mchost.optimizeGenetic();
+      optimizer.optimizeGenetic();
    }
    else if (vm.count("run")){
-      mchost.run();
+      optimizer.run();
    }
    
 
