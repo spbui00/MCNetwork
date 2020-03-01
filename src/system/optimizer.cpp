@@ -438,7 +438,7 @@ void Optimizer::run(){
 
 
 
-static bool Optimizer::desiredLogicFunction(double val1, double val2, std::string gate){
+bool Optimizer::desiredLogicFunction(double val1, double val2, std::string gate){
     DEBUG_FUNC_START
 
     bool b1 = val1 > parameterStorage->parameters.at("seperationVoltage");
