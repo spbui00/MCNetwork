@@ -24,10 +24,38 @@
 
 class System
 {
+public:
+    int * outputCurrentCounter;
+    double time=0;
+
+
+    System(std::shared_ptr<ParameterStorage> const &);
+    System(System const & oldSys);
+    
+    void createRandomNewDevice();
+    void loadDevice();
+
+    void initilizeMatrices();
+    void getReadyForRun();
+
+    void reset();
+    void resetStoredStates();
+    void run(int steps);
+    
+    void updatePotential(std::vector<double> const & voltages);
+    void updatePotential(mfem::GridFunction  const & potential);
+    void updateOccupationAndPotential(std::vector<bool> const & newOccupation, mfem::GridFunction  const & potential);
+    std::vector<bool> const & getOccupation();
+
+
+    mfem::GridFunction getPotential() const;
+
+
 private:
     int acceptorNumber, hoppingSiteNumber, electrodeNumber;
     double * donorPositionsX, * donorPositionsY, * acceptorPositionsX, * acceptorPositionsY, * electrodePositionsX, * electrodePositionsY; // 1D
     double * energies; // 1D
+    int * currentCounter; // 1D
     std::vector<bool> occupation; // 1D
     double * pairEnergies, * rates, * distances, * deltaEnergies; //2D
     
@@ -36,7 +64,12 @@ private:
     double ratesSum=0;
     double constantRatesSumPart=0;
     double locLenA;
+
+    std::unique_ptr<FiniteElemente> finEle; //finEle device
+
     shared_ptr<std::vector<double>> partRatesSumList; //list of accumulated rates for binary search
+    std::shared_ptr< std::unordered_map<std::vector<bool>,std::shared_ptr<std::vector<double>>>> konwnPartRatesSumList; //map of lists of accumulated rates for binary search, to store known states
+    std::shared_ptr< std::unordered_map<std::vector<bool>,double>>  knownRatesSum;
 
     std::shared_ptr<ParameterStorage> parameterStorage;
     
@@ -47,57 +80,26 @@ private:
     bool storingMode; // if set true performance is optimized by storing known states
     bool ratesInMemory =false; //save if last step was found in stored states. if true, binary search is done to find swap
 
+
+    bool storeKnownStates = true;
+
+
     #ifdef SWAPTRACKER
         ofstream swapTrackFile;
         int fileNumber=1;
     #endif
 
+    void setOccupation(std::vector<bool> const & newOccupation);
 
-public:
-
-    std::unique_ptr<FiniteElemente> finEle; //finEle device
-
-
-    std::shared_ptr<std::shared_mutex> mutex;
-
-
-    std::shared_ptr< std::unordered_map<std::vector<bool>,std::shared_ptr<std::vector<double>>>> konwnPartRatesSumList; //map of lists of accumulated rates for binary search, to store known states
-    std::shared_ptr< std::unordered_map<std::vector<bool>,double>>  knownRatesSum;
-
-    int * currentCounter; // 1D
-    int * outputCurrentCounter;
-    bool * storeKnownStates;
-
-    double time=0;
-
-    System(const std::shared_ptr<ParameterStorage> &);
-    System(const System & oldSys);
-
-
-
-    void createRandomNewDevice();
-    void loadDevice();
-
-
-    void initilizeMatrices();
-    void getReadyForRun();
 
     void findSwap();
     void findSwapBS(); //using binary search
-
-    void updateRatesMPStoring(); //multi  processor, storing mode
-    void updateRatesSPStoring(); //single processor, storing mode
+    void updateRatesStoringMode(); //single processor, storing mode
     void updateRates();// core calculation of rates
-    
-
     void increaseTime();
-    void reset();
-    void run(int steps);
-    
-    void updatePotential(const std::vector<double> & voltages);
-    void updatePotential(const mfem::GridFunction &  potential);
 
-    mfem::GridFunction getPotential();
+    void resetPotential();
+    void setNewPotential();
 };
 
 

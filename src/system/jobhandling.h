@@ -15,32 +15,36 @@
 class Job
 {
     public:
-        // Job(){};
+        int ID; 
+        std::unique_ptr<std::mutex> jobMutex;
+        mfem::GridFunction potential;
+        std::vector<bool> equilOccupation;
+
         int equilSteps, totalSteps, stepsPerTask;
         int tasksToGo; 
         static const int tasksPerJob = 20; //number of 
         int threadNumber = 0;
         std::vector<double> voltages;
         double resultCurrent = 0, resultCurrentUncert = 0;
+
+        Job(int ID): ID(ID) {jobMutex = std::make_unique<std::mutex>();};
 };
 
 
 class JobManager
 {
+public:
+    JobManager(std::shared_ptr<ParameterStorage>);
+
+    std::pair<std::vector<double>,std::vector<double>> const runControlVoltagesSetup(std::vector<double> const & voltages); //returns curr, currUncert
+
 private:
     int voltageScanPoints, electrodeNumber;
     std::shared_ptr<ParameterStorage> parameterStorage;
     std::vector<System * > systems;
     std::vector<Job> jobs;
     std::mutex jobSearchMutex;
-    static void handleJobList(std::vector<Job> & jobs, System * system, std::mutex & searchMutex);
-
-
-    void singleRun();
-public:
-    JobManager(std::shared_ptr<ParameterStorage>);
-
-    std::pair<std::vector<double>,std::vector<double>> runControlVoltagesSetup(std::vector<double> voltages); //returns curr, currUncert
+    static void handleJobList(std::vector<Job> & jobs, System * const system, std::mutex & searchMutex);
 };
 
 

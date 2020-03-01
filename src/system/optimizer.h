@@ -15,9 +15,16 @@
 
 class Optimizer
 {
+public:
+    Optimizer(std::shared_ptr<ParameterStorage>);
+
+    void optimizeMC(bool rndStart = false);
+    void optimizeGenetic();
+    void run();
+    
+    
 private:
     int electrodeNumber, voltageScanPoints;
-    // int electrodeNumber;
     double fitness = 0,fitnessUncert = 0,optEnergy = 0,normedDiff = 0;
 
     std::vector<std::vector<double>> voltageSets;
@@ -34,15 +41,6 @@ private:
     void calcOptimizationEnergy();
     void saveResults();
     bool desiredLogicFunction(double val1, double val2, std::string gate);
-
-
-public:
-    Optimizer(std::shared_ptr<ParameterStorage>);
-
-    void optimizeMC(bool rndStart = false);
-    void optimizeGenetic();
-    void run();
-    
 };
 
 

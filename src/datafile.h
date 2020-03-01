@@ -15,6 +15,13 @@ using namespace H5;
 
 class DataFile
 {
+public:
+    DataFile(std::string _filename);
+    void createDataset(std::string datasetName, std::vector<int> dimensions);
+    void createAttribute(std::string, double);
+
+    template<typename Data>
+    void addData(std::string datasetName,Data data);
 
 private:    
     std::map<std::string,int>    indexMap;
@@ -28,16 +35,6 @@ private:
     std::vector< hsize_t * >     maxdimsf;
 
     DataSpace spaceDummy;
-
-
-public:
-    DataFile(std::string _filename);
-    void createDataset(std::string datasetName, std::vector<int> dimensions);
-    void createAttribute(std::string, double);
-
-    template<typename Data>
-    void addData(std::string datasetName,Data data);
-
 };
 
 
@@ -57,15 +54,6 @@ void DataFile::addData(std::string datasetName,Data data){
     dataset.extend(size[index]);
     DataSpace fspace = dataset.getSpace ();
     fspace.selectHyperslab( H5S_SELECT_SET, dimsf[index], offset[index]);
-
-
-    // for (size_t i = 0; i < 3; i++){
-    //     for (size_t j = 0; j < 3; j++){
-    //         std::cout<<data[i][j]<<" ";
-    //     }
-    //     std::cout<<std::endl;
-    // }
-    
 
     dataset.write( data , PredType::NATIVE_DOUBLE, spaceDummy, fspace );
 

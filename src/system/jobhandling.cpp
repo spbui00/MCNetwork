@@ -23,18 +23,17 @@ JobManager::JobManager(std::shared_ptr<ParameterStorage> parameterStorage) : par
         systems.push_back(new System(*systems[0]));
     }
 
-
     DEBUG_FUNC_END
 }
 
 
-std::pair<std::vector<double>,std::vector<double>>  JobManager::runControlVoltagesSetup(std::vector<double> voltages){
+std::pair<std::vector<double>,std::vector<double>> const JobManager::runControlVoltagesSetup(std::vector<double> const & voltages){
     DEBUG_FUNC_START
 
     //make Jobs
     for (size_t i = 0; i < voltageScanPoints; i++){
         for (size_t j = 0; j < voltageScanPoints; j++){
-            jobs.push_back(Job());
+            jobs.push_back(Job(i*voltageScanPoints + j));
             jobs[i*voltageScanPoints + j].equilSteps   = parameterStorage->parameters.at("equilSteps");
             jobs[i*voltageScanPoints + j].totalSteps   = parameterStorage->parameters.at("calcCurrentSteps");
             jobs[i*voltageScanPoints + j].stepsPerTask = parameterStorage->parameters.at("calcCurrentSteps")/jobs[i*voltageScanPoints + j].tasksPerJob;
@@ -95,28 +94,48 @@ void JobManager::handleJobList(std::vector<Job> & jobs, System * system, std::mu
             }            
         }
         //check if job is worth to join
-        if(mostTasks > 0){
+        if(mostTasks > 1){
             //join work on job
+            // std::cout<<"joining job: "<<bestJob->ID<<std::endl;
             bestJob->threadNumber += 1;
             bestJob->tasksToGo    -= 1;
-            searchMutex.unlock();
+            //check if job was started already by another thread
+            if (bestJob->tasksToGo + 1 == bestJob->tasksPerJob){
+                //first thread in job, so potential and equilibrium state have to be computed. therefor first lock the job.
+                bestJob->jobMutex->lock();
+                searchMutex.unlock(); //job is locked, so other jobs can start searching
 
+                //calc new potential
+                system->updatePotential(bestJob->voltages);
+                bestJob->potential       = system->getPotential();
 
-            system->updatePotential(bestJob->voltages);
-            system->knownRatesSum->clear();
-            system->konwnPartRatesSumList->clear();
+                //calc equil steps
+                system->resetStoredStates();
+                system->run(bestJob->equilSteps);
+                bestJob->equilOccupation = system->getOccupation();
 
-            //equil
-            system->run(bestJob->equilSteps);
+                bestJob->jobMutex->unlock();
+            }
+            else{
+                //job was already started by another thread
+                searchMutex.unlock(); //job dont has to be locked, so other jobs can start searching
+                //check if job starting calculations are done, otherwise wait
+                bestJob->jobMutex->lock();
+                bestJob->jobMutex->unlock();
+
+                //copy shit here
+                system->updateOccupationAndPotential  (bestJob->equilOccupation, bestJob->potential);
+            }
+
+            //first task
+            system->resetStoredStates();
             system->reset();
-
-            //first job
             system->run(bestJob->stepsPerTask);
             bestJob->resultCurrent      +=*(system->outputCurrentCounter)/system->time;
             bestJob->resultCurrentUncert+=std::pow(*(system->outputCurrentCounter)/system->time,2); //storing current**2 here
             system->reset();
 
-
+            //run tasks
             while(true){
                 searchMutex.lock();
                 if (bestJob->tasksToGo > 0){
@@ -134,12 +153,13 @@ void JobManager::handleJobList(std::vector<Job> & jobs, System * system, std::mu
                         //finish job
                         bestJob->resultCurrentUncert =  std::sqrt(bestJob->resultCurrentUncert - bestJob->resultCurrent*bestJob->resultCurrent/bestJob->tasksPerJob)/bestJob->tasksPerJob;
                         bestJob->resultCurrent       /= bestJob->tasksPerJob;
-                        std::cout<<"job finished! voltages: ";
+
+                        std:cout<<"current: "<<bestJob->resultCurrent<<" +- "<<bestJob->resultCurrentUncert;
+                        std::cout<<" voltages: ";
                         for (size_t i = 0; i < bestJob->voltages.size(); i++){
                             std::cout<<i<<": "<<bestJob->voltages[i]<<" ";
                         }
-                        std:cout<<"current: "<<bestJob->resultCurrent<<" +- "<<bestJob->resultCurrentUncert<<std::endl;
-                        
+                        std::cout<<std::endl;
                     }
                     bestJob->threadNumber -= 1;
                     searchMutex.unlock();

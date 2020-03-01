@@ -11,9 +11,22 @@
 
 /*
 TODO:
-
+   TECHNICAL:
+      - set "-D SWAPTRACKER" in cmake file
+      - improve argument parsing
+      - make datafile readable during simulation
+      - make crashed simulaten resumeable
+      - add log file
+      - support INT data format in datafile
+   PHYSICAL:
+      - implement replica exchange
+      - implement basin hopping
+      - implement circular area
+   ANALYSIS:
+      - calc correlation between voltages and visible currents (using swap track)
 OPT:
--parallelization
+   - store only output electrode current
+   - improve hash algorithm
 */
 
 namespace po = boost::program_options;
@@ -40,17 +53,17 @@ int main(int argc, char *argv[]){
       ("rSV"   , "random start voltages (only in combination with opt)")
       ("dir", po::value<std::string>(),"define working dir. has to contain 'in.txt'")
       ("help"  , "produce help message");
-   
+
    po::variables_map vm;
    po::store(po::parse_command_line(argc, argv, desc), vm);
-   
-   
+
+
    if (vm.count("help"))
    {
       std::cout << desc << "\n";
       return 1;
    }
-  
+
    std::string workingDirecotry; 
    if (vm.count("dir")){
       workingDirecotry= vm["dir"].as<std::string>();
@@ -59,7 +72,7 @@ int main(int argc, char *argv[]){
       workingDirecotry ="./";
    }
    std::cout<<"running in dir: "<<workingDirecotry<<std::endl;
-   
+
    std::string inputFileName=workingDirecotry + "in.txt";
    std::shared_ptr<ParameterStorage> parameterStorage(new ParameterStorage(inputFileName));//all input parameters are stored in the shared pointer "inputfile". all classes get the pointer 
    parameterStorage->workingDirecotry=workingDirecotry;
@@ -77,7 +90,7 @@ int main(int argc, char *argv[]){
    else if (vm.count("run")){
       optimizer.run();
    }
-   
+      
 
    DEBUG_FUNC_END
    return 0;
