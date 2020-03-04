@@ -20,16 +20,22 @@ public:
 
     void optimizeMC(bool rndStart = false);
     void optimizeGenetic();
+    void optimizeBasinHopping(bool rndStart = false);
+    void optimizeGradient(int basinNumber);
     void run();
     
     
 private:
     int electrodeNumber, voltageScanPoints;
+    int controlElectrodeNumber;
     double fitness = 0,fitnessUncert = 0,optEnergy = 0,normedDiff = 0;
+
+    std::string mode;
 
     std::vector<std::vector<double>> voltageSets;
     std::vector<std::vector<double>> outputCurrents;
     std::vector<std::vector<double>> outputCurrentUncerts;
+    std::vector<int> controlElectrodeIndices;
     
 
     std::shared_ptr<ParameterStorage> parameterStorage;
@@ -41,6 +47,8 @@ private:
     void calcOptimizationEnergy();
     void saveResults();
     bool desiredLogicFunction(double val1, double val2, std::string gate);
+
+    void searchForRandomStart();
 };
 
 

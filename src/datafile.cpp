@@ -54,15 +54,13 @@ void DataFile::createDataset(std::string datasetName, std::vector<int> dimension
 
 void DataFile::createAttribute(std::string attrName, double val)
 {
-    H5File * file= new H5File(filename, H5F_ACC_RDWR );
+    H5File file= H5File(filename, H5F_ACC_RDWR );
 
     const hsize_t dims=1;
     DataSpace* dspace = new DataSpace(1,&dims);
-    Attribute attr = file->createAttribute(attrName, PredType::NATIVE_DOUBLE, *dspace);
+    Attribute attr = file.createAttribute(attrName, PredType::NATIVE_DOUBLE, *dspace);
     delete dspace;
     
     attr.write(PredType::NATIVE_DOUBLE,& val);
-
-    delete file;
 }
 

@@ -14,7 +14,6 @@ TODO:
    TECHNICAL:
       - set "-D SWAPTRACKER" in cmake file
       - improve argument parsing
-      - make datafile readable during simulation
       - make crashed simulaten resumeable
       - add log file
       - support INT data format in datafile
@@ -46,13 +45,14 @@ int main(int argc, char *argv[]){
 
    po::options_description desc("Allowed options");
    desc.add_options()
-      ("mnd"   , "make new device")
-      ("optMC" , "optimize control voltages using Monte Carlo Search")
-      ("optGen", "optimize control voltages using GeneticAlgorithm")
-      ("run"   , "just run control voltages defined in in.txt")
-      ("rSV"   , "random start voltages (only in combination with opt)")
-      ("dir", po::value<std::string>(),"define working dir. has to contain 'in.txt'")
-      ("help"  , "produce help message");
+      ("mnd"        , "make new device")
+      ("optMC"      , "optimize control voltages using Monte Carlo Search")
+      ("optGen"     , "optimize control voltages using GeneticAlgorithm")
+      ("optBasinHop", "optimize control voltages using Basin Hopping")
+      ("run"        , "just run control voltages defined in in.txt")
+      ("rSV"        , "random start voltages (only in combination with opt)")
+      ("dir"        , po::value<std::string>(),"define working dir. has to contain 'in.txt'")
+      ("help"       , "produce help message");
 
    po::variables_map vm;
    po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -86,6 +86,9 @@ int main(int argc, char *argv[]){
    }
    else if (vm.count("optGen")){
       optimizer.optimizeGenetic();
+   }
+   else if (vm.count("optBasinHop")){
+      optimizer.optimizeBasinHopping(vm.count("rSV"));
    }
    else if (vm.count("run")){
       optimizer.run();

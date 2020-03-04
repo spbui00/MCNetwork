@@ -3,6 +3,8 @@
 #include "H5Cpp.h"
 #include <string>
 #include <vector>
+#include <chrono>
+#include <thread>
 
 #include <iostream>
 #include <boost/multi_array.hpp>
@@ -46,18 +48,35 @@ void DataFile::addData(std::string datasetName,Data data){
 
     spaceDummy=DataSpace( dims[index], dimsf[index]);
 
+    H5File file;
 
-    H5File * file= new H5File(filename, H5F_ACC_RDWR );
+    int waitTime=0;
+    tryAgian:;
+    try{
+        file= H5File(filename, H5F_ACC_RDWR );
+    }
+    catch (FileIException const & e){
+        waitTime++;
+        if (waitTime == 1){
+            std::cout<<"------------> Unable to open file <------------"<<std::endl;
+            std::cout<<"---------------> error message: <--------------"<<std::endl;
+            e.clearErrorStack();
+            std::cout<<"--------> trying again in 1 second <-----------"<<std::endl;
+        }
+        else{
+            std::cout<<"--------> already waiting for "<<waitTime<<" seconds <----------"<<std::endl;
+        }
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        goto tryAgian;
+    }
 
-    DataSet dataset=file->openDataSet(datasetName);
+    DataSet dataset=file.openDataSet(datasetName);
 
     dataset.extend(size[index]);
     DataSpace fspace = dataset.getSpace ();
     fspace.selectHyperslab( H5S_SELECT_SET, dimsf[index], offset[index]);
 
     dataset.write( data , PredType::NATIVE_DOUBLE, spaceDummy, fspace );
-
-    delete file;
 }
 
 #endif // DATAFILE_H

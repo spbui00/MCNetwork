@@ -7,7 +7,6 @@
     #include <iostream>
     #include <set>
 
-
     class myDebugger {
         public:
             static int funcTraceLevel;
@@ -24,3 +23,4 @@
     #define DEBUG_FUNC_END
     #define DBEUG_LOG(message,key)
 #endif
+

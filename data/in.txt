@@ -1,10 +1,10 @@
 #simulation parameters
-gate AND
-memoryLimit 1500 #in MB (should be around 100mb under real limit), real memory consumption is memoryLimit*threads
-threads 7 
+gate XOR
+memoryLimit 800 #in MB (should be around 100mb under real limit), real memory consumption is memoryLimit*threads
+threads 4 
 finiteElementsResolution 5e3
-equilSteps 1e5   #scaling per thread!!
-calcCurrentSteps 1e7
+equilSteps 1e4   #scaling per thread!!
+calcCurrentSteps 1e5
 storingMode 1 
 
 
@@ -18,8 +18,8 @@ donorNumber 3
 lenX 300 #nm
 lenY 300 #nm
 
-I0 660 #meV (bram found 600)
-a 14 #nm
+I0 15 #meV (bram found 600)
+a 10 #nm
 minDist 0 #nm
 
 
@@ -42,11 +42,11 @@ eps0 8.854187817620389e-12
 electrode 0.25 0 0
 electrode 0.75 0 0
 electrode 0.25 1 0
-electrode 0.75 1 0.818063
-electrode 0.25 2 0.979638
-electrode 0.75 2 0.5
-electrode 0.25 3 1
-electrode 0.75 3 0.880551
+electrode 0.75 1 0
+electrode 0.25 2 0
+electrode 0.75 2 0
+electrode 0.25 3 0
+electrode 0.75 3 0
 
 
 electrodeWidth 60 #nm
@@ -59,9 +59,9 @@ controlVoltageMin -1
 controlVoltageMax 1
 
 
-voltageScanMin -0.16666666
-voltageScanMax 0.66666666
-voltageScanPoints 6 # 0 and 0.5 should be in hit exactly
+voltageScanMin 0
+voltageScanMax 0.5
+voltageScanPoints 2 # 0 and 0.5 should be in hit exactly
 seperationVoltage 0.25
 
 
@@ -69,8 +69,15 @@ seperationVoltage 0.25
 maxDeltaV 0.05
 fitnessUncertWeight 2
 diffWeight 0.0
+rndStartPoints 20
 
 #MC opt
-acceptanceFactor 0.02 #big factor -> all accepted
-MCOptStartPoints 20
+MCTemp 0.04
+
+#basin opt
+basinTemp 0.04
+basinDeltaV 0.2
+gradDeltaV 0.02
+
+
 
