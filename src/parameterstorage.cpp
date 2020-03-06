@@ -45,11 +45,14 @@ ParameterStorage::ParameterStorage(std::string filename)
 
     // convert lens in dimensions of R    
     parameters["R"]=std::sqrt(parameters["lenX"]*parameters["lenY"]/parameters["acceptorNumber"]);
-    parameters["lenX"]=parameters["lenX"]/parameters["R"];
-    parameters["lenY"]=parameters["lenY"]/parameters["R"];
-    parameters["a"]=parameters["a"]/parameters["R"];
-    parameters["minDist"]=parameters["minDist"]/parameters["R"];
-    parameters["electrodeWidth"]=parameters["electrodeWidth"]/parameters["R"];
+    parameters["minHoppingDist"]     = parameters["minHoppingDist"]    /parameters["R"];
+    parameters["maxHoppingDist"]     = parameters["maxHoppingDist"]    /parameters["R"];
+    parameters["maxInteractionDist"] = parameters["maxInteractionDist"]/parameters["R"];
+    parameters["lenX"]               = parameters["lenX"]              /parameters["R"];
+    parameters["lenY"]               = parameters["lenY"]              /parameters["R"];
+    parameters["a"]                  = parameters["a"]                 /parameters["R"];
+    parameters["minDist"]            = parameters["minDist"]           /parameters["R"];
+    parameters["electrodeWidth"]     = parameters["electrodeWidth"]    /parameters["R"];
 
     std::cout<<"R = "<<parameters["R"]<<" nm, a/R = "<<parameters["a"]<<", I0 = "<<parameters["I0"]<<" meV == "<<parameters["I0"]*0.001*parameters["e"]/parameters["kT"]<<"kT corresponds to eps = "<< parameters["e"]*parameters["e"]/(4*M_PI*parameters["eps0"]*parameters["R"]*1e-9*parameters["I0"]*0.001*parameters["e"]) <<std::endl;
 

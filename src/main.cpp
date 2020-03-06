@@ -78,6 +78,7 @@ int main(int argc, char *argv[]){
    parameterStorage->workingDirecotry=workingDirecotry;
    parameterStorage->makeNewDevice = vm.count("mnd");
 
+
    Optimizer optimizer(parameterStorage);
 
 

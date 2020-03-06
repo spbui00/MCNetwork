@@ -18,23 +18,26 @@ System::System(const std::shared_ptr<ParameterStorage> & parameterStorage) : par
     DEBUG_FUNC_END
 }
 System::System(System const & oldSys) : 
-                                        parameterStorage     (oldSys.parameterStorage     ),
-                                        acceptorNumber       (oldSys.acceptorNumber       ),
-                                        hoppingSiteNumber    (oldSys.hoppingSiteNumber    ),
-                                        electrodeNumber      (oldSys.electrodeNumber      ),
-                                        donorPositionsX      (oldSys.donorPositionsX      ),
-                                        donorPositionsY      (oldSys.donorPositionsY      ),
-                                        acceptorPositionsX   (oldSys.acceptorPositionsX   ),
-                                        acceptorPositionsY   (oldSys.acceptorPositionsY   ),
-                                        electrodePositionsX  (oldSys.electrodePositionsX  ),
-                                        electrodePositionsY  (oldSys.electrodePositionsY  ),
-                                        distances            (oldSys.distances            ),
-                                        pairEnergies         (oldSys.pairEnergies         ),
-                                        occupation           (oldSys.occupation           ),
-                                        locLenA              (oldSys.locLenA              ),
-                                        constantRatesSumPart (oldSys.constantRatesSumPart ),
-                                        storingMode          (oldSys.storingMode          ),
-                                        knownRatesSum        (oldSys.knownRatesSum        ) {
+                                        parameterStorage          (oldSys.parameterStorage         ),
+                                        acceptorNumber            (oldSys.acceptorNumber           ),
+                                        hoppingSiteNumber         (oldSys.hoppingSiteNumber        ),
+                                        electrodeNumber           (oldSys.electrodeNumber          ),
+                                        donorPositionsX           (oldSys.donorPositionsX          ),
+                                        donorPositionsY           (oldSys.donorPositionsY          ),
+                                        acceptorPositionsX        (oldSys.acceptorPositionsX       ),
+                                        acceptorPositionsY        (oldSys.acceptorPositionsY       ),
+                                        electrodePositionsX       (oldSys.electrodePositionsX      ),
+                                        electrodePositionsY       (oldSys.electrodePositionsY      ),
+                                        distances                 (oldSys.distances                ),
+                                        pairEnergies              (oldSys.pairEnergies             ),
+                                        occupation                (oldSys.occupation               ),
+                                        locLenA                   (oldSys.locLenA                  ),
+                                        constantRatesSumPart      (oldSys.constantRatesSumPart     ),
+                                        storingMode               (oldSys.storingMode              ),
+                                        interactionPartners       (oldSys.interactionPartners      ),
+                                        hoppingPartnersAcceptors  (oldSys.hoppingPartnersAcceptors ),
+                                        hoppingPartnersElectrodes (oldSys.hoppingPartnersElectrodes),
+                                        knownRatesSum             (oldSys.knownRatesSum            ) {
     DEBUG_FUNC_START
 
     if(not oldSys.readyForRun){
@@ -51,9 +54,11 @@ System::System(System const & oldSys) :
 
     deltaEnergies = new double[hoppingSiteNumber*hoppingSiteNumber];
     rates         = new double[hoppingSiteNumber*hoppingSiteNumber];
+    baseRates     = new double[hoppingSiteNumber*hoppingSiteNumber];
     for(int i=0;i<hoppingSiteNumber*hoppingSiteNumber;i++){
         deltaEnergies[i] = oldSys.deltaEnergies[i];
         rates        [i] = oldSys.rates        [i];
+        baseRates    [i] = oldSys.baseRates    [i];
     }
 
     konwnPartRatesSumList.reset(new std::unordered_map<std::vector<bool>,std::shared_ptr<std::vector<double>>>());
@@ -89,6 +94,7 @@ void System::initilizeMatrices(){
     distances      = new double[hoppingSiteNumber*hoppingSiteNumber];
     deltaEnergies  = new double[hoppingSiteNumber*hoppingSiteNumber];
     rates          = new double[hoppingSiteNumber*hoppingSiteNumber];
+    baseRates      = new double[hoppingSiteNumber*hoppingSiteNumber];
     energies       = new double[hoppingSiteNumber];
     currentCounter = new int   [hoppingSiteNumber];
     outputCurrentCounter = & currentCounter[int(parameterStorage->parameters.at("outputElectrode")+parameterStorage->parameters["acceptorNumber"])];  
@@ -228,9 +234,6 @@ void System::loadDevice(){
 void System::getReadyForRun(){
     DEBUG_FUNC_START
 
-
-
-
     //set electrodes
     for(int i=0; i< electrodeNumber; i++){
         switch (parameterStorage->electrodes[i].edge){
@@ -255,10 +258,8 @@ void System::getReadyForRun(){
 
 
 
-
-
     //init laplace solver
-    finEle= std::make_unique<FiniteElemente>(parameterStorage->parameters.at("lenX"),parameterStorage->parameters.at("lenY"),parameterStorage->parameters.at("finiteElementsResolution"));
+    finEle = std::make_unique<FiniteElemente>(parameterStorage->parameters.at("lenX"),parameterStorage->parameters.at("lenY"),parameterStorage->parameters.at("finiteElementsResolution"));
     //set electrodes
     for(int i=0; i< electrodeNumber; i++){
         switch (parameterStorage->electrodes[i].edge){
@@ -277,10 +278,12 @@ void System::getReadyForRun(){
 
     // calc distances and pair energies
     // acc<->acc
+    double minDist = 0.0;
     for(int i=0;i<acceptorNumber;i++){
         for(int j=0;j<i;j++){
             distances[i*hoppingSiteNumber+j]=std::sqrt(std::pow(acceptorPositionsX[i]-acceptorPositionsX[j],2)+std::pow(acceptorPositionsY[i]-acceptorPositionsY[j],2));
             distances[j*hoppingSiteNumber+i]=std::sqrt(std::pow(acceptorPositionsX[i]-acceptorPositionsX[j],2)+std::pow(acceptorPositionsY[i]-acceptorPositionsY[j],2));
+            // std::cout<<distances[i*hoppingSiteNumber+j]<<std::endl;
             pairEnergies[i*acceptorNumber+j]=-parameterStorage->parameters.at("I0")/distances[i*hoppingSiteNumber+j];
             pairEnergies[j*acceptorNumber+i]=-parameterStorage->parameters.at("I0")/distances[j*hoppingSiteNumber+i];
             // std::cout<<"pair e "<<pairEnergies[i*hoppingSiteNumber+j]<<std::endl;
@@ -307,6 +310,47 @@ void System::getReadyForRun(){
             distances[(j+acceptorNumber)*hoppingSiteNumber+(i+acceptorNumber)]=std::sqrt(std::pow(electrodePositionsX[i]-electrodePositionsX[j],2)+std::pow(electrodePositionsY[i]-electrodePositionsY[j],2));
         }
         distances[(i+acceptorNumber)*(hoppingSiteNumber+1)]=0;
+    }
+
+
+    // set hoppingPartners and use same loop to calc baseRates
+    int lowDistblocked = 0;
+    for(int i=0;i<hoppingSiteNumber;i++){
+        hoppingPartnersAcceptors.push_back(std::vector<int>());
+        for(int j=0;j<acceptorNumber;j++){
+            if (i != j and distances[i*hoppingSiteNumber+j] < parameterStorage->parameters.at("maxHoppingDist") and distances[i*hoppingSiteNumber+j] >  parameterStorage->parameters.at("minHoppingDist")){
+                hoppingPartnersAcceptors[i].push_back(j);
+                baseRates[i*hoppingSiteNumber+j] = enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
+            }
+            //only for printing
+            else if (i != j and distances[i*hoppingSiteNumber+j] < parameterStorage->parameters.at("minHoppingDist")){
+                lowDistblocked++;
+            }
+        }
+        hoppingPartnersElectrodes.push_back(std::vector<int>());
+        for(int j=acceptorNumber;j<hoppingSiteNumber;j++){
+            if (i != j and distances[i*hoppingSiteNumber+j] < parameterStorage->parameters.at("maxHoppingDist") and distances[i*hoppingSiteNumber+j] >  parameterStorage->parameters.at("minHoppingDist")){
+                hoppingPartnersElectrodes[i].push_back(j);
+                baseRates[i*hoppingSiteNumber+j] = enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
+            }
+            //only for printing
+            else if (i != j and distances[i*hoppingSiteNumber+j] < parameterStorage->parameters.at("minHoppingDist")){
+                lowDistblocked++;
+            }
+        }
+    }
+    if (lowDistblocked > 0){
+        std::cout<<"hopping connections blocked due to small distance: "<<lowDistblocked<<std::endl;
+    }
+
+    // set interaction partners
+    for(int i=0;i<acceptorNumber;i++){
+        interactionPartners.push_back(std::vector<int>());
+        for(int j=0;j<acceptorNumber;j++){
+            if (i != j and distances[i*hoppingSiteNumber+j] < parameterStorage->parameters.at("maxInteractionDist") ){
+                interactionPartners[i].push_back(j);
+            }
+        }
     }
 
 
@@ -354,7 +398,7 @@ void System::setOccupation(std::vector<bool> const & newOccupation){
     //set coulomb part (with start occupation)
     for(int i=0;i<acceptorNumber;i++){ //coulomb interaction only with acceptors and..
         if (not occupation[i]){ //.. only if they are unoccupied
-            for(int j=0;j<acceptorNumber;j++){ //self interaction is ignored, bc pairEnergies[i][i]=0
+            for(int const & j : interactionPartners[i]){ //self interaction is ignored, bc pairEnergies[i][i]=0
                 energies[j]+=pairEnergies[i*acceptorNumber+j];
             }
         }
@@ -388,16 +432,16 @@ void System::updateRatesStoringMode(){
                 //acc acc hopp
                 for(int i=0;i<acceptorNumber;i++){
                     if (occupation[i]){
-                        for(int j=0;j<acceptorNumber;j++){
+                        for(int const & j : hoppingPartnersAcceptors[i]){
                             if (not occupation[j]){
                                 // std::cout<<" ----- "<<i<<" "<<j<<"delta E "<<deltaEnergies[i*hoppingSiteNumber+j]<<std::endl;
                                 deltaEnergies[i*hoppingSiteNumber+j]=energies[j]-energies[i]+pairEnergies[i*acceptorNumber+j];
                                 // std::cout<<" ei "<<energies[i]<<" ej "<<energies[j]<<" epair "<<pairEnergies[i*acceptorNumber+j]<<std::endl;
                                 if (deltaEnergies[i*hoppingSiteNumber+j] <= 0){
-                                    rates[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
+                                    rates[i*hoppingSiteNumber+j]=baseRates[i*hoppingSiteNumber+j];
                                 }
                                 else{
-                                    rates[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA-deltaEnergies[i*hoppingSiteNumber+j]);
+                                    rates[i*hoppingSiteNumber+j]=baseRates[i*hoppingSiteNumber+j]*enhance::mediumFastExp(-deltaEnergies[i*hoppingSiteNumber+j]);
                                 }
                             }
                             else{
@@ -407,7 +451,7 @@ void System::updateRatesStoringMode(){
                         }
                     }
                     else{
-                        for(int j=0;j<acceptorNumber;j++){ 
+                        for(int const & j : hoppingPartnersAcceptors[i]){
                             rates[i*hoppingSiteNumber+j]=0;
                             // deltaEnergies[i*hoppingSiteNumber+j]=0;
                         }
@@ -416,14 +460,14 @@ void System::updateRatesStoringMode(){
 
                 // el-acc hopp
                 for(int i=acceptorNumber;i<hoppingSiteNumber;i++){
-                    for(int j=0;j<acceptorNumber;j++){
+                    for(int const & j : hoppingPartnersAcceptors[i]){
                         if (not occupation[j]){
                             deltaEnergies[i*hoppingSiteNumber+j]=energies[j]-energies[i];
                             if (deltaEnergies[i*hoppingSiteNumber+j] <= 0){
-                                rates[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
+                                rates[i*hoppingSiteNumber+j]=baseRates[i*hoppingSiteNumber+j];
                             }
                             else{
-                                rates[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA-deltaEnergies[i*hoppingSiteNumber+j]);
+                                rates[i*hoppingSiteNumber+j]=baseRates[i*hoppingSiteNumber+j]*enhance::mediumFastExp(-deltaEnergies[i*hoppingSiteNumber+j]);
                             }
                         }
                         else{
@@ -436,18 +480,18 @@ void System::updateRatesStoringMode(){
                 //acc-el hopp
                 for(int i=0;i<acceptorNumber;i++){
                     if (occupation[i]){
-                        for(int j=acceptorNumber;j<hoppingSiteNumber;j++){
+                        for(int const & j : hoppingPartnersElectrodes[i]){
                             deltaEnergies[i*hoppingSiteNumber+j]=energies[j]-energies[i];
                             if (deltaEnergies[i*hoppingSiteNumber+j] <= 0){
-                                rates[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
+                                rates[i*hoppingSiteNumber+j]=baseRates[i*hoppingSiteNumber+j];
                             }
                             else{
-                                rates[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA-deltaEnergies[i*hoppingSiteNumber+j]);
+                                rates[i*hoppingSiteNumber+j]=baseRates[i*hoppingSiteNumber+j]*enhance::mediumFastExp(-deltaEnergies[i*hoppingSiteNumber+j]);
                             }
                         }
                     }
                     else{
-                        for(int j=acceptorNumber;j<hoppingSiteNumber;j++){ 
+                        for(int const & j : hoppingPartnersElectrodes[i]){
                             rates[i*hoppingSiteNumber+j]=0;
                             // deltaEnergies[i*hoppingSiteNumber+j]=0;
                         }
@@ -483,49 +527,35 @@ void System::updateRates(){
     //acc acc hopp
     for(int i=0;i<acceptorNumber;i++){
         if (occupation[i]){
-            for(int j=0;j<acceptorNumber;j++){
+            for(int const & j : hoppingPartnersAcceptors[i]){
                 if (not occupation[j]){
-                    // std::cout<<" ----- "<<i<<" "<<j<<"delta E "<<deltaEnergies[i*hoppingSiteNumber+j]<<std::endl;
+                    // std::cout<<" ----- "<<i<<" "<<j<<" delta E "<<deltaEnergies[i*hoppingSiteNumber+j]<<std::endl;
                     deltaEnergies[i*hoppingSiteNumber+j]=energies[j]-energies[i]+pairEnergies[i*acceptorNumber+j];
                     // std::cout<<" ei "<<energies[i]<<" ej "<<energies[j]<<" epair "<<pairEnergies[i*acceptorNumber+j]<<std::endl;
                     if (deltaEnergies[i*hoppingSiteNumber+j] <= 0){
-                        rates[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
+                        rates[i*hoppingSiteNumber+j]=baseRates[i*hoppingSiteNumber+j];
                     }
                     else{
-                        rates[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA-deltaEnergies[i*hoppingSiteNumber+j]);
+                        rates[i*hoppingSiteNumber+j]=baseRates[i*hoppingSiteNumber+j]*enhance::mediumFastExp(-deltaEnergies[i*hoppingSiteNumber+j]);
                     }
                     ratesSum+=rates[i*hoppingSiteNumber+j];
                 }
-                else{
-                    rates[i*hoppingSiteNumber+j]=0;
-                    // deltaEnergies[i*hoppingSiteNumber+j]=0;
-                }
-            }
-        }
-        else{
-            for(int j=0;j<acceptorNumber;j++){ 
-                rates[i*hoppingSiteNumber+j]=0;
-                // deltaEnergies[i*hoppingSiteNumber+j]=0;
             }
         }
     }
 
     // el-acc hopp
     for(int i=acceptorNumber;i<hoppingSiteNumber;i++){
-        for(int j=0;j<acceptorNumber;j++){
+        for(int const & j : hoppingPartnersAcceptors[i]){
             if (not occupation[j]){
                 deltaEnergies[i*hoppingSiteNumber+j]=energies[j]-energies[i];
                 if (deltaEnergies[i*hoppingSiteNumber+j] <= 0){
-                    rates[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
+                    rates[i*hoppingSiteNumber+j]=baseRates[i*hoppingSiteNumber+j];
                 }
                 else{
-                    rates[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA-deltaEnergies[i*hoppingSiteNumber+j]);
+                    rates[i*hoppingSiteNumber+j]=baseRates[i*hoppingSiteNumber+j]*enhance::mediumFastExp(-deltaEnergies[i*hoppingSiteNumber+j]);
                 }
                 ratesSum+=rates[i*hoppingSiteNumber+j];
-            }
-            else{
-                rates[i*hoppingSiteNumber+j]=0;
-                // deltaEnergies[i*hoppingSiteNumber+j]=0;
             }
         }
     }
@@ -534,21 +564,15 @@ void System::updateRates(){
     //acc-el hopp
     for(int i=0;i<acceptorNumber;i++){
         if (occupation[i]){
-            for(int j=acceptorNumber;j<hoppingSiteNumber;j++){
+            for(int const & j : hoppingPartnersElectrodes[i]){
                 deltaEnergies[i*hoppingSiteNumber+j]=energies[j]-energies[i];
                 if (deltaEnergies[i*hoppingSiteNumber+j] <= 0){
-                    rates[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
+                    rates[i*hoppingSiteNumber+j]=baseRates[i*hoppingSiteNumber+j];
                 }
                 else{
-                    rates[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA-deltaEnergies[i*hoppingSiteNumber+j]);
+                    rates[i*hoppingSiteNumber+j]=baseRates[i*hoppingSiteNumber+j]*enhance::mediumFastExp(-deltaEnergies[i*hoppingSiteNumber+j]);
                 }
                 ratesSum+=rates[i*hoppingSiteNumber+j];
-            }
-        }
-        else{
-            for(int j=acceptorNumber;j<hoppingSiteNumber;j++){ 
-                rates[i*hoppingSiteNumber+j]=0;
-                // deltaEnergies[i*hoppingSiteNumber+j]=0;
             }
         }
     }
@@ -614,7 +638,7 @@ void System::updateOccupationAndPotential(std::vector<bool> const & newOccupatio
     //set coulomb part (with start occupation)
     for(int i=0;i<acceptorNumber;i++){ //coulomb interaction only with acceptors and..
         if (not occupation[i]){ //.. only if they are unoccupied
-            for(int j=0;j<acceptorNumber;j++){ //self interaction is ignored, bc pairEnergies[i][i]=0
+            for(int const & j : interactionPartners[i]){ //self interaction is ignored, bc pairEnergies[i][i]=0
                 energies[j]+=pairEnergies[i*acceptorNumber+j];
             }
         }
@@ -626,24 +650,32 @@ void System::updateOccupationAndPotential(std::vector<bool> const & newOccupatio
     }
 
     //set deltaEnergies and rates (only constant part = el-el interaction)
+    //init all to zero
+    for(int i=acceptorNumber;i<hoppingSiteNumber;i++){
+        for(int j=acceptorNumber;j<i;j++){
+            deltaEnergies[i*hoppingSiteNumber+j]=0;
+            deltaEnergies[j*hoppingSiteNumber+i]=0;
+            rates[i*hoppingSiteNumber+j]=0;
+            rates[j*hoppingSiteNumber+i]=0;
+        }
+    }
     constantRatesSumPart = 0;
     for(int i=acceptorNumber;i<hoppingSiteNumber;i++){
-        rates[i*(hoppingSiteNumber+1)]=0; //diagonal elements
-        for(int j=acceptorNumber;j<i;j++){
+        for(int const & j : hoppingPartnersElectrodes[i]){
             deltaEnergies[i*hoppingSiteNumber+j]=energies[j]-energies[i];
             deltaEnergies[j*hoppingSiteNumber+i]=energies[i]-energies[j];
 
             if (deltaEnergies[i*hoppingSiteNumber+j] < 0){
-                rates[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
-                rates[j*hoppingSiteNumber+i]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA-deltaEnergies[j*hoppingSiteNumber+i]);
+                rates[i*hoppingSiteNumber+j]=baseRates[i*hoppingSiteNumber+j];
+                rates[j*hoppingSiteNumber+i]=baseRates[j*hoppingSiteNumber+i]*enhance::mediumFastExp(-deltaEnergies[j*hoppingSiteNumber+i]);
             }
             else if (deltaEnergies[i*hoppingSiteNumber+j] > 0){
-                rates[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA-deltaEnergies[i*hoppingSiteNumber+j]);
-                rates[j*hoppingSiteNumber+i]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
+                rates[i*hoppingSiteNumber+j]=baseRates[i*hoppingSiteNumber+j]*enhance::mediumFastExp(-deltaEnergies[i*hoppingSiteNumber+j]);
+                rates[j*hoppingSiteNumber+i]=baseRates[j*hoppingSiteNumber+i];
             }
             else{
-                rates[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
-                rates[j*hoppingSiteNumber+i]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
+                rates[i*hoppingSiteNumber+j]=baseRates[i*hoppingSiteNumber+j];
+                rates[j*hoppingSiteNumber+i]=baseRates[j*hoppingSiteNumber+i];
             }
             constantRatesSumPart+=rates[i*hoppingSiteNumber+j];
             constantRatesSumPart+=rates[j*hoppingSiteNumber+i];
@@ -687,24 +719,32 @@ void System::setNewPotential(){
 
 
     //set deltaEnergies and rates (only constant part = el-el interaction)
+    //init all to zero
+    for(int i=acceptorNumber;i<hoppingSiteNumber;i++){
+        for(int j=acceptorNumber;j<i;j++){
+            deltaEnergies[i*hoppingSiteNumber+j]=0;
+            deltaEnergies[j*hoppingSiteNumber+i]=0;
+            rates[i*hoppingSiteNumber+j]=0;
+            rates[j*hoppingSiteNumber+i]=0;
+        }
+    }
     constantRatesSumPart = 0;
     for(int i=acceptorNumber;i<hoppingSiteNumber;i++){
-        rates[i*(hoppingSiteNumber+1)]=0; //diagonal elements
-        for(int j=acceptorNumber;j<i;j++){
+        for(int const & j : hoppingPartnersElectrodes[i]){
             deltaEnergies[i*hoppingSiteNumber+j]=energies[j]-energies[i];
             deltaEnergies[j*hoppingSiteNumber+i]=energies[i]-energies[j];
 
             if (deltaEnergies[i*hoppingSiteNumber+j] < 0){
-                rates[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
-                rates[j*hoppingSiteNumber+i]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA-deltaEnergies[j*hoppingSiteNumber+i]);
+                rates[i*hoppingSiteNumber+j]=baseRates[i*hoppingSiteNumber+j];
+                rates[j*hoppingSiteNumber+i]=baseRates[j*hoppingSiteNumber+i]*enhance::mediumFastExp(-deltaEnergies[j*hoppingSiteNumber+i]);
             }
             else if (deltaEnergies[i*hoppingSiteNumber+j] > 0){
-                rates[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA-deltaEnergies[i*hoppingSiteNumber+j]);
-                rates[j*hoppingSiteNumber+i]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
+                rates[i*hoppingSiteNumber+j]=baseRates[i*hoppingSiteNumber+j]*enhance::mediumFastExp(-deltaEnergies[i*hoppingSiteNumber+j]);
+                rates[j*hoppingSiteNumber+i]=baseRates[i*hoppingSiteNumber+j];
             }
             else{
-                rates[i*hoppingSiteNumber+j]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
-                rates[j*hoppingSiteNumber+i]=enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
+                rates[i*hoppingSiteNumber+j]=baseRates[i*hoppingSiteNumber+j];
+                rates[j*hoppingSiteNumber+i]=baseRates[i*hoppingSiteNumber+j];
             }
             constantRatesSumPart+=rates[i*hoppingSiteNumber+j];
             constantRatesSumPart+=rates[j*hoppingSiteNumber+i];
@@ -724,18 +764,60 @@ mfem::GridFunction System::getPotential() const{
 
 void System::findSwap(){
     DEBUG_FUNC_START
+
     double rndNumber=enhance::random_double(0,ratesSum);
     double partRatesSum=0;
-    for(int k=0; k<hoppingSiteNumber*hoppingSiteNumber;k++){
-        partRatesSum+=rates[k];
-        if(partRatesSum > rndNumber){
-            lastSwapped1=k/hoppingSiteNumber;
-            lastSwapped2=k%hoppingSiteNumber;
 
-            // std::cout<<"swapped1 "<<lastSwapped1<<" "<<lastSwapped2<<" k: "<<k<<std::endl;
-            break;
+    // from acc ... 
+    for(int i=0;i<acceptorNumber;i++){
+        if (occupation[i]){
+            // .. to acc
+            for(int const & j : hoppingPartnersAcceptors[i]){
+                if (not occupation[j]){
+                    partRatesSum+=rates[i*hoppingSiteNumber+j];
+                    if(partRatesSum > rndNumber){
+                        lastSwapped1=i;
+                        lastSwapped2=j;
+                        goto foundSwap;
+                    }
+                }
+            }
+            // .. to electrode
+            for(int const & j : hoppingPartnersElectrodes[i]){
+                partRatesSum+=rates[i*hoppingSiteNumber+j];
+                if(partRatesSum > rndNumber){
+                    lastSwapped1=i;
+                    lastSwapped2=j;
+                    goto foundSwap;
+                }
+            }
         }
-    }    
+    }
+    // from electrode ... 
+    for(int i=acceptorNumber;i<hoppingSiteNumber;i++){
+        // .. to acc
+        for(int const & j : hoppingPartnersAcceptors[i]){
+            if (not occupation[j]){
+                partRatesSum+=rates[i*hoppingSiteNumber+j];
+                if(partRatesSum > rndNumber){
+                    lastSwapped1=i;
+                    lastSwapped2=j;
+                    goto foundSwap;
+                }
+            }
+        }
+        // .. to electrode
+        for(int const & j : hoppingPartnersElectrodes[i]){
+            partRatesSum+=rates[i*hoppingSiteNumber+j];
+            if(partRatesSum > rndNumber){
+                lastSwapped1=i;
+                lastSwapped2=j;
+                goto foundSwap;
+            }
+        }
+    }
+
+    foundSwap:;
     // std::cout<<"rates: "<<std::endl;
     // for(int k=0; k<hoppingSiteNumber*hoppingSiteNumber;k++){
     //     std::cout<<rates[k]<<" ";
@@ -805,17 +887,17 @@ void System::updateAfterSwap(){
     swapTrackFile<<lastSwapped1<<";"<<lastSwapped2<<std::endl; // swapTracker
     #endif
 
-    if (lastSwapped1 < acceptorNumber){ //last swapped1 = acceptor
+    if (lastSwapped1 < acceptorNumber){ //last swapped1 = acceptor, else electrode
         occupation[lastSwapped1]=false;
         //update energy
-        for(int j=0;j<acceptorNumber;j++){
+        for(int const & j : interactionPartners[lastSwapped1]){ 
             energies[j]+=pairEnergies[lastSwapped1*acceptorNumber+j];
         }
     }
 
     if (lastSwapped2 < acceptorNumber){ //last swapped2 = acceptor
         occupation[lastSwapped2]=true;
-        for(int j=0;j<acceptorNumber;j++){
+        for(int const & j : interactionPartners[lastSwapped2]){ 
             energies[j]-=pairEnergies[lastSwapped2*acceptorNumber+j];
         }
     }

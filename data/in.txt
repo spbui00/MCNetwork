@@ -1,11 +1,11 @@
 #simulation parameters
 gate XOR
 memoryLimit 800 #in MB (should be around 100mb under real limit), real memory consumption is memoryLimit*threads
-threads 4 
+threads 6
 finiteElementsResolution 5e3
 equilSteps 1e4   #scaling per thread!!
 calcCurrentSteps 1e5
-storingMode 1 
+storingMode 0 
 
 
 
@@ -13,7 +13,7 @@ storingMode 1
 
 #physical parameters
 T 77
-acceptorNumber 30
+acceptorNumber 200
 donorNumber 3
 lenX 300 #nm
 lenY 300 #nm
@@ -21,6 +21,10 @@ lenY 300 #nm
 I0 15 #meV (bram found 600)
 a 10 #nm
 minDist 0 #nm
+
+minHoppingDist 5  #nm
+maxHoppingDist 100 #nm
+maxInteractionDist 500 #nm
 
 
 
@@ -42,11 +46,11 @@ eps0 8.854187817620389e-12
 electrode 0.25 0 0
 electrode 0.75 0 0
 electrode 0.25 1 0
-electrode 0.75 1 0
-electrode 0.25 2 0
-electrode 0.75 2 0
-electrode 0.25 3 0
-electrode 0.75 3 0
+electrode 0.75 1 -0.265557  
+electrode 0.25 2 -0.724714
+electrode 0.75 2 -0.418699 
+electrode 0.25 3 -0.716086  
+electrode 0.75 3 -0.181519
 
 
 electrodeWidth 60 #nm
@@ -70,9 +74,10 @@ maxDeltaV 0.05
 fitnessUncertWeight 2
 diffWeight 0.0
 rndStartPoints 20
+convergenceEnergy 0.95
 
 #MC opt
-MCTemp 0.04
+MCTemp 0.02
 
 #basin opt
 basinTemp 0.04

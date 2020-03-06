@@ -1,7 +1,9 @@
 #include "jobhandling.h"
 #include "debug.h"
 
-JobManager::JobManager(std::shared_ptr<ParameterStorage> parameterStorage) : parameterStorage(parameterStorage){
+JobManager::JobManager(std::shared_ptr<ParameterStorage> parameterStorage) :
+                                                                             parameterStorage(parameterStorage)
+{
     DEBUG_FUNC_START
 
     std::string dataFileName = parameterStorage->workingDirecotry+ "data.hdf5";
@@ -78,7 +80,9 @@ std::pair<std::vector<double>,std::vector<double>> const JobManager::runControlV
     DEBUG_FUNC_END
 }
 
-void JobManager::handleJobList(std::vector<Job> & jobs, System * system, std::mutex & searchMutex){
+void JobManager::handleJobList(std::vector<Job> & jobs,
+                               System *           system,
+                               std::mutex &       searchMutex){
     Job *  bestJob;
     double mostTasks = 0;
 
@@ -157,7 +161,7 @@ void JobManager::handleJobList(std::vector<Job> & jobs, System * system, std::mu
                         std:cout<<"current: "<<bestJob->resultCurrent<<" +- "<<bestJob->resultCurrentUncert;
                         std::cout<<" voltages: ";
                         for (size_t i = 0; i < bestJob->voltages.size(); i++){
-                            std::cout<<i<<": "<<bestJob->voltages[i]<<" ";
+                            std::cout<<bestJob->voltages[i]<<" ";
                         }
                         std::cout<<std::endl;
                     }
@@ -166,12 +170,6 @@ void JobManager::handleJobList(std::vector<Job> & jobs, System * system, std::mu
                     break;
                 }
             }
-
-            // !!!!!!!!!!! reset sytem shares states !!!!!!!!
-
-            // system->copyPotential(potential);
-            // system->copyState    (bestJob->equilState);
-
         }
         else{
             // std::cout<<"work done for me!"<<std::endl;

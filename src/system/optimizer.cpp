@@ -2,8 +2,10 @@
 #include "debug.h"
 
 
-Optimizer::Optimizer(std::shared_ptr<ParameterStorage> parameterStorage) : parameterStorage(parameterStorage),
-                                                                           jobManager(parameterStorage){
+Optimizer::Optimizer(std::shared_ptr<ParameterStorage> parameterStorage) : 
+                                                                           parameterStorage(parameterStorage),
+                                                                           jobManager(parameterStorage)
+{
     DEBUG_FUNC_START
 
     electrodeNumber=int(parameterStorage->electrodes.size());
@@ -146,9 +148,9 @@ void Optimizer::optimizeMC(bool rndStart /*= false*/){
     std::vector<double> lastVoltages;
     lastVoltages = voltageSets[0];
 
-    int maxIncreases=4;
+    int maxIncreases=10;
     int increaseNumber=0;
-    for (size_t i = 0; i < 1000000; i++){
+    while (optEnergy < parameterStorage->parameters.at("convergenceEnergy")){
         auto startTime = chrono::steady_clock::now();
 
         //get new random voltages
@@ -220,6 +222,10 @@ void Optimizer::optimizeGenetic(){
     outputCurrentUncerts.push_back(std::vector<double>(voltageScanPoints*voltageScanPoints));
 
 
+    double bestFitness       = 0;
+    double bestFitnessUncert = 0;
+
+
     //setup genome
     std::vector<std::pair<std::vector<double>,double>> genomeSet; //pair of control voltages and optEnergy
     for(int i=0; i < 25; i++){
@@ -269,6 +275,7 @@ void Optimizer::optimizeGenetic(){
         std::cout<<std::endl;
     }
 
+    int increaseNumber = 0;
     while(true){
         // ---------- setup next generation -------------
         generation++;
@@ -360,6 +367,11 @@ void Optimizer::optimizeGenetic(){
             std::cout<<"optEnergy: "<<optEnergy    <<" fitness: ("<<fitness    <<" +- "<<fitnessUncert    <<") normedDiff: "<<normedDiff<<std::endl;
             auto endTime = chrono::steady_clock::now();
             std::cout << "time per VoltageSetup = " << std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count()/1000.0 << " s" << std::endl;
+
+            if (fitness > bestFitness){
+                bestFitness = fitness;
+                bestFitnessUncert = fitnessUncert;
+            }
         }
 
         std::cout<<"generation "<<generation<< " done! sorted results: "<<std::endl;
@@ -371,6 +383,17 @@ void Optimizer::optimizeGenetic(){
             }
             std::cout<<std::endl;
         }
+
+
+        if((increaseNumber < parameterStorage->parameters["maxStepIncreases"]) and (bestFitness+bestFitnessUncert*2)>1){
+            increaseNumber++;
+            parameterStorage->parameters["calcCurrentSteps"]*=2;
+            std::cout<<"############ steps increased!! now: "<<parameterStorage->parameters["calcCurrentSteps"]<<" #############"<<std::endl;
+        }
+        if (genomeSet[0].second > parameterStorage->parameters.at("convergenceEnergy")){
+            break;
+        }
+
     }    
 
     DEBUG_FUNC_END
