@@ -32,6 +32,10 @@ ParameterStorage::ParameterStorage(std::string filename)
         {
             if(!(iss>>gate)) throw std::invalid_argument( "cant read gate: " + line);
         }
+        else if (name == "geometry")
+        {
+            if(!(iss>>geometry)) throw std::invalid_argument( "cant read geometry: " + line);
+        }
         else{
             if(!(iss>>val)) throw std::invalid_argument( "can't read line: " + line);
             parameters[name]=val;    

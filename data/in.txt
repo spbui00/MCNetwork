@@ -1,10 +1,10 @@
 #simulation parameters
 gate XOR
 memoryLimit 800 #in MB (should be around 100mb under real limit), real memory consumption is memoryLimit*threads
-threads 1
-finiteElementsResolution 5e3
-equilSteps 1e3   #scaling per thread!!
-calcCurrentSteps 1e4
+threads 4 
+finiteElementsResolution 1e5 #(min 1e5)
+equilSteps 1e4 
+calcCurrentSteps 1e5
 storingMode 0 
 
 
@@ -15,28 +15,27 @@ storingMode 0
 T 77
 acceptorNumber 200
 donorNumber 3
-lenX 300 #nm
-lenY 300 #nm
-
 I0 15 #meV (bram found 600)
 a 10 #nm
 minDist 0 #nm
+electrodeWidth 60 #nm
 
+#cuts
 minHoppingDist 5  #nm
 maxHoppingDist 100 #nm
 maxInteractionDist 500 #nm
 
+#geometry parameters
+geometry circle #rect/circle, dependent parameters: if rect -> lenX, lenY ; if circle -> radius
+lenX 300 #nm
+lenY 300 #nm
+radius 300 #nm
 
 
-#fundamental constants
-k 1.380649e-23 #boltzmann
-e 1.60217662e-19 #elementary charge
-eps0 8.854187817620389e-12
-
-
-
-#electrode positions (positions given in fractions of lens)  
-#pos edge voltage
+#electrode positions 
+### rect: ####
+#positions given in fractions of lens  
+#pos edge voltage 
 #edges:
 # 0 --> x=0
 # 1 --> x=len
@@ -46,14 +45,27 @@ eps0 8.854187817620389e-12
 electrode 0.25 0 0
 electrode 0.75 0 0
 electrode 0.25 1 0
-electrode 0.75 1 -0.265557  
+electrode 0.75 1 -0.265557
 electrode 0.25 2 -0.724714
-electrode 0.75 2 -0.418699 
-electrode 0.25 3 -0.716086  
+electrode 0.75 2 -0.418699
+electrode 0.25 3 -0.716086
 electrode 0.75 3 -0.181519
 
+### circle: ####
+#positions given in degrees 
+#pos voltage 
 
-electrodeWidth 60 #nm
+#electrode 0   0
+#electrode 45  0
+#electrode 90  0
+#electrode 135 0.4
+#electrode 180 -0.2
+#electrode 225 -1
+#electrode 270 0.5
+#electrode 315 1
+
+
+
 inputElectrode1 0
 inputElectrode2 1
 outputElectrode 2
@@ -86,4 +98,10 @@ basinDeltaV 0.2
 gradDeltaV 0.02
 
 
+
+
+#fundamental constants
+k 1.380649e-23 #boltzmann
+e 1.60217662e-19 #elementary charge
+eps0 8.854187817620389e-12
 

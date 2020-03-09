@@ -318,7 +318,7 @@ void FiniteElementeCircle::initMesh(int const & maxNumberOfElments){
     layers = std::sqrt(maxNumberOfElments/6.0);
 
 
-    double deltaR = radius/layers;
+    deltaR = radius/layers;
 
     int nv=3*(layers+1)*layers + 1;
     int ne=6*layers*layers;
@@ -330,17 +330,12 @@ void FiniteElementeCircle::initMesh(int const & maxNumberOfElments){
     mesh = new Mesh(2, nv, ne, nb, 2);
 
 
-    std::vector<double> offsets(layers+1);
-    // std::uniform_real_distribution<double> unif(0,1);
-    // std::default_random_engine re;
-
     //add vertices
     double R,phi; 
     for(int l=layers; l > 0 ;l--){
-        offsets[l]= 0;//0.5*(l%2);unif(re);
         R = l*deltaR;
         for(int i=0; i<6*l; i++){
-            phi = 2*PI*(i+offsets[l])/(6*l);
+            phi = 2*PI*(i)/(6*l);
             mesh->AddVertex(Vertex(R*cos(phi), R*sin(phi))()); 
         }
     }
@@ -359,7 +354,7 @@ void FiniteElementeCircle::initMesh(int const & maxNumberOfElments){
         while (true){
             triIndx[0]=innerIndex %(6*(l-1)) + (nv-1)-3*l*(l-1);
             triIndx[1]=outerIndex %(6*l)     + (nv-1)-3*l*(l+1);
-            if ((outerIndex+offsets[l])/double(l) > (innerIndex+offsets[l-1])/double(l-1)){
+            if ((outerIndex)/double(l) > (innerIndex)/double(l-1)){
                 innerIndex++;
                 triIndx[2]=innerIndex %(6*(l-1)) + (nv-1)-3*l*(l-1);
             }
@@ -462,6 +457,8 @@ void FiniteElementeCircle::setElectrode(double const & voltage, double begin, do
 }
 
 double FiniteElementeCircle::getPotential(double const & x, double const & y){
-    return 0;
+    int layer = std::sqrt(x*x+y*y)/deltaR+0.5;
+    double phi = std::atan2(y,x)/(2*PI);
+    return (*solutionVector)[int(3*(layers+1)*layers-3*layer*(layer+1) + (phi < 0 ? phi + 1 : phi) * 6 * layer + 0.5)];
 }
 

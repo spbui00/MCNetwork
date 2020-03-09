@@ -80,6 +80,7 @@ class FiniteElementeCircle : public FiniteElementeBase
 
 private:
     double const radius = 0;
+    double deltaR;
     int layers; // only used in circ mode
     void initMesh(int const & maxNumberOfElements);
 

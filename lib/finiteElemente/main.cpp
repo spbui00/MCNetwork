@@ -12,16 +12,16 @@ int main(int argc, char *argv[]){
 
 
 
-    FiniteElementeCircle finEle(300, 5e3, true);
+    FiniteElementeCircle finEle(300, 1e5, true);
 
 
-    double electrodeWidth = 60/300.0;
+    double electrodeWidth = 200/300.0;
     int i;
 
 
     i = 0;
     finEle.setElectrode(1  , i*2*PI/8-electrodeWidth/2, i*2*PI/8+electrodeWidth/2);
-    i = 1;
+    i = 4;
     finEle.setElectrode(-1 , i*2*PI/8-electrodeWidth/2, i*2*PI/8+electrodeWidth/2);
     i = 2;
     finEle.setElectrode(0.3, i*2*PI/8-electrodeWidth/2, i*2*PI/8+electrodeWidth/2);
@@ -38,6 +38,8 @@ int main(int argc, char *argv[]){
 
     finEle.initRun();
     finEle.run();
+
+
 
 
 
