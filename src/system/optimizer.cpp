@@ -148,7 +148,6 @@ void Optimizer::optimizeMC(bool rndStart /*= false*/){
     std::vector<double> lastVoltages;
     lastVoltages = voltageSets[0];
 
-    int maxIncreases=10;
     int increaseNumber=0;
     while (optEnergy < parameterStorage->parameters.at("convergenceEnergy")){
         auto startTime = chrono::steady_clock::now();
@@ -194,7 +193,7 @@ void Optimizer::optimizeMC(bool rndStart /*= false*/){
         std::cout << "time per VoltageSetup = " << std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count()/1000.0 << " s" << std::endl;
     
 
-        if((increaseNumber < maxIncreases) and (fitness+fitnessUncert*2)>1){
+        if((increaseNumber < parameterStorage->parameters.at("maxStepIncreases")) and (fitness+fitnessUncert*2)>1){
             increaseNumber++;
             parameterStorage->parameters["calcCurrentSteps"]*=2;
             std::cout<<"############ steps increased!! now: "<<parameterStorage->parameters["calcCurrentSteps"]<<" #############"<<std::endl;
@@ -279,6 +278,8 @@ void Optimizer::optimizeGenetic(){
     while(true){
         // ---------- setup next generation -------------
         generation++;
+        bestFitness       = 0;
+        bestFitnessUncert = 0;
 
         //first 5 genomes dont need to be changed
 
@@ -385,10 +386,10 @@ void Optimizer::optimizeGenetic(){
         }
 
 
-        if((increaseNumber < parameterStorage->parameters["maxStepIncreases"]) and (bestFitness+bestFitnessUncert*2)>1){
+        if((increaseNumber < parameterStorage->parameters.at("maxStepIncreases")) and (bestFitness+bestFitnessUncert*2)>1){
             increaseNumber++;
             parameterStorage->parameters["calcCurrentSteps"]*=2;
-            std::cout<<"############ steps increased!! now: "<<parameterStorage->parameters["calcCurrentSteps"]<<" #############"<<std::endl;
+            std::cout<<"############ steps increased!! now: "<<parameterStorage->parameters.at("calcCurrentSteps")<<" #############"<<std::endl;
         }
         if (genomeSet[0].second > parameterStorage->parameters.at("convergenceEnergy")){
             break;

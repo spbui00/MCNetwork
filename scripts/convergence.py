@@ -7,6 +7,8 @@ import h5py
 import matplotlib.pylab as plt
 import numpy as np
 
+from time import sleep
+
 if len(argv)>1:
     pathToSimFolder=argv[1]
 else:
@@ -14,20 +16,30 @@ else:
 
 parameters,electrodes=readParameters(pathToSimFolder)
 
-with h5py.File(join(pathToSimFolder,"data.hdf5"),"r") as dataFile:
-    optEnergy=np.array(dataFile["/optEnergy"][:])
+fileOpenTries = 0
+while fileOpenTries < 50:
+    fileOpenTries += 1
     try:
-        generations=np.array(dataFile["/generation"][:])
-        mode="genetic"
-    except KeyError:
-        mode="MC"
-        try:
-            accepted=np.array(dataFile["/accepted"][:],dtype=bool)
-            notAccepted=np.invert(accepted)
-        except KeyError:
-            accepted=np.ones(optEnergy.shape,dtype=bool)
-            notAccepted=np.invert(accepted)
-            
+        with h5py.File(join(pathToSimFolder,"data.hdf5"),"r") as dataFile:
+            optEnergy=np.array(dataFile["/optEnergy"][:])
+            try:
+                generations=np.array(dataFile["/generation"][:])
+                mode="genetic"
+            except KeyError:
+                mode="MC"
+                try:
+                    accepted=np.array(dataFile["/accepted"][:],dtype=bool)
+                    notAccepted=np.invert(accepted)
+                except KeyError:
+                    accepted=np.ones(optEnergy.shape,dtype=bool)
+                    notAccepted=np.invert(accepted)
+        break
+    except OSError as e:
+        if "No such file" in repr(e) :
+            raise e
+        else:
+            print(f"could not open file. try number {fileOpenTries}")
+            sleep(1)
             
         
 
@@ -57,7 +69,7 @@ if mode=="MC":
 
 
 # ax.set_xlim(-0.15,0.65)
-ax.set_ylim(0.25,1.1)
+ax.set_ylim(0.15,1.05)
 
 ax.set_xlabel("iteration")
 ax.set_ylabel("optEnergy")

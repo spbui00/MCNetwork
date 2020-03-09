@@ -7,6 +7,8 @@ import h5py
 import matplotlib.pylab as plt
 import numpy as np
 
+from time import sleep
+
 if len(argv)>1:
     pathToSimFolder=argv[1]
 else:
@@ -14,13 +16,26 @@ else:
 
 parameters,electrodes=readParameters(pathToSimFolder)
 
-with h5py.File(join(pathToSimFolder,"data.hdf5"),"r") as dataFile:
-    currents=np.array(dataFile["/outputCurrent"][:])
-    sigma=np.array(dataFile["/outputCurrentUncert"][:])
-    fitness=np.array(dataFile["/fitness"][:])
-    sigmaFitness=np.array(dataFile["/fitnessUncert"][:])
-    voltages=np.array(dataFile["/voltages"][:])
-    optEnergy=np.array(dataFile["/optEnergy"][:])
+fileOpenTries = 0
+while fileOpenTries < 50:
+    fileOpenTries += 1
+    try:
+        with h5py.File(join(pathToSimFolder,"data.hdf5"),"r") as dataFile:
+            currents=np.array(dataFile["/outputCurrent"][:])
+            sigma=np.array(dataFile["/outputCurrentUncert"][:])
+            fitness=np.array(dataFile["/fitness"][:])
+            sigmaFitness=np.array(dataFile["/fitnessUncert"][:])
+            voltages=np.array(dataFile["/voltages"][:])
+            optEnergy=np.array(dataFile["/optEnergy"][:])
+        break
+    except OSError as e:
+        if "No such file" in repr(e) :
+            raise e
+        else:
+            print(f"could not open file. try number {fileOpenTries}")
+            sleep(1)
+            
+
 
 voltageScanPoints=int(parameters["voltageScanPoints"])
 
