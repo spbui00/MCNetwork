@@ -1,10 +1,10 @@
 #simulation parameters
 gate XOR
 memoryLimit 800 #in MB (should be around 100mb under real limit), real memory consumption is memoryLimit*threads
-threads 4
+threads 1
 finiteElementsResolution 5e3
-equilSteps 1e2   #scaling per thread!!
-calcCurrentSteps 1e3
+equilSteps 1e3   #scaling per thread!!
+calcCurrentSteps 1e4
 storingMode 0 
 
 

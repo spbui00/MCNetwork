@@ -10,8 +10,8 @@
 
 
 struct ElectrodeParameters{
-    double pos;
-    int edge;
+    double pos; //used as angle in circle mode, or as length in rect mode
+    int edge;   //only used in circle mode
     double voltage;
 };
 

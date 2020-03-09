@@ -4,36 +4,63 @@
 #include <vector>
 #include <limits.h>
 #include "finiteElemente.h"
+#include <math.h>
+#include <random>
 
 
 int main(int argc, char *argv[]){
 
-    FiniteElemente finEle(1,1,1e2);
 
 
-    // finEle.setElectrode(0,0.5,0,10);
-    // finEle.setElectrode(0,0.5,2,10);
-    // // finEle.setElectrode(0.4,0.5,1,-10);
-    // finEle.setElectrode(0.2,0.3,2,-10);
-    // // finEle.setElectrode(0.7,0.8,3,10);
+    FiniteElementeCircle finEle(300, 5e3, true);
 
 
-    finEle.setElectrode(0.2,0.3,0, 1);
-    finEle.setElectrode(0.7,0.8,0,-1);
-    finEle.setElectrode(0.2,0.3,1, 1);
-    finEle.setElectrode(0.7,0.8,1,-1);
-    finEle.setElectrode(0.2,0.3,2, 1);
-    finEle.setElectrode(0.7,0.8,2,-1);
-    finEle.setElectrode(0.2,0.3,3, 1);
-    finEle.setElectrode(0.7,0.8,3,-1);
+    double electrodeWidth = 60/300.0;
+    int i;
+
+
+    i = 0;
+    finEle.setElectrode(1  , i*2*PI/8-electrodeWidth/2, i*2*PI/8+electrodeWidth/2);
+    i = 1;
+    finEle.setElectrode(-1 , i*2*PI/8-electrodeWidth/2, i*2*PI/8+electrodeWidth/2);
+    i = 2;
+    finEle.setElectrode(0.3, i*2*PI/8-electrodeWidth/2, i*2*PI/8+electrodeWidth/2);
+    i = 3;
+    finEle.setElectrode(-0.2, i*2*PI/8-electrodeWidth/2, i*2*PI/8+electrodeWidth/2);
+    i = 4;
+    finEle.setElectrode(0.8, i*2*PI/8-electrodeWidth/2, i*2*PI/8+electrodeWidth/2);
+    i = 5;
+    finEle.setElectrode(0.7, i*2*PI/8-electrodeWidth/2, i*2*PI/8+electrodeWidth/2);
+    i = 6;
+    finEle.setElectrode(-1, i*2*PI/8-electrodeWidth/2, i*2*PI/8+electrodeWidth/2);
+    i = 7;
+    finEle.setElectrode(0, i*2*PI/8-electrodeWidth/2, i*2*PI/8+electrodeWidth/2);
 
     finEle.initRun();
     finEle.run();
 
-    finEle.updateElectrodeVoltage(1,-10);
-    finEle.updateElectrodeVoltage(3,-10);
 
-    finEle.run();
+
+    // FiniteElementeRect finEle(1,1,1e2, true);
+
+
+
+    // finEle.setElectrode( 1,0.2,0.3,0);
+    // finEle.setElectrode(-1,0.7,0.8,0);
+    // // finEle.setElectrode( 1,0.2,0.3,1);
+    // // finEle.setElectrode(-1,0.7,0.8,1);
+    // // finEle.setElectrode( 1,0.2,0.3,2);
+    // // finEle.setElectrode(-1,0.7,0.8,2);
+    // // finEle.setElectrode( 1,0.2,0.3,3);
+    // // finEle.setElectrode(-1,0.7,0.8,3);
+
+    // finEle.initRun();
+    // finEle.run();
+
+    // finEle.updateElectrodeVoltage(1,-10);
+    // finEle.updateElectrodeVoltage(3,-10);
+
+    // finEle.run();
 
 
 

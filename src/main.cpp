@@ -23,9 +23,11 @@ TODO:
       - implement circular area
    ANALYSIS:
       - calc correlation between voltages and visible currents (using swap track)
+      - calc single trajectories
 OPT:
    - store only output electrode current
    - improve hash algorithm
+   - do not recalc all rates (if coulomb cut)
 */
 
 namespace po = boost::program_options;

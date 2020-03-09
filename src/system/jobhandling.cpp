@@ -158,7 +158,7 @@ void JobManager::handleJobList(std::vector<Job> & jobs,
                         bestJob->resultCurrentUncert =  std::sqrt(bestJob->resultCurrentUncert - bestJob->resultCurrent*bestJob->resultCurrent/bestJob->tasksPerJob)/bestJob->tasksPerJob;
                         bestJob->resultCurrent       /= bestJob->tasksPerJob;
 
-                        std:cout<<"current: "<<bestJob->resultCurrent<<" +- "<<bestJob->resultCurrentUncert;
+                        std::cout<<"current: "<<bestJob->resultCurrent<<" +- "<<bestJob->resultCurrentUncert;
                         std::cout<<" voltages: ";
                         for (size_t i = 0; i < bestJob->voltages.size(); i++){
                             std::cout<<bestJob->voltages[i]<<" ";

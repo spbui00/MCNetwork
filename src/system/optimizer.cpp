@@ -92,7 +92,7 @@ void Optimizer::run(){
     DEBUG_FUNC_START
     std::cout<<"running fixed setup"<<std::endl;
 
-    auto startTime = chrono::steady_clock::now();
+    auto startTime = std::chrono::steady_clock::now();
 
     voltageSets         .push_back(std::vector<double>(electrodeNumber));
     outputCurrents      .push_back(std::vector<double>(voltageScanPoints*voltageScanPoints));
@@ -111,7 +111,7 @@ void Optimizer::run(){
     saveResults();
 
     std::cout<<"optEnergy: "<<optEnergy    <<" fitness: ("<<fitness    <<" +- "<<fitnessUncert    <<") normedDiff: "<<normedDiff<<std::endl;;
-    auto endTime = chrono::steady_clock::now();
+    auto endTime = std::chrono::steady_clock::now();
     std::cout << "time elapsed = " << std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count()/1000.0 << " s" << std::endl;
     
     DEBUG_FUNC_END
@@ -150,7 +150,7 @@ void Optimizer::optimizeMC(bool rndStart /*= false*/){
 
     int increaseNumber=0;
     while (optEnergy < parameterStorage->parameters.at("convergenceEnergy")){
-        auto startTime = chrono::steady_clock::now();
+        auto startTime = std::chrono::steady_clock::now();
 
         //get new random voltages
         std::cout<<"new random voltages: "<<std::endl;
@@ -189,7 +189,7 @@ void Optimizer::optimizeMC(bool rndStart /*= false*/){
         dataFile->addData("accepted",& accepted);
 
 
-        auto endTime = chrono::steady_clock::now();
+        auto endTime = std::chrono::steady_clock::now();
         std::cout << "time per VoltageSetup = " << std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count()/1000.0 << " s" << std::endl;
     
 
@@ -246,7 +246,7 @@ void Optimizer::optimizeGenetic(){
         }
         std::cout<<std::endl;
 
-        auto startTime = chrono::steady_clock::now();
+        auto startTime = std::chrono::steady_clock::now();
 
         std::pair<std::vector<double>,std::vector<double>> result = jobManager.runControlVoltagesSetup(voltageSets[0]);
         outputCurrents      [0] = result.first;
@@ -260,7 +260,7 @@ void Optimizer::optimizeGenetic(){
 
 
         std::cout<<"optEnergy: "<<optEnergy    <<" fitness: ("<<fitness    <<" +- "<<fitnessUncert    <<") normedDiff: "<<normedDiff<<std::endl;
-        auto endTime = chrono::steady_clock::now();
+        auto endTime = std::chrono::steady_clock::now();
         std::cout << "time per VoltageSetup = " << std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count()/1000.0 << " s" << std::endl;
     }
 
@@ -352,7 +352,7 @@ void Optimizer::optimizeGenetic(){
             }
             std::cout<<std::endl;
 
-            auto startTime = chrono::steady_clock::now();
+            auto startTime = std::chrono::steady_clock::now();
 
             std::pair<std::vector<double>,std::vector<double>> result = jobManager.runControlVoltagesSetup(voltageSets[0]);
             outputCurrents      [0] = result.first;
@@ -366,7 +366,7 @@ void Optimizer::optimizeGenetic(){
 
 
             std::cout<<"optEnergy: "<<optEnergy    <<" fitness: ("<<fitness    <<" +- "<<fitnessUncert    <<") normedDiff: "<<normedDiff<<std::endl;
-            auto endTime = chrono::steady_clock::now();
+            auto endTime = std::chrono::steady_clock::now();
             std::cout << "time per VoltageSetup = " << std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count()/1000.0 << " s" << std::endl;
 
             if (fitness > bestFitness){
@@ -435,7 +435,7 @@ void Optimizer::optimizeBasinHopping(bool rndStart /*= false*/){
     std::vector<double> lastVoltages = voltageSets[0];
 
     for (size_t i = 0; i < 1000000; i++){
-        auto startTime = chrono::steady_clock::now();
+        auto startTime = std::chrono::steady_clock::now();
 
         //get new random voltages
         std::cout<<"new random voltages: "<<std::endl;
@@ -470,7 +470,7 @@ void Optimizer::optimizeBasinHopping(bool rndStart /*= false*/){
 
         }
 
-        auto endTime = chrono::steady_clock::now();
+        auto endTime = std::chrono::steady_clock::now();
         std::cout << "time per VoltageSetup = " << std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count()/1000.0 << " s" << std::endl;
     
 
@@ -557,7 +557,7 @@ void Optimizer::searchForRandomStart(){
         }
         std::cout<<std::endl;
 
-        auto startTime = chrono::steady_clock::now();
+        auto startTime = std::chrono::steady_clock::now();
 
         std::pair<std::vector<double>,std::vector<double>> result = jobManager.runControlVoltagesSetup(voltageSets[0]);
         outputCurrents      [0] = result.first;
@@ -578,7 +578,7 @@ void Optimizer::searchForRandomStart(){
 
 
         std::cout<<"optEnergy: "<<optEnergy    <<" fitness: ("<<fitness    <<" +- "<<fitnessUncert    <<") normedDiff: "<<normedDiff<<std::endl;
-        auto endTime = chrono::steady_clock::now();
+        auto endTime = std::chrono::steady_clock::now();
         std::cout << "time per VoltageSetup = " << std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count()/1000.0 << " s" << std::endl;
     }
 

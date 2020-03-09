@@ -65,17 +65,17 @@ System::System(System const & oldSys) :
     knownRatesSum        .reset(new std::unordered_map<std::vector<bool>,double>());
 
     //setup finEle
-    finEle = std::make_unique<FiniteElemente>(parameterStorage->parameters.at("lenX"),parameterStorage->parameters.at("lenY"),parameterStorage->parameters.at("finiteElementsResolution"));
+    finEle = std::make_unique<FiniteElementeRect>(parameterStorage->parameters.at("lenX"),parameterStorage->parameters.at("lenY"),parameterStorage->parameters.at("finiteElementsResolution"));
     //set electrodes
     for(int i=0; i< electrodeNumber; i++){
         switch (parameterStorage->electrodes[i].edge){
             case 0:
             case 1:
-                finEle->setElectrode(parameterStorage->parameters.at("lenY")*parameterStorage->electrodes[i].pos-0.5*parameterStorage->parameters.at("electrodeWidth"),parameterStorage->parameters.at("lenY")*parameterStorage->electrodes[i].pos+0.5*parameterStorage->parameters.at("electrodeWidth"),parameterStorage->electrodes[i].edge,0);
+                finEle->setElectrode(0, parameterStorage->parameters.at("lenY")*parameterStorage->electrodes[i].pos-0.5*parameterStorage->parameters.at("electrodeWidth"),parameterStorage->parameters.at("lenY")*parameterStorage->electrodes[i].pos+0.5*parameterStorage->parameters.at("electrodeWidth"),parameterStorage->electrodes[i].edge);
                 break;
             case 2:
             case 3:
-                finEle->setElectrode(  parameterStorage->parameters.at("lenX")*parameterStorage->electrodes[i].pos-0.5*parameterStorage->parameters.at("electrodeWidth"),parameterStorage->parameters.at("lenX")*parameterStorage->electrodes[i].pos+0.5*parameterStorage->parameters.at("electrodeWidth"),parameterStorage->electrodes[i].edge,0);
+                finEle->setElectrode(0, parameterStorage->parameters.at("lenX")*parameterStorage->electrodes[i].pos-0.5*parameterStorage->parameters.at("electrodeWidth"),parameterStorage->parameters.at("lenX")*parameterStorage->electrodes[i].pos+0.5*parameterStorage->parameters.at("electrodeWidth"),parameterStorage->electrodes[i].edge);
                 break;
         }
     }
@@ -173,8 +173,8 @@ void System::createRandomNewDevice(){
 
     //save device
     std::string deviceFileName=parameterStorage->workingDirecotry + "device.txt";
-    ofstream deviceFile;
-    deviceFile.open (deviceFileName,ios::trunc);
+    std::ofstream deviceFile;
+    deviceFile.open (deviceFileName,std::ios::trunc);
     deviceFile<<"acceptors: posX, posY"<<std::endl;
     for(int i=0;i<acceptorNumber;i++){
         deviceFile<<acceptorPositionsX[i]*parameterStorage->parameters["R"]<<" "<<acceptorPositionsY[i]*parameterStorage->parameters["R"]<<std::endl;
@@ -259,17 +259,17 @@ void System::getReadyForRun(){
 
 
     //init laplace solver
-    finEle = std::make_unique<FiniteElemente>(parameterStorage->parameters.at("lenX"),parameterStorage->parameters.at("lenY"),parameterStorage->parameters.at("finiteElementsResolution"));
+    finEle = std::make_unique<FiniteElementeRect>(parameterStorage->parameters.at("lenX"),parameterStorage->parameters.at("lenY"),parameterStorage->parameters.at("finiteElementsResolution"));
     //set electrodes
     for(int i=0; i< electrodeNumber; i++){
         switch (parameterStorage->electrodes[i].edge){
             case 0:
             case 1:
-                finEle->setElectrode(parameterStorage->parameters.at("lenY")*parameterStorage->electrodes[i].pos-0.5*parameterStorage->parameters.at("electrodeWidth"),parameterStorage->parameters.at("lenY")*parameterStorage->electrodes[i].pos+0.5*parameterStorage->parameters.at("electrodeWidth"),parameterStorage->electrodes[i].edge,0);
+                finEle->setElectrode(0, parameterStorage->parameters.at("lenY")*parameterStorage->electrodes[i].pos-0.5*parameterStorage->parameters.at("electrodeWidth"),parameterStorage->parameters.at("lenY")*parameterStorage->electrodes[i].pos+0.5*parameterStorage->parameters.at("electrodeWidth"),parameterStorage->electrodes[i].edge);
                 break;
             case 2:
             case 3:
-                finEle->setElectrode(  parameterStorage->parameters.at("lenX")*parameterStorage->electrodes[i].pos-0.5*parameterStorage->parameters.at("electrodeWidth"),parameterStorage->parameters.at("lenX")*parameterStorage->electrodes[i].pos+0.5*parameterStorage->parameters.at("electrodeWidth"),parameterStorage->electrodes[i].edge,0);
+                finEle->setElectrode(0, parameterStorage->parameters.at("lenX")*parameterStorage->electrodes[i].pos-0.5*parameterStorage->parameters.at("electrodeWidth"),parameterStorage->parameters.at("lenX")*parameterStorage->electrodes[i].pos+0.5*parameterStorage->parameters.at("electrodeWidth"),parameterStorage->electrodes[i].edge);
                 break;
         }
     }
