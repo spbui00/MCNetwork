@@ -5,6 +5,8 @@ from os.path import join
 
 import h5py
 import matplotlib.pylab as plt
+from matplotlib.patches import Wedge
+
 import numpy as np
 
 if len(argv)>1:
@@ -34,13 +36,15 @@ with open(join(pathToSimFolder,"device.txt")) as deviceFile:
 # print(donorPos)
 
 electrodePositions=np.empty((len(electrodes),2))
-
 for i in range(len(electrodes)):
-    if electrodes[i][1]==0: electrodePositions[i] = [0                              ,electrodes[i][0]*parameters["lenY"]]
-    if electrodes[i][1]==1: electrodePositions[i] = [parameters["lenX"]             ,electrodes[i][0]*parameters["lenY"]]
-    if electrodes[i][1]==2: electrodePositions[i] = [electrodes[i][0]*parameters["lenX"],0                              ]
-    if electrodes[i][1]==3: electrodePositions[i] = [electrodes[i][0]*parameters["lenX"],parameters["lenY"]             ]
-
+    if parameters["geometry"] == "rect":
+        if electrodes[i][1]==0: electrodePositions[i] = [0                              ,electrodes[i][0]*parameters["lenY"]]
+        if electrodes[i][1]==1: electrodePositions[i] = [parameters["lenX"]             ,electrodes[i][0]*parameters["lenY"]]
+        if electrodes[i][1]==2: electrodePositions[i] = [electrodes[i][0]*parameters["lenX"],0                              ]
+        if electrodes[i][1]==3: electrodePositions[i] = [electrodes[i][0]*parameters["lenX"],parameters["lenY"]             ]
+    elif parameters["geometry"] == "circle":
+        electrodePositions[i] = [parameters["radius"]*np.cos(electrodes[i][0]/360*2*np.pi),parameters["radius"]*np.sin(electrodes[i][0]/360*2*np.pi)]
+    
 # print(electrodePositions)
 
 def colorMaker(x):
@@ -102,8 +106,15 @@ for fileNumber in [1,2,3,4]:
                 if fileNumber in [2,4]: color = "red"
                 else:                   color = "rosybrown"
             else:                                    color= "green"
-            
-            ax.scatter(*electrodePositions[i],c=color,marker=".",s=200)
+
+            if parameters["geometry"] == "rect":
+                ax.scatter(*electrodePositions[i],c=color,marker=".",s=400,zorder = -1)
+            elif parameters["geometry"] == "circle":
+                width = 8
+                electrodeWidth = parameters["electrodeWidth"]/(parameters["radius"]*2*np.pi)*360 #in degrees
+                ax.add_artist(Wedge((0,0),parameters["radius"]+width/2,electrodes[i][0]-electrodeWidth/2,electrodes[i][0]+electrodeWidth/2, width = width, fc=color,ec=color,zorder = -1))
+
+
 
 
 
@@ -141,8 +152,17 @@ for fileNumber in [1,2,3,4]:
     
     
     
-        ax.set_xlim(-0.01*parameters["lenX"],1.01*parameters["lenX"])
-        ax.set_ylim(-0.01*parameters["lenY"],1.01*parameters["lenY"])
+        if parameters["geometry"] == "circle":
+            ax.add_artist(plt.Circle((0,0),parameters["radius"],fc='none',ec="k",zorder = -2)) 
+            ax.axis('off')
+            
+        if parameters["geometry"] == "rect":
+            ax.set_xlim(-0.1*parameters["lenX"],1.1*parameters["lenX"])
+            ax.set_ylim(-0.1*parameters["lenY"],1.1*parameters["lenY"])
+        elif parameters["geometry"] == "circle":
+            ax.set_xlim(-parameters["radius"]*1.1,parameters["radius"]*1.1)
+            ax.set_ylim(-parameters["radius"]*1.1,parameters["radius"]*1.1)
+            
 
         ax.set_aspect('equal')
 

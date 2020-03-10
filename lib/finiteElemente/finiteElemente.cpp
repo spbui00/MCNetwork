@@ -324,7 +324,7 @@ void FiniteElementeCircle::initMesh(int const & maxNumberOfElments){
     int ne=6*layers*layers;
     int nb=6*layers;
 
-    std::cout<<"layers: "<<layers<<" elements "<<ne<<std::endl;
+    // std::cout<<"layers: "<<layers<<" elements "<<ne<<std::endl;
 
 
     mesh = new Mesh(2, nv, ne, nb, 2);

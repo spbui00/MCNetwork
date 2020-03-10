@@ -65,18 +65,27 @@ System::System(System const & oldSys) :
     knownRatesSum        .reset(new std::unordered_map<std::vector<bool>,double>());
 
     //setup finEle
-    finEle = std::make_unique<FiniteElementeRect>(parameterStorage->parameters.at("lenX"),parameterStorage->parameters.at("lenY"),parameterStorage->parameters.at("finiteElementsResolution"));
-    //set electrodes
-    for(int i=0; i< electrodeNumber; i++){
-        switch (parameterStorage->electrodes[i].edge){
-            case 0:
-            case 1:
-                finEle->setElectrode(0, parameterStorage->parameters.at("lenY")*parameterStorage->electrodes[i].pos-0.5*parameterStorage->parameters.at("electrodeWidth"),parameterStorage->parameters.at("lenY")*parameterStorage->electrodes[i].pos+0.5*parameterStorage->parameters.at("electrodeWidth"),parameterStorage->electrodes[i].edge);
-                break;
-            case 2:
-            case 3:
-                finEle->setElectrode(0, parameterStorage->parameters.at("lenX")*parameterStorage->electrodes[i].pos-0.5*parameterStorage->parameters.at("electrodeWidth"),parameterStorage->parameters.at("lenX")*parameterStorage->electrodes[i].pos+0.5*parameterStorage->parameters.at("electrodeWidth"),parameterStorage->electrodes[i].edge);
-                break;
+    if (parameterStorage->geometry == "rect"){
+        finEle = std::make_unique<FiniteElementeRect>(parameterStorage->parameters.at("lenX"),parameterStorage->parameters.at("lenY"),parameterStorage->parameters.at("finiteElementsResolution"));
+        //set electrodes
+        for(int i=0; i< electrodeNumber; i++){
+            switch (parameterStorage->electrodes[i].edge){
+                case 0:
+                case 1:
+                    finEle->setElectrode(0, parameterStorage->parameters.at("lenY")*parameterStorage->electrodes[i].pos-0.5*parameterStorage->parameters.at("electrodeWidth"),parameterStorage->parameters.at("lenY")*parameterStorage->electrodes[i].pos+0.5*parameterStorage->parameters.at("electrodeWidth"),parameterStorage->electrodes[i].edge);
+                    break;
+                case 2:
+                case 3:
+                    finEle->setElectrode(0, parameterStorage->parameters.at("lenX")*parameterStorage->electrodes[i].pos-0.5*parameterStorage->parameters.at("electrodeWidth"),parameterStorage->parameters.at("lenX")*parameterStorage->electrodes[i].pos+0.5*parameterStorage->parameters.at("electrodeWidth"),parameterStorage->electrodes[i].edge);
+                    break;
+            }
+        }
+    }
+    else if (parameterStorage->geometry == "circle"){
+        finEle = std::make_unique<FiniteElementeCircle>(parameterStorage->parameters.at("radius"),parameterStorage->parameters.at("finiteElementsResolution"));
+        //set electrodes
+        for(int i=0; i< electrodeNumber; i++){
+            finEle->setElectrode(0, parameterStorage->electrodes[i].pos/360*2*PI-0.5*parameterStorage->parameters.at("electrodeWidth")/parameterStorage->parameters.at("radius"),  parameterStorage->electrodes[i].pos/360*2*PI+0.5*parameterStorage->parameters.at("electrodeWidth")/parameterStorage->parameters.at("radius"));
         }
     }
     finEle->initRun();
@@ -113,68 +122,129 @@ void System::initilizeMatrices(){
 void System::createRandomNewDevice(){
     DEBUG_FUNC_START
 
-    // need to set electrodes first, to hold minDist for acceptors. (redundance to getReadyForRun)
-    //set electrodes
-    for(int i=0; i< electrodeNumber; i++){
-        switch (parameterStorage->electrodes[i].edge){
-            case 0:
-                electrodePositionsX[i]=0;
-                electrodePositionsY[i]=parameterStorage->parameters.at("lenY")*parameterStorage->electrodes[i].pos;
-                break;
-            case 1:
-                electrodePositionsX[i]=parameterStorage->parameters.at("lenX");
-                electrodePositionsY[i]=parameterStorage->parameters.at("lenY")*parameterStorage->electrodes[i].pos;
-                break;
-            case 2:
-                electrodePositionsX[i]=parameterStorage->parameters.at("lenX")*parameterStorage->electrodes[i].pos;
-                electrodePositionsY[i]=0;
-                break;
-            case 3:
-                electrodePositionsX[i]=parameterStorage->parameters.at("lenX")*parameterStorage->electrodes[i].pos;
-                electrodePositionsY[i]=parameterStorage->parameters.at("lenY");
-                break;
-        }
-    }
 
-
-
-    // create acceptors, setup position (first part of hoppingSites, rest are electrodes)
-    // check minDist to other acceptors and electrodes
-    int iteration=0;
-    for(int i=0;i<acceptorNumber;i++){
-        iteration=0;
-
-        rollAgain:
-        iteration++;
-        if (iteration>10000){
-            throw std::logic_error("could not find device, reduce minDist or acceptorNumber");
-        }
-        acceptorPositionsX[i]=parameterStorage->parameters.at("lenX")*enhance::random_double(0,1);
-        acceptorPositionsY[i]=parameterStorage->parameters.at("lenY")*enhance::random_double(0,1);
-        //check acc-acc dist
-        for(int j=0;j<i;j++){
-            if(std::sqrt(std::pow(acceptorPositionsX[i]-acceptorPositionsX[j],2)+std::pow(acceptorPositionsY[i]-acceptorPositionsY[j],2)) < parameterStorage->parameters.at("minDist")){
-                goto rollAgain;
+    if (parameterStorage->geometry == "rect"){
+        // need to set electrodes first, to hold minDist for acceptors. (redundance to getReadyForRun)
+        //set electrodes
+        for(int i=0; i< electrodeNumber; i++){
+            switch (parameterStorage->electrodes[i].edge){
+                case 0:
+                    electrodePositionsX[i]=0;
+                    electrodePositionsY[i]=parameterStorage->parameters.at("lenY")*parameterStorage->electrodes[i].pos;
+                    break;
+                case 1:
+                    electrodePositionsX[i]=parameterStorage->parameters.at("lenX");
+                    electrodePositionsY[i]=parameterStorage->parameters.at("lenY")*parameterStorage->electrodes[i].pos;
+                    break;
+                case 2:
+                    electrodePositionsX[i]=parameterStorage->parameters.at("lenX")*parameterStorage->electrodes[i].pos;
+                    electrodePositionsY[i]=0;
+                    break;
+                case 3:
+                    electrodePositionsX[i]=parameterStorage->parameters.at("lenX")*parameterStorage->electrodes[i].pos;
+                    electrodePositionsY[i]=parameterStorage->parameters.at("lenY");
+                    break;
             }
         }
-        //check el-acc dist
-        for(int j=0;j<electrodeNumber;j++){
-            if(std::sqrt(std::pow(acceptorPositionsX[i]-electrodePositionsX[j],2)+std::pow(acceptorPositionsY[i]-electrodePositionsY[j],2)) < parameterStorage->parameters.at("minDist")){
-                goto rollAgain;
+
+
+
+        // create acceptors, setup position (first part of hoppingSites, rest are electrodes)
+        // check minDist to other acceptors and electrodes
+        int iteration=0;
+        for(int i=0;i<acceptorNumber;i++){
+            iteration=0;
+
+            rollAgain:
+            iteration++;
+            if (iteration>10000){
+                throw std::logic_error("could not find device, reduce minDist or acceptorNumber");
+            }
+            acceptorPositionsX[i]=parameterStorage->parameters.at("lenX")*enhance::random_double(0,1);
+            acceptorPositionsY[i]=parameterStorage->parameters.at("lenY")*enhance::random_double(0,1);
+            //check acc-acc dist
+            for(int j=0;j<i;j++){
+                if(std::sqrt(std::pow(acceptorPositionsX[i]-acceptorPositionsX[j],2)+std::pow(acceptorPositionsY[i]-acceptorPositionsY[j],2)) < parameterStorage->parameters.at("minDist")){
+                    goto rollAgain;
+                }
+            }
+            //check el-acc dist
+            for(int j=0;j<electrodeNumber;j++){
+                if(std::sqrt(std::pow(acceptorPositionsX[i]-electrodePositionsX[j],2)+std::pow(acceptorPositionsY[i]-electrodePositionsY[j],2)) < parameterStorage->parameters.at("minDist")){
+                    goto rollAgain;
+                }
+            }
+        }
+
+        // set donor positions
+        for(int i=0;i<parameterStorage->parameters.at("donorNumber");i++){
+            donorPositionsX[i]=parameterStorage->parameters.at("lenX")*enhance::random_double(0,1);
+            donorPositionsY[i]=parameterStorage->parameters.at("lenY")*enhance::random_double(0,1);
+        }
+    }
+
+
+
+    else if (parameterStorage->geometry == "circle"){
+        // need to set electrodes first, to hold minDist for acceptors. (redundance to getReadyForRun)
+        //set electrodes
+        for(int i=0; i< electrodeNumber; i++){
+            electrodePositionsX[i]=cos(parameterStorage->electrodes[i].pos/360*2*PI);
+            electrodePositionsY[i]=sin(parameterStorage->electrodes[i].pos/360*2*PI);
+        }
+
+
+        // create acceptors, setup position (first part of hoppingSites, rest are electrodes)
+        // check minDist to other acceptors and electrodes
+        int iteration=0;
+        for(int i=0;i<acceptorNumber;i++){
+            iteration=0;
+
+            rollAgainCirc:
+            iteration++;
+            if (iteration>10000){
+                throw std::logic_error("could not find device, reduce minDist or acceptorNumber");
+            }
+            acceptorPositionsX[i]=2*parameterStorage->parameters.at("radius")*enhance::random_double(0,1)-parameterStorage->parameters.at("radius");
+            acceptorPositionsY[i]=2*parameterStorage->parameters.at("radius")*enhance::random_double(0,1)-parameterStorage->parameters.at("radius");
+            //check in circle
+            if( (acceptorPositionsX[i]*acceptorPositionsX[i]+acceptorPositionsY[i]*acceptorPositionsY[i]) > parameterStorage->parameters.at("radius")*parameterStorage->parameters.at("radius")){
+                goto rollAgainCirc;
+            }
+            //check acc-acc dist
+            for(int j=0;j<i;j++){
+                if((std::pow(acceptorPositionsX[i]-acceptorPositionsX[j],2)+std::pow(acceptorPositionsY[i]-acceptorPositionsY[j],2)) < parameterStorage->parameters.at("minDist")*parameterStorage->parameters.at("minDist")){
+                    goto rollAgainCirc;
+                }
+            }
+            //check el-acc dist
+            for(int j=0;j<electrodeNumber;j++){
+                if((std::pow(acceptorPositionsX[i]-electrodePositionsX[j],2)+std::pow(acceptorPositionsY[i]-electrodePositionsY[j],2)) < parameterStorage->parameters.at("minDist")*parameterStorage->parameters.at("minDist")){
+                    goto rollAgainCirc;
+                }
+            }
+        }
+
+        // set donor positions
+        for(int i=0;i<parameterStorage->parameters.at("donorNumber");i++){
+            rollAgainCirc2:
+            donorPositionsX[i]=2*parameterStorage->parameters.at("radius")*enhance::random_double(0,1)-parameterStorage->parameters.at("radius");
+            donorPositionsY[i]=2*parameterStorage->parameters.at("radius")*enhance::random_double(0,1)-parameterStorage->parameters.at("radius");
+            //check in circle
+            if( (donorPositionsX[i]*donorPositionsX[i]+donorPositionsY[i]*donorPositionsY[i]) > parameterStorage->parameters.at("radius")*parameterStorage->parameters.at("radius")){
+                goto rollAgainCirc2;
             }
         }
     }
 
-    // set donor positions
-    for(int i=0;i<parameterStorage->parameters.at("donorNumber");i++){
-        donorPositionsX[i]=parameterStorage->parameters.at("lenX")*enhance::random_double(0,1);
-        donorPositionsY[i]=parameterStorage->parameters.at("lenY")*enhance::random_double(0,1);
-    }
+
+
 
     //save device
     std::string deviceFileName=parameterStorage->workingDirecotry + "device.txt";
     std::ofstream deviceFile;
     deviceFile.open (deviceFileName,std::ios::trunc);
+    deviceFile<<parameterStorage->geometry<<std::endl;
     deviceFile<<"acceptors: posX, posY"<<std::endl;
     for(int i=0;i<acceptorNumber;i++){
         deviceFile<<acceptorPositionsX[i]*parameterStorage->parameters["R"]<<" "<<acceptorPositionsY[i]*parameterStorage->parameters["R"]<<std::endl;
@@ -200,7 +270,12 @@ void System::loadDevice(){
     std::string line;
     double posXBuffer, posYBuffer;
 
-    //trash first line
+
+    //check correct geometry
+    std::getline(deviceFile, line);
+    if( line != parameterStorage->geometry) throw std::invalid_argument( "geometries in device file and input file do not match");
+
+    //trash second line
     std::getline(deviceFile, line);
 
     //load acceptors
@@ -235,42 +310,61 @@ void System::getReadyForRun(){
     DEBUG_FUNC_START
 
     //set electrodes
-    for(int i=0; i< electrodeNumber; i++){
-        switch (parameterStorage->electrodes[i].edge){
-            case 0:
-                electrodePositionsX[i]=0;
-                electrodePositionsY[i]=parameterStorage->parameters.at("lenY")*parameterStorage->electrodes[i].pos;
-                break;
-            case 1:
-                electrodePositionsX[i]=parameterStorage->parameters.at("lenX");
-                electrodePositionsY[i]=parameterStorage->parameters.at("lenY")*parameterStorage->electrodes[i].pos;
-                break;
-            case 2:
-                electrodePositionsX[i]=parameterStorage->parameters.at("lenX")*parameterStorage->electrodes[i].pos;
-                electrodePositionsY[i]=0;
-                break;
-            case 3:
-                electrodePositionsX[i]=parameterStorage->parameters.at("lenX")*parameterStorage->electrodes[i].pos;
-                electrodePositionsY[i]=parameterStorage->parameters.at("lenY");
-                break;
+    if (parameterStorage->geometry == "rect"){
+        for(int i=0; i< electrodeNumber; i++){
+            switch (parameterStorage->electrodes[i].edge){
+                case 0:
+                    electrodePositionsX[i]=0;
+                    electrodePositionsY[i]=parameterStorage->parameters.at("lenY")*parameterStorage->electrodes[i].pos;
+                    break;
+                case 1:
+                    electrodePositionsX[i]=parameterStorage->parameters.at("lenX");
+                    electrodePositionsY[i]=parameterStorage->parameters.at("lenY")*parameterStorage->electrodes[i].pos;
+                    break;
+                case 2:
+                    electrodePositionsX[i]=parameterStorage->parameters.at("lenX")*parameterStorage->electrodes[i].pos;
+                    electrodePositionsY[i]=0;
+                    break;
+                case 3:
+                    electrodePositionsX[i]=parameterStorage->parameters.at("lenX")*parameterStorage->electrodes[i].pos;
+                    electrodePositionsY[i]=parameterStorage->parameters.at("lenY");
+                    break;
+            }
+        }
+    }
+    else if (parameterStorage->geometry == "circle"){
+        for(int i=0; i< electrodeNumber; i++){
+            electrodePositionsX[i]=cos(parameterStorage->electrodes[i].pos/360*2*PI);
+            electrodePositionsY[i]=sin(parameterStorage->electrodes[i].pos/360*2*PI);
         }
     }
 
 
 
+
+
     //init laplace solver
-    finEle = std::make_unique<FiniteElementeRect>(parameterStorage->parameters.at("lenX"),parameterStorage->parameters.at("lenY"),parameterStorage->parameters.at("finiteElementsResolution"));
-    //set electrodes
-    for(int i=0; i< electrodeNumber; i++){
-        switch (parameterStorage->electrodes[i].edge){
-            case 0:
-            case 1:
-                finEle->setElectrode(0, parameterStorage->parameters.at("lenY")*parameterStorage->electrodes[i].pos-0.5*parameterStorage->parameters.at("electrodeWidth"),parameterStorage->parameters.at("lenY")*parameterStorage->electrodes[i].pos+0.5*parameterStorage->parameters.at("electrodeWidth"),parameterStorage->electrodes[i].edge);
-                break;
-            case 2:
-            case 3:
-                finEle->setElectrode(0, parameterStorage->parameters.at("lenX")*parameterStorage->electrodes[i].pos-0.5*parameterStorage->parameters.at("electrodeWidth"),parameterStorage->parameters.at("lenX")*parameterStorage->electrodes[i].pos+0.5*parameterStorage->parameters.at("electrodeWidth"),parameterStorage->electrodes[i].edge);
-                break;
+    if (parameterStorage->geometry == "rect"){
+        finEle = std::make_unique<FiniteElementeRect>(parameterStorage->parameters.at("lenX"),parameterStorage->parameters.at("lenY"),parameterStorage->parameters.at("finiteElementsResolution"));
+        //set electrodes
+        for(int i=0; i< electrodeNumber; i++){
+            switch (parameterStorage->electrodes[i].edge){
+                case 0:
+                case 1:
+                    finEle->setElectrode(0, parameterStorage->parameters.at("lenY")*parameterStorage->electrodes[i].pos-0.5*parameterStorage->parameters.at("electrodeWidth"),parameterStorage->parameters.at("lenY")*parameterStorage->electrodes[i].pos+0.5*parameterStorage->parameters.at("electrodeWidth"),parameterStorage->electrodes[i].edge);
+                    break;
+                case 2:
+                case 3:
+                    finEle->setElectrode(0, parameterStorage->parameters.at("lenX")*parameterStorage->electrodes[i].pos-0.5*parameterStorage->parameters.at("electrodeWidth"),parameterStorage->parameters.at("lenX")*parameterStorage->electrodes[i].pos+0.5*parameterStorage->parameters.at("electrodeWidth"),parameterStorage->electrodes[i].edge);
+                    break;
+            }
+        }
+    }
+    else if (parameterStorage->geometry == "circle"){
+        finEle = std::make_unique<FiniteElementeCircle>(parameterStorage->parameters.at("radius"),parameterStorage->parameters.at("finiteElementsResolution"));
+        //set electrodes
+        for(int i=0; i< electrodeNumber; i++){
+            finEle->setElectrode(0, parameterStorage->electrodes[i].pos/360*2*PI-0.5*parameterStorage->parameters.at("electrodeWidth")/parameterStorage->parameters.at("radius"),  parameterStorage->electrodes[i].pos/360*2*PI+0.5*parameterStorage->parameters.at("electrodeWidth")/parameterStorage->parameters.at("radius"));
         }
     }
     finEle->initRun(true);

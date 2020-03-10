@@ -22,8 +22,12 @@ def readParameters(pathToSimFolder):
             if line == "\n": continue
 
             splitted=line.split(" ")
+            # print(splitted)
             if splitted[0]=="electrode":
-                electrodes.append([float(splitted[1]),float(splitted[2]),float(splitted[3])])
+                if parameters["geometry"] == "rect":
+                    electrodes.append([float(splitted[1]),float(splitted[2]),float(splitted[3])])
+                elif parameters["geometry"] == "circle":
+                    electrodes.append([float(splitted[1]),0,float(splitted[2])])
             else:
                 try:
                     parameters[splitted[0]]=float(splitted[1])

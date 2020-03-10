@@ -25,16 +25,24 @@ ParameterStorage::ParameterStorage(std::string filename)
         if(name == "electrode"){
             double pos, voltage;
             int edge;
-            if(!(iss>>pos>>edge>>voltage)) throw std::invalid_argument( "cant read electrode: " + line);
-            electrodes.push_back({pos,edge,voltage});
+            if (geometry == "rect"){
+                if(!(iss>>pos>>edge>>voltage)) throw std::invalid_argument( "cant read electrode: " + line);
+                electrodes.push_back({pos,edge,voltage});
+            }
+            else if (geometry == "circle"){
+                if(!(iss>>pos>>voltage)) throw std::invalid_argument( "cant read electrode: " + line);
+                electrodes.push_back({pos,0,voltage});
+            }
+            else{
+                throw std::invalid_argument( "'geometry' needs to be set first");
+            }
         }
-        else if (name == "gate")
-        {
+        else if (name == "gate"){
             if(!(iss>>gate)) throw std::invalid_argument( "cant read gate: " + line);
         }
-        else if (name == "geometry")
-        {
+        else if (name == "geometry"){
             if(!(iss>>geometry)) throw std::invalid_argument( "cant read geometry: " + line);
+            if(geometry != "rect" and geometry != "circle") throw std::invalid_argument( "invalid value for geometry: '" + line + "' valid: rect, circle");
         }
         else{
             if(!(iss>>val)) throw std::invalid_argument( "can't read line: " + line);
@@ -52,11 +60,16 @@ ParameterStorage::ParameterStorage(std::string filename)
     parameters["minHoppingDist"]     = parameters["minHoppingDist"]    /parameters["R"];
     parameters["maxHoppingDist"]     = parameters["maxHoppingDist"]    /parameters["R"];
     parameters["maxInteractionDist"] = parameters["maxInteractionDist"]/parameters["R"];
-    parameters["lenX"]               = parameters["lenX"]              /parameters["R"];
-    parameters["lenY"]               = parameters["lenY"]              /parameters["R"];
     parameters["a"]                  = parameters["a"]                 /parameters["R"];
     parameters["minDist"]            = parameters["minDist"]           /parameters["R"];
     parameters["electrodeWidth"]     = parameters["electrodeWidth"]    /parameters["R"];
+    if (geometry == "rect"){
+        parameters["lenX"]           = parameters["lenX"]              /parameters["R"];
+        parameters["lenY"]           = parameters["lenY"]              /parameters["R"];
+    }
+    else if (geometry == "circle"){
+        parameters["radius"]         = parameters["radius"]            /parameters["R"];
+    }
 
     std::cout<<"R = "<<parameters["R"]<<" nm, a/R = "<<parameters["a"]<<", I0 = "<<parameters["I0"]<<" meV == "<<parameters["I0"]*0.001*parameters["e"]/parameters["kT"]<<"kT corresponds to eps = "<< parameters["e"]*parameters["e"]/(4*M_PI*parameters["eps0"]*parameters["R"]*1e-9*parameters["I0"]*0.001*parameters["e"]) <<std::endl;
 
@@ -82,6 +95,7 @@ ParameterStorage::ParameterStorage(std::string filename)
         std::cout<<std::endl;
     }
     
-    
+
+
     DEBUG_FUNC_END
 }
