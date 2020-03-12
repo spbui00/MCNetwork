@@ -32,6 +32,8 @@ JobManager::JobManager(std::shared_ptr<ParameterStorage> parameterStorage) :
 std::pair<std::vector<double>,std::vector<double>> const JobManager::runControlVoltagesSetup(std::vector<double> const & voltages){
     DEBUG_FUNC_START
 
+
+
     //make Jobs
     for (size_t i = 0; i < voltageScanPoints; i++){
         for (size_t j = 0; j < voltageScanPoints; j++){
@@ -43,7 +45,10 @@ std::pair<std::vector<double>,std::vector<double>> const JobManager::runControlV
             jobs[i*voltageScanPoints + j].voltages     = voltages;
             jobs[i*voltageScanPoints + j].voltages[parameterStorage->parameters.at("outputElectrode")] = 0;
             jobs[i*voltageScanPoints + j].voltages[parameterStorage->parameters.at("inputElectrode1")] = parameterStorage->inputVoltages[i];
-            jobs[i*voltageScanPoints + j].voltages[parameterStorage->parameters.at("inputElectrode2")] = parameterStorage->inputVoltages[j];
+            jobs[i*voltageScanPoints + j].voltages[parameterStorage->parameters.at("inputElectrode2")] = parameterStorage->inputVoltages[j];            
+            #ifdef TIMETRACKER
+                jobs[i*voltageScanPoints + j].timeFile.open(std::string("timeFile")+std::to_string(i*voltageScanPoints + j)+std::string(".txt"), std::ios::out);
+            #endif
         }
     }
     
@@ -139,6 +144,8 @@ void JobManager::handleJobList(std::vector<Job> & jobs,
             bestJob->resultCurrentUncert+=std::pow(*(system->outputCurrentCounter)/system->time,2); //storing current**2 here
             system->reset();
 
+
+
             //run tasks
             while(true){
                 searchMutex.lock();
@@ -147,6 +154,11 @@ void JobManager::handleJobList(std::vector<Job> & jobs,
                     searchMutex.unlock();
 
                     system->run(bestJob->stepsPerTask);
+
+                    #ifdef TIMETRACKER
+                        bestJob->timeFile<<system->time<<std::endl; // timeTracker
+                    #endif
+
                     bestJob->resultCurrent      +=*(system->outputCurrentCounter)/system->time;
                     bestJob->resultCurrentUncert+=std::pow(*(system->outputCurrentCounter)/system->time,2);
 

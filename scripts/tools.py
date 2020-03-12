@@ -3,6 +3,7 @@
 from os.path import join
 from re import sub
 import numpy as np
+import matplotlib as ma
 import matplotlib.pylab as plt
 
 plt.rc('text', usetex=True)
@@ -24,9 +25,11 @@ def readParameters(pathToSimFolder):
             splitted=line.split(" ")
             # print(splitted)
             if splitted[0]=="electrode":
-                if parameters["geometry"] == "rect":
+                try:             geom = parameters["geometry"]
+                except KeyError: geom = "rect"
+                if geom == "rect":
                     electrodes.append([float(splitted[1]),float(splitted[2]),float(splitted[3])])
-                elif parameters["geometry"] == "circle":
+                elif geom == "circle":
                     electrodes.append([float(splitted[1]),0,float(splitted[2])])
             else:
                 try:
@@ -81,3 +84,21 @@ def logical(a,b,gate):
     elif gate=="XOR" : return     np.logical_xor(a,b)
     elif gate=="NXOR": return not np.logical_xor(a,b)
     
+    
+    
+    
+    
+from matplotlib.ticker import FuncFormatter
+
+def to_percent(y, position):
+    # Ignore the passed in position. This has the effect of scaling the default
+    # tick locations.
+    s = str(np.around(100 * y))
+
+    # The percent symbol needs escaping in latex
+    if ma.rcParams['text.usetex'] is True:
+        return s + r'$\%$'
+    else:
+        return s + '%'
+    
+percentFormatter = FuncFormatter(to_percent)

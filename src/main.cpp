@@ -20,7 +20,6 @@ TODO:
    PHYSICAL:
       - implement replica exchange
       - implement basin hopping
-      - implement circular area
    ANALYSIS:
       - calc correlation between voltages and visible currents (using swap track)
       - calc single trajectories

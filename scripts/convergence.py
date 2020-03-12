@@ -21,6 +21,7 @@ while fileOpenTries < 50:
     fileOpenTries += 1
     try:
         with h5py.File(join(pathToSimFolder,"data.hdf5"),"r") as dataFile:
+            voltages=np.array(dataFile["/voltages"][:])
             optEnergy=np.array(dataFile["/optEnergy"][:])
             try:
                 generations=np.array(dataFile["/generation"][:])
@@ -41,7 +42,54 @@ while fileOpenTries < 50:
             print(f"could not open file. try number {fileOpenTries}")
             sleep(1)
             
-        
+
+
+
+cotrolElectrodeIndices = list(range(0,len(electrodes)))
+cotrolElectrodeIndices.remove(parameters["outputElectrode"])
+cotrolElectrodeIndices.remove(parameters["inputElectrode1"])
+cotrolElectrodeIndices.remove(parameters["inputElectrode2"])
+
+
+
+cotrolVoltages = voltages[:,cotrolElectrodeIndices]
+
+
+distance = 0
+meanRange = 1000
+
+displace = []
+
+for i in range(int(distance+meanRange/2),cotrolVoltages.shape[0]):
+    mean = np.mean(cotrolVoltages[int(i-distance-meanRange/2):int(i-distance+meanRange/2), :],axis = 0)
+    # displace.append(np.sqrt(np.sum((cotrolVoltages[i])**2)))
+    displace.append(np.sqrt(np.sum((mean-cotrolVoltages[i])**2)))
+
+
+
+MSD = np.sum((cotrolVoltages[0]-cotrolVoltages[:])**2,axis=1)
+
+fig, ax=plt.subplots(1,1,figsize=(4.980614173228346,3.2))
+
+
+ax.plot(range(len(MSD)), MSD, "k-",label = "MSD")
+ax2=ax.twinx()
+ax2.plot(range(int(distance+meanRange/2),cotrolVoltages.shape[0]), displace, "r-",label="displacement")
+
+ax.legend()
+ax2.legend()
+
+ax.set_xlabel("step")
+ax.set_ylabel("displacement")
+
+plt.savefig(join(pathToSimFolder,"displacement.png"),bbox_inches="tight",dpi=300)    
+plt.show()
+plt.close()
+fig=None
+
+
+
+
 
 # print(accepted)
 
@@ -82,5 +130,45 @@ plt.savefig(join(pathToSimFolder,"convergence.png"),bbox_inches="tight",dpi=300)
 # plt.show()
 plt.close()
 fig=None
+
+
+
+
+fig, ax=plt.subplots(1,1,figsize=(4.980614173228346,3.2))
+
+
+ax.plot(np.maximum.accumulate(optEnergy),color="darkorange",label="best")
+
+if mode=="genetic":
+    ax.plot(optEnergy,".",ms=1,color="darkgreen",label="all")
+    ax.plot(genBest,color="darkblue",label="gen best")
+
+if mode=="MC":
+    ax.plot(np.arange(optEnergy.shape[0])[notAccepted[:,0]],optEnergy[notAccepted],".",ms=1,color="darkred",label="not accepted")
+    ax.plot(np.arange(optEnergy.shape[0])[accepted[:,0]],optEnergy[accepted],".",ms=1,color="darkgreen",label="accepted")
+    
+
+ax2=ax.twinx()
+ax.set_zorder(ax2.get_zorder()+1)
+ax.patch.set_visible(False)
+
+ax2.plot(range(int(distance+meanRange/2),cotrolVoltages.shape[0]), displace, "k-",label="displacement")
+
+ax.set_ylim(0.15,1.05)
+
+ax.set_xlabel("iteration")
+ax.set_ylabel("optEnergy")
+ax2.set_ylabel("displacement")
+
+
+# ax.legend([line],[line.get_label()])
+# ax2.legend()
+
+plt.savefig(join(pathToSimFolder,"convergence_displacement.png"),bbox_inches="tight",dpi=300)    
+# plt.show()
+plt.close()
+fig=None
+
+
 
 

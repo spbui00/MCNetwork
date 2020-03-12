@@ -108,7 +108,7 @@ ax.set_xticks([], [])
 ax.set_yticks([], [])
 
 plt.savefig(join(pathToSimFolder,"plotDevice.png"),bbox_inches="tight",dpi=300)    
-plt.show()
+# plt.show()
 plt.close()
 fig=None
 # print(parameters)

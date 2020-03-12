@@ -553,7 +553,7 @@ void Optimizer::searchForRandomStart(){
         std::cout<<"rnd start point: "<<k<<" voltages:";
         for(int i=0; i < controlElectrodeNumber; i++){
             voltageSets[0][controlElectrodeIndices[i]]=rndStartPoints[k].first[i];
-            std::cout<<" "<<controlElectrodeIndices[i]<<": "<<parameterStorage->electrodes[controlElectrodeIndices[i]].voltage;
+            std::cout<<" "<<controlElectrodeIndices[i]<<": "<<voltageSets[0][controlElectrodeIndices[i]];
         }
         std::cout<<std::endl;
 
@@ -596,6 +596,7 @@ void Optimizer::searchForRandomStart(){
     for(int i=0; i < controlElectrodeNumber; i++){
         voltageSets[0][controlElectrodeIndices[i]]=rndStartPoints[0].first[i];
     }
+    optEnergy = rndStartPoints[0].second;
     
 
     DEBUG_FUNC_END

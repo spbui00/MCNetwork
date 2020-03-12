@@ -93,7 +93,7 @@ private:
 
 
     #ifdef SWAPTRACKER
-        ofstream swapTrackFile;
+        std::ofstream swapTrackFile;
         int fileNumber=1;
     #endif
 

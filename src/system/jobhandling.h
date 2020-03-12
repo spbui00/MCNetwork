@@ -11,6 +11,9 @@
 #include <vector>
 #include <map>
 
+//(un)comment to (en/dis)able time tracker
+#define TIMETRACKER
+
 
 class Job
 {
@@ -28,6 +31,10 @@ class Job
         double resultCurrent = 0, resultCurrentUncert = 0;
 
         Job(int ID): ID(ID) {jobMutex = std::make_unique<std::mutex>();};
+
+        #ifdef TIMETRACKER
+            std::ofstream timeFile;
+        #endif
 };
 
 
@@ -45,6 +52,7 @@ private:
     std::vector<Job> jobs;
     std::mutex jobSearchMutex;
     static void handleJobList(std::vector<Job> & jobs, System * const system, std::mutex & searchMutex);
+
 };
 
 

@@ -43,6 +43,7 @@ resolution=(parameters["voltageScanMax"]-parameters["voltageScanMin"])/(voltageS
 
 
 best=np.argmax(optEnergy,axis=0)
+# best=np.argmax(fitness,axis=0)
 # best=[0]
 print("best at",best,"optEnergy: ",optEnergy[best],"fitness: ",fitness[best]," +-", sigmaFitness[best])
 print(voltages[best])
@@ -61,11 +62,11 @@ if voltageScanPoints==2:
     ax.set_xticks([0,1,2,3]) 
     ax.set_xticklabels([r"[0,0]",r"[1,0]",r"[0,1]",r"[1,1]"])
 
-    plt.savefig(join(pathToSimFolder,"fitness_1D.png"),bbox_inches="tight",dpi=300)    
 
     ax.set_xlabel("gate input")
     ax.set_ylabel("output current")
 
+    plt.savefig(join(pathToSimFolder,"fitness_1D.png"),bbox_inches="tight",dpi=300)    
     # plt.show()
     plt.close()
     fig=None

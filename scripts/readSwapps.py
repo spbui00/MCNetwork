@@ -25,6 +25,7 @@ except KeyError:
 
 with open(join(pathToSimFolder,"device.txt")) as deviceFile:
     line=next(deviceFile)
+    line=next(deviceFile)
     for i in range(acceptorPos.shape[0]):
         acceptorPos[i]=next(deviceFile).split(" ")
     line=next(deviceFile)

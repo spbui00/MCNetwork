@@ -79,7 +79,8 @@ ParameterStorage::ParameterStorage(std::string filename)
 
 
 
-    parameters["voltageScanResoultion"] = (parameters.at("voltageScanMax") - parameters.at("voltageScanMin")) / (parameters.at("voltageScanPoints")-1);
+    if (parameters.at("voltageScanPoints") != 1){parameters["voltageScanResoultion"] = (parameters.at("voltageScanMax") - parameters.at("voltageScanMin")) / (parameters.at("voltageScanPoints")-1);}
+    else{                                        parameters["voltageScanResoultion"] = 0;}
     for (size_t i = 0; i < parameters.at("voltageScanPoints"); i++){
         inputVoltages.push_back(parameters.at("voltageScanMin")+i*parameters.at("voltageScanResoultion"));
     }

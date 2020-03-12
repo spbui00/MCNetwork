@@ -189,8 +189,8 @@ void System::createRandomNewDevice(){
         // need to set electrodes first, to hold minDist for acceptors. (redundance to getReadyForRun)
         //set electrodes
         for(int i=0; i< electrodeNumber; i++){
-            electrodePositionsX[i]=cos(parameterStorage->electrodes[i].pos/360*2*PI);
-            electrodePositionsY[i]=sin(parameterStorage->electrodes[i].pos/360*2*PI);
+            electrodePositionsX[i]=parameterStorage->parameters.at("radius")*cos(parameterStorage->electrodes[i].pos/360*2*PI);
+            electrodePositionsY[i]=parameterStorage->parameters.at("radius")*sin(parameterStorage->electrodes[i].pos/360*2*PI);
         }
 
 
@@ -334,8 +334,8 @@ void System::getReadyForRun(){
     }
     else if (parameterStorage->geometry == "circle"){
         for(int i=0; i< electrodeNumber; i++){
-            electrodePositionsX[i]=cos(parameterStorage->electrodes[i].pos/360*2*PI);
-            electrodePositionsY[i]=sin(parameterStorage->electrodes[i].pos/360*2*PI);
+            electrodePositionsX[i]=parameterStorage->parameters.at("radius")*cos(parameterStorage->electrodes[i].pos/360*2*PI);
+            electrodePositionsY[i]=parameterStorage->parameters.at("radius")*sin(parameterStorage->electrodes[i].pos/360*2*PI);
         }
     }
 
@@ -434,7 +434,7 @@ void System::getReadyForRun(){
         }
     }
     if (lowDistblocked > 0){
-        std::cout<<"hopping connections blocked due to small distance: "<<lowDistblocked<<std::endl;
+        std::cout<<"hopping connections blocked due to small distance: "<<lowDistblocked/2<<std::endl;
     }
 
     // set interaction partners
@@ -688,7 +688,7 @@ void System::updatePotential(std::vector<double> const & voltages){
 
     #ifdef SWAPTRACKER
         swapTrackFile.close(); // swapTracker
-        swapTrackFile.open(std::string("swapTrackFile")+std::to_string(fileNumber)+std::string(".txt"), ios::out); // swapTracker
+        swapTrackFile.open(std::string("swapTrackFile")+std::to_string(fileNumber)+std::string(".txt"), std::ios::out); // swapTracker
         fileNumber++; // swapTracker
     #endif
 
@@ -708,7 +708,7 @@ void System::updatePotential(mfem::GridFunction const & potential){
 
     #ifdef SWAPTRACKER
         swapTrackFile.close(); // swapTracker
-        swapTrackFile.open(std::string("swapTrackFile")+std::to_string(fileNumber)+std::string(".txt"), ios::out); // swapTracker
+        swapTrackFile.open(std::string("swapTrackFile")+std::to_string(fileNumber)+std::string(".txt"), std::ios::out); // swapTracker
         fileNumber++; // swapTracker
     #endif
 
@@ -778,7 +778,7 @@ void System::updateOccupationAndPotential(std::vector<bool> const & newOccupatio
 
     #ifdef SWAPTRACKER
         swapTrackFile.close(); // swapTracker
-        swapTrackFile.open(std::string("swapTrackFile")+std::to_string(fileNumber)+std::string(".txt"), ios::out); // swapTracker
+        swapTrackFile.open(std::string("swapTrackFile")+std::to_string(fileNumber)+std::string(".txt"), std::ios::out); // swapTracker
         fileNumber++; // swapTracker
     #endif
 
