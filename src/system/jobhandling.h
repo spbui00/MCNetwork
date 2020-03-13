@@ -12,7 +12,7 @@
 #include <map>
 
 //(un)comment to (en/dis)able time tracker
-#define TIMETRACKER
+// #define TIMETRACKER
 
 
 class Job

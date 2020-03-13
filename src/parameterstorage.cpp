@@ -52,31 +52,35 @@ ParameterStorage::ParameterStorage(std::string filename)
     }
 
 
-    parameters["kT"]=parameters["k"]*parameters["T"];
-    parameters["hoppingSiteNumber"]=parameters["acceptorNumber"]+electrodes.size();
+    parameters["kT"]=parameters.at("k")*parameters.at("T");
+    parameters["hoppingSiteNumber"]=parameters.at("acceptorNumber")+electrodes.size();
 
     // convert lens in dimensions of R    
-    parameters["R"]=std::sqrt(parameters["lenX"]*parameters["lenY"]/parameters["acceptorNumber"]);
-    parameters["minHoppingDist"]     = parameters["minHoppingDist"]    /parameters["R"];
-    parameters["maxHoppingDist"]     = parameters["maxHoppingDist"]    /parameters["R"];
-    parameters["maxInteractionDist"] = parameters["maxInteractionDist"]/parameters["R"];
-    parameters["a"]                  = parameters["a"]                 /parameters["R"];
-    parameters["minDist"]            = parameters["minDist"]           /parameters["R"];
-    parameters["electrodeWidth"]     = parameters["electrodeWidth"]    /parameters["R"];
     if (geometry == "rect"){
-        parameters["lenX"]           = parameters["lenX"]              /parameters["R"];
-        parameters["lenY"]           = parameters["lenY"]              /parameters["R"];
+        parameters["R"]=std::sqrt(parameters["lenX"]*parameters["lenY"]/parameters["acceptorNumber"]);
     }
     else if (geometry == "circle"){
-        parameters["radius"]         = parameters["radius"]            /parameters["R"];
+        parameters["R"]=std::sqrt(PI*parameters.at("radius")*parameters.at("radius")/parameters["acceptorNumber"]);
     }
 
-    std::cout<<"R = "<<parameters["R"]<<" nm, a/R = "<<parameters["a"]<<", I0 = "<<parameters["I0"]<<" meV == "<<parameters["I0"]*0.001*parameters["e"]/parameters["kT"]<<"kT corresponds to eps = "<< parameters["e"]*parameters["e"]/(4*M_PI*parameters["eps0"]*parameters["R"]*1e-9*parameters["I0"]*0.001*parameters["e"]) <<std::endl;
+    parameters["minHoppingDist"]     = parameters.at("minHoppingDist")    /parameters.at("R");
+    parameters["maxHoppingDist"]     = parameters.at("maxHoppingDist")    /parameters.at("R");
+    parameters["maxInteractionDist"] = parameters.at("maxInteractionDist")/parameters.at("R");
+    parameters["a"]                  = parameters.at("a")                 /parameters.at("R");
+    parameters["minDist"]            = parameters.at("minDist")           /parameters.at("R");
+    parameters["electrodeWidth"]     = parameters.at("electrodeWidth")    /parameters.at("R");
+    if (geometry == "rect"){
+        parameters["lenX"]           = parameters.at("lenX")              /parameters.at("R");
+        parameters["lenY"]           = parameters.at("lenY")              /parameters.at("R");
+    }
+    else if (geometry == "circle"){
+        parameters["radius"]         = parameters.at("radius")            /parameters.at("R");
+    }
+
+    std::cout<<"R = "<<parameters.at("R")<<" nm, a/R = "<<parameters.at("a")<<", I0 = "<<parameters.at("I0")<<" meV == "<<parameters.at("I0")*0.001*parameters.at("e")/parameters.at("kT")<<"kT corresponds to eps = "<< parameters.at("e")*parameters.at("e")/(4*M_PI*parameters.at("eps0")*parameters.at("R")*1e-9*parameters.at("I0")*0.001*parameters.at("e")) <<std::endl;
 
     // convert energies in dimensions of kT
     parameters["I0"]=parameters["I0"]*0.001*parameters["e"]/parameters["kT"]; //I0 given in meV
-
-
 
 
     if (parameters.at("voltageScanPoints") != 1){parameters["voltageScanResoultion"] = (parameters.at("voltageScanMax") - parameters.at("voltageScanMin")) / (parameters.at("voltageScanPoints")-1);}
@@ -84,17 +88,17 @@ ParameterStorage::ParameterStorage(std::string filename)
     for (size_t i = 0; i < parameters.at("voltageScanPoints"); i++){
         inputVoltages.push_back(parameters.at("voltageScanMin")+i*parameters.at("voltageScanResoultion"));
     }
-    std::cout<<"Searching on "<<parameters["voltageScanPoints"] <<" Voltage Points";
-    if (inputVoltages.size() < 8){
+    std::cout<<"Searching on "<<parameters.at("voltageScanPoints") <<" Voltage Points";
+    // if (inputVoltages.size() < 8){
         std::cout<<":"<<std::endl;
-        for (size_t i = 0; i < parameters["voltageScanPoints"]; i++){
+        for (size_t i = 0; i < parameters.at("voltageScanPoints"); i++){
             std::cout<<inputVoltages[i]<<" ";
         }
         std::cout<<std::endl;
-    }
-    else{
-        std::cout<<std::endl;
-    }
+    // }
+    // else{
+    //     std::cout<<std::endl;
+    // }
     
 
 

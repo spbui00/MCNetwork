@@ -83,7 +83,7 @@ ax.set_xlabel("step")
 ax.set_ylabel("displacement")
 
 plt.savefig(join(pathToSimFolder,"displacement.png"),bbox_inches="tight",dpi=300)    
-plt.show()
+# plt.show()
 plt.close()
 fig=None
 
