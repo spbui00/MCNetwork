@@ -60,7 +60,7 @@ ParameterStorage::ParameterStorage(std::string filename)
         parameters["R"]=std::sqrt(parameters["lenX"]*parameters["lenY"]/parameters["acceptorNumber"]);
     }
     else if (geometry == "circle"){
-        parameters["R"]=std::sqrt(PI*parameters.at("radius")*parameters.at("radius")/parameters["acceptorNumber"]);
+        parameters["R"]=std::sqrt(M_PI*parameters.at("radius")*parameters.at("radius")/parameters["acceptorNumber"]);
     }
 
     parameters["minHoppingDist"]     = parameters.at("minHoppingDist")    /parameters.at("R");
@@ -77,10 +77,12 @@ ParameterStorage::ParameterStorage(std::string filename)
         parameters["radius"]         = parameters.at("radius")            /parameters.at("R");
     }
 
-    std::cout<<"R = "<<parameters.at("R")<<" nm, a/R = "<<parameters.at("a")<<", I0 = "<<parameters.at("I0")<<" meV == "<<parameters.at("I0")*0.001*parameters.at("e")/parameters.at("kT")<<"kT corresponds to eps = "<< parameters.at("e")*parameters.at("e")/(4*M_PI*parameters.at("eps0")*parameters.at("R")*1e-9*parameters.at("I0")*0.001*parameters.at("e")) <<std::endl;
+
+    parameters["I0"] = parameters.at("e")/(4*M_PI*parameters.at("eps0")*parameters.at("R")*1e-12*parameters.at("eps"));
+    std::cout<<"R = "<<parameters.at("R")<<" nm, a/R = "<<parameters.at("a")<<", eps = "<< parameters.at("eps")<< " corresponds to I0 = "<<parameters.at("I0")<<" meV == "<<parameters.at("I0")*0.001*parameters.at("e")/parameters.at("kT")<<"kT"<<std::endl;
 
     // convert energies in dimensions of kT
-    parameters["I0"]=parameters["I0"]*0.001*parameters["e"]/parameters["kT"]; //I0 given in meV
+    parameters["I0"]=parameters.at("I0")*0.001*parameters.at("e")/parameters.at("kT"); //I0 given in meV
 
 
     if (parameters.at("voltageScanPoints") != 1){parameters["voltageScanResoultion"] = (parameters.at("voltageScanMax") - parameters.at("voltageScanMin")) / (parameters.at("voltageScanPoints")-1);}

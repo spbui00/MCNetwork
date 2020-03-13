@@ -8,8 +8,6 @@
 #include <cmath>
 #include "debug.h"
 
-#define PI 3.14159265
-
 struct ElectrodeParameters{
     double pos; //used as angle in circle mode, or as length in rect mode
     int edge;   //only used in circle mode
