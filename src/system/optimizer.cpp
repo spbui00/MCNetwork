@@ -168,22 +168,31 @@ void Optimizer::optimizeMC(bool rndStart /*= false*/){
         saveResults();
 
         std::cout<<"now: optEnergy: "<<optEnergy    <<" fitness: ("<<fitness    <<" +- "<<fitnessUncert    <<") normedDiff: "<<normedDiff<<
-                "\nlast: optEnergy: "<<lastOptEnergy<<" fitness: ("<<lastFitness<<" +- "<<lastFitnessUncert<<") normedDiff: "<<lastNormedDiff<<std::endl;        if((optEnergy < lastOptEnergy) & (enhance::fastExp((optEnergy-lastOptEnergy)/parameterStorage->parameters.at("MCTemp"))<enhance::random_double(0,1))){
+                "\nlast: optEnergy: "<<lastOptEnergy<<" fitness: ("<<lastFitness<<" +- "<<lastFitnessUncert<<") normedDiff: "<<lastNormedDiff<<std::endl;
+        if((optEnergy < lastOptEnergy) & (enhance::fastExp((optEnergy-lastOptEnergy)/parameterStorage->parameters.at("MCTemp"))<enhance::random_double(0,1))){
             std::cout<<"-- not accepted --"<<std::endl;
             accepted=0;
             //swap back
             voltageSets[0] = lastVoltages;
         }
         else{
-            std::cout<<"-- accepted --"<<std::endl;
-            accepted=1;
-            //setup for next iteration
-            lastVoltages = voltageSets[0];
+            if (std::isnan(optEnergy)){
+                std::cout<<"-------------------> invalid optEnergy <-------------------"<<std::endl;
+                accepted=0;
+                //swap back
+                voltageSets[0] = lastVoltages;
+            }
+            else{
+                std::cout<<"-- accepted --"<<std::endl;
+                accepted=1;
+                //setup for next iteration
+                lastVoltages = voltageSets[0];
 
-            lastFitness       = fitness;
-            lastFitnessUncert = fitnessUncert;
-            lastOptEnergy     = optEnergy;
-            lastNormedDiff    = normedDiff;
+                lastFitness       = fitness;
+                lastFitnessUncert = fitnessUncert;
+                lastOptEnergy     = optEnergy;
+                lastNormedDiff    = normedDiff;
+            }
 
         }
         dataFile->addData("accepted",& accepted);
@@ -199,6 +208,7 @@ void Optimizer::optimizeMC(bool rndStart /*= false*/){
             std::cout<<"############ steps increased!! now: "<<parameterStorage->parameters["calcCurrentSteps"]<<" #############"<<std::endl;
         }
     }
+    std::cout<<"-------------------> convergence reached <-------------------"<<std::endl;
     
     DEBUG_FUNC_END
 }

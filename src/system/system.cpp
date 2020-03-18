@@ -1058,8 +1058,8 @@ void System::run(int steps){
 void System::increaseTime(){
     DEBUG_FUNC_START
 
-    time+=std::log(enhance::random_double(1e-15,1))/(-1*ratesSum); //avoid zero
-    // std::cout<<"time "<< ratesSum <<std::endl;
+    time+=std::log(enhance::random_double(0,1))/(-1*ratesSum); //avoid zero
+    // std::cout<<"time "<< time <<std::endl;
 
     DEBUG_FUNC_END
 }
