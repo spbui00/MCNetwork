@@ -19,7 +19,7 @@ public:
     Optimizer(std::shared_ptr<ParameterStorage>);
 
     void optimizeMC(bool rndStart = false);
-    void optimizeGenetic();
+    void optimizeGenetic(std::vector<std::pair<std::vector<double>,double>> const & startGenome = {});
     void optimizeBasinHopping(bool rndStart = false);
     void optimizeGradient(int basinNumber);
     void run();

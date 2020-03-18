@@ -1,7 +1,7 @@
 #simulation parameters
-gate XOR
+gate AND 
 memoryLimit 800 #in MB (should be around 100mb under real limit), real memory consumption is memoryLimit*threads
-threads 4 
+threads 1 
 finiteElementsResolution 1e5 #(min 1e5)
 equilSteps 1e4
 calcCurrentSteps 1e5
@@ -13,16 +13,16 @@ storingMode 0
 
 #physical parameters
 T 77
-acceptorNumber 157 
+acceptorNumber 100 
 donorNumber 3
-eps 4.5 # eps=4.5 --> I0= 15meV
-a 10 #nm
+eps 3
+a 15
 minDist 0 #nm
 electrodeWidth 60 #nm
 
 #cuts
-minHoppingDist 5  #nm
-maxHoppingDist 50 #nm
+minHoppingDist 3.75
+maxHoppingDist 120
 maxInteractionDist 500 #nm
 
 #geometry parameters
@@ -55,14 +55,15 @@ radius 150 #nm
 #positions given in degrees 
 #pos voltage 
 
+
 electrode 0 0
-electrode 45 0
-electrode 90 0
+electrode 45 0.671365
+electrode 90 0.780322
 electrode 135 0.4
-electrode 180 -0.2
+electrode 180 0.170096
 electrode 225 -1
-electrode 270 0.5
-electrode 315 1
+electrode 270 -0.837304
+electrode 315 0.08548
 
 
 

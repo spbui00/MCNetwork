@@ -282,21 +282,30 @@ void System::loadDevice(){
     for(int i=0;i<acceptorNumber;i++){
         std::getline(deviceFile, line);
         std::istringstream iss(line);
-        if(!(iss>>posXBuffer>>posYBuffer)) throw std::invalid_argument( "cant read acceptor in line: " + line);
+        if(!(iss>>posXBuffer>>posYBuffer)){
+            if (line == "") throw std::invalid_argument( "incorrect number of acceptors in device file");
+            else            throw std::invalid_argument( "device file corrupted! cant read acceptor in line: " + line);
+        }
         acceptorPositionsX[i]=posXBuffer/parameterStorage->parameters["R"];
         acceptorPositionsY[i]=posYBuffer/parameterStorage->parameters["R"];
     }
 
-    //trash 2 lines
+    //trash 1 line
     std::getline(deviceFile, line);
+
+    //check correct file length
     std::getline(deviceFile, line);
+    std::string stringBuffer;
+    std::istringstream iss(line);
+    iss>>stringBuffer;
+    if(stringBuffer != "donors:") throw std::invalid_argument( "incorrect number of acceptors in device file");
 
 
     // set donor positions
     for(int i=0;i<parameterStorage->parameters.at("donorNumber");i++){
         std::getline(deviceFile, line);
         std::istringstream iss(line);
-        if(!(iss>>posXBuffer>>posYBuffer)) throw std::invalid_argument( "cant read donor in line: " + line);
+        if(!(iss>>posXBuffer>>posYBuffer)) throw std::invalid_argument( "device file corrupted! cant read donor in line: " + line);
         donorPositionsX[i]=posXBuffer/parameterStorage->parameters["R"];
         donorPositionsY[i]=posYBuffer/parameterStorage->parameters["R"];
     }
@@ -380,7 +389,7 @@ void System::getReadyForRun(){
             // std::cout<<distances[i*hoppingSiteNumber+j]<<std::endl;
             pairEnergies[i*acceptorNumber+j]=-parameterStorage->parameters.at("I0")/distances[i*hoppingSiteNumber+j];
             pairEnergies[j*acceptorNumber+i]=-parameterStorage->parameters.at("I0")/distances[j*hoppingSiteNumber+i];
-            // std::cout<<"pair e "<<pairEnergies[i*hoppingSiteNumber+j]<<std::endl;
+            // std::cout<<"pair e "<<pairEnergies[i*acceptorNumber+j]<<std::endl;
         }
         pairEnergies[i*(acceptorNumber+1)] = 0; //[i*(hoppingSiteNumber+1)] = [i,i]
         distances   [i*(hoppingSiteNumber+1)] = 0;
@@ -415,6 +424,7 @@ void System::getReadyForRun(){
             if (i != j and distances[i*hoppingSiteNumber+j] < parameterStorage->parameters.at("maxHoppingDist") and distances[i*hoppingSiteNumber+j] >  parameterStorage->parameters.at("minHoppingDist")){
                 hoppingPartnersAcceptors[i].push_back(j);
                 baseRates[i*hoppingSiteNumber+j] = enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
+                // std::cout<<"i "<<i<<" j: "<<j<<" rate: "<<baseRates[i*hoppingSiteNumber+j]<<std::endl;
             }
             //only for printing
             else if (i != j and distances[i*hoppingSiteNumber+j] < parameterStorage->parameters.at("minHoppingDist")){
@@ -426,6 +436,7 @@ void System::getReadyForRun(){
             if (i != j and distances[i*hoppingSiteNumber+j] < parameterStorage->parameters.at("maxHoppingDist") and distances[i*hoppingSiteNumber+j] >  parameterStorage->parameters.at("minHoppingDist")){
                 hoppingPartnersElectrodes[i].push_back(j);
                 baseRates[i*hoppingSiteNumber+j] = enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
+                // std::cout<<"i "<<i<<" j: "<<j<<" rate: "<<baseRates[i*hoppingSiteNumber+j]<<std::endl;
             }
             //only for printing
             else if (i != j and distances[i*hoppingSiteNumber+j] < parameterStorage->parameters.at("minHoppingDist")){
@@ -869,6 +880,7 @@ void System::findSwap(){
             for(int const & j : hoppingPartnersAcceptors[i]){
                 if (not occupation[j]){
                     partRatesSum+=rates[i*hoppingSiteNumber+j];
+                    // std::cout<<"i "<<i<<" j: "<<j<<" rate: "<<rates[i*hoppingSiteNumber+j]<<std::endl;
                     if(partRatesSum > rndNumber){
                         lastSwapped1=i;
                         lastSwapped2=j;
@@ -879,6 +891,7 @@ void System::findSwap(){
             // .. to electrode
             for(int const & j : hoppingPartnersElectrodes[i]){
                 partRatesSum+=rates[i*hoppingSiteNumber+j];
+                // std::cout<<"i "<<i<<" j: "<<j<<" rate: "<<rates[i*hoppingSiteNumber+j]<<std::endl;
                 if(partRatesSum > rndNumber){
                     lastSwapped1=i;
                     lastSwapped2=j;
@@ -893,6 +906,7 @@ void System::findSwap(){
         for(int const & j : hoppingPartnersAcceptors[i]){
             if (not occupation[j]){
                 partRatesSum+=rates[i*hoppingSiteNumber+j];
+                // std::cout<<"i "<<i<<" j: "<<j<<" rate: "<<rates[i*hoppingSiteNumber+j]<<std::endl;
                 if(partRatesSum > rndNumber){
                     lastSwapped1=i;
                     lastSwapped2=j;
@@ -903,6 +917,7 @@ void System::findSwap(){
         // .. to electrode
         for(int const & j : hoppingPartnersElectrodes[i]){
             partRatesSum+=rates[i*hoppingSiteNumber+j];
+            // std::cout<<"i "<<i<<" j: "<<j<<" rate: "<<rates[i*hoppingSiteNumber+j]<<std::endl;
             if(partRatesSum > rndNumber){
                 lastSwapped1=i;
                 lastSwapped2=j;
@@ -910,13 +925,13 @@ void System::findSwap(){
             }
         }
     }
+    // std::cout<<"no swapp found! ratesSum: "<<ratesSum<<" partRatesSum: "<<partRatesSum<<" rndNumber: "<<rndNumber<<std::endl;
 
     foundSwap:;
     // std::cout<<"rates: "<<std::endl;
     // for(int k=0; k<hoppingSiteNumber*hoppingSiteNumber;k++){
     //     std::cout<<rates[k]<<" ";
     // }
-    // std::cout<<std::endl;
     // std::cout<<"ratesSum: "<<ratesSum<<" rndNumber: "<<rndNumber<<std::endl;
 
     DEBUG_FUNC_END
@@ -1043,7 +1058,8 @@ void System::run(int steps){
 void System::increaseTime(){
     DEBUG_FUNC_START
 
-    time+=std::log(enhance::random_double(0,1))/(-1*ratesSum);
+    time+=std::log(enhance::random_double(1e-15,1))/(-1*ratesSum); //avoid zero
+    // std::cout<<"time "<< ratesSum <<std::endl;
 
     DEBUG_FUNC_END
 }

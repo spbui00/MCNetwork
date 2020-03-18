@@ -46,6 +46,7 @@ int main(int argc, char *argv[]){
 
    po::options_description desc("Allowed options");
    desc.add_options()
+      ("continue"   , "continues last optimization")
       ("mnd"        , "make new device")
       ("optMC"      , "optimize control voltages using Monte Carlo Search")
       ("optGen"     , "optimize control voltages using GeneticAlgorithm")

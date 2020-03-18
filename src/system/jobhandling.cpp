@@ -105,7 +105,7 @@ void JobManager::handleJobList(std::vector<Job> & jobs,
         //check if job is worth to join
         if(mostTasks > 1){
             //join work on job
-            // std::cout<<"joining job: "<<bestJob->ID<<std::endl;
+            // std::cout<<"joining job: "<<bestJob->ID<<" "<<std::hash<std::thread::id>{}(std::this_thread::get_id())<<std::endl;
             bestJob->threadNumber += 1;
             bestJob->tasksToGo    -= 1;
             //check if job was started already by another thread
@@ -143,6 +143,7 @@ void JobManager::handleJobList(std::vector<Job> & jobs,
             bestJob->resultCurrent      +=*(system->outputCurrentCounter)/system->time;
             bestJob->resultCurrentUncert+=std::pow(*(system->outputCurrentCounter)/system->time,2); //storing current**2 here
             system->reset();
+            // std::cout<<"current "<<bestJob->resultCurrent<<" current counter "<< *(system->outputCurrentCounter) <<" time "<<system->time<<std::endl;
 
 
 
@@ -158,7 +159,7 @@ void JobManager::handleJobList(std::vector<Job> & jobs,
                     #ifdef TIMETRACKER
                         bestJob->timeFile<<system->time<<std::endl; // timeTracker
                     #endif
-
+        
                     bestJob->resultCurrent      +=*(system->outputCurrentCounter)/system->time;
                     bestJob->resultCurrentUncert+=std::pow(*(system->outputCurrentCounter)/system->time,2);
 
@@ -178,6 +179,8 @@ void JobManager::handleJobList(std::vector<Job> & jobs,
                         std::cout<<std::endl;
                     }
                     bestJob->threadNumber -= 1;
+                    // std::cout<<"job done, job: "<<bestJob->ID<<" threads left: "<<bestJob->threadNumber <<" "<<std::hash<std::thread::id>{}(std::this_thread::get_id())<<std::endl;
+
                     searchMutex.unlock();
                     break;
                 }

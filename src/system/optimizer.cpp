@@ -204,7 +204,7 @@ void Optimizer::optimizeMC(bool rndStart /*= false*/){
 }
 
 
-void Optimizer::optimizeGenetic(){
+void Optimizer::optimizeGenetic(std::vector<std::pair<std::vector<double>,double>> const & startGenome /* = {} */){
     DEBUG_FUNC_START
 
     dataFile->createDataset("generation",{1});
