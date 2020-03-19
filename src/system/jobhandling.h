@@ -25,7 +25,7 @@ class Job
 
         int equilSteps, totalSteps, stepsPerTask;
         int tasksToGo; 
-        static const int tasksPerJob = 20; //number of 
+        static const int tasksPerJob = 20;
         int threadNumber = 0;
         std::vector<double> voltages;
         double resultCurrent = 0, resultCurrentUncert = 0;
@@ -43,7 +43,7 @@ class JobManager
 public:
     JobManager(std::shared_ptr<ParameterStorage>);
 
-    std::pair<std::vector<double>,std::vector<double>> const runControlVoltagesSetup(std::vector<double> const & voltages); //returns curr, currUncert
+    std::pair<std::vector<double>,std::vector<double>> const runControlVoltagesSetup(std::vector<double> const & voltages); /*!< returns curr, currUncert */
 
 private:
     int voltageScanPoints, electrodeNumber;

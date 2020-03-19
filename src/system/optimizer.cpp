@@ -49,7 +49,6 @@ void Optimizer::saveResults(){
 
 
 void Optimizer::calcOptimizationEnergy(){
-    // el of [0,1]
     DEBUG_FUNC_START
 
     int maxIndex=0,minIndex=0;
@@ -83,6 +82,10 @@ void Optimizer::calcOptimizationEnergy(){
 
     optEnergy = fitness - fitnessUncert*parameterStorage->parameters.at("fitnessUncertWeight") + normedDiff*parameterStorage->parameters.at("diffWeight");
 
+    if (std::isnan(optEnergy)){
+        std::cout<<"-------------------> invalid optEnergy <-------------------"<<std::endl;
+        optEnergy=-INFINITY;
+    }
 
     DEBUG_FUNC_END
 }
@@ -116,7 +119,10 @@ void Optimizer::run(){
     
     DEBUG_FUNC_END
 }
-
+/*!
+  optimize cotrol voltages using simple Monte Carlo algorithm
+  \param rndStart if True: searchForRandomStart() is called to find best start point, else: voltages given in input file are used
+ */
 void Optimizer::optimizeMC(bool rndStart /*= false*/){
     DEBUG_FUNC_START
 
@@ -176,23 +182,15 @@ void Optimizer::optimizeMC(bool rndStart /*= false*/){
             voltageSets[0] = lastVoltages;
         }
         else{
-            if (std::isnan(optEnergy)){
-                std::cout<<"-------------------> invalid optEnergy <-------------------"<<std::endl;
-                accepted=0;
-                //swap back
-                voltageSets[0] = lastVoltages;
-            }
-            else{
-                std::cout<<"-- accepted --"<<std::endl;
-                accepted=1;
-                //setup for next iteration
-                lastVoltages = voltageSets[0];
+            std::cout<<"-- accepted --"<<std::endl;
+            accepted=1;
+            //setup for next iteration
+            lastVoltages = voltageSets[0];
 
-                lastFitness       = fitness;
-                lastFitnessUncert = fitnessUncert;
-                lastOptEnergy     = optEnergy;
-                lastNormedDiff    = normedDiff;
-            }
+            lastFitness       = fitness;
+            lastFitnessUncert = fitnessUncert;
+            lastOptEnergy     = optEnergy;
+            lastNormedDiff    = normedDiff;
 
         }
         dataFile->addData("accepted",& accepted);
@@ -534,7 +532,9 @@ void Optimizer::optimizeGradient(int basinNumber){
     DEBUG_FUNC_END
 }
 
-
+/*!
+    generates "rndStartPoints" random control voltage points and sets voltageSets[0] and optEnergy to the best result
+*/
 void Optimizer::searchForRandomStart(){
     DEBUG_FUNC_START
 

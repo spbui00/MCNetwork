@@ -8,6 +8,32 @@
 #include <iostream>
 #include <boost/program_options.hpp>
 
+/*! \mainpage MCNetwork
+ *
+ * \section intro_sec Introduction
+ *
+ * This is the introduction.
+ *
+ * \section install_sec Installation
+ *
+ * \subsection step1 Step 1: Dependencies
+ * mfem (serial version): https://mfem.org/building/ \n 
+ * boost \n 
+ * 
+ * \subsection step2 Step 2: Install
+ * 
+ * git clone https://github.com/MarlonBecker/MCNetwork \n 
+ * mkdir build \n 
+ * cd build \n 
+ * cmake .. \n 
+ * make \n 
+ * 
+ * \subsection step3 Step 3: Run Example
+ * 
+ * cd data \n 
+ * ../build/MCnetwork --mnd --optMC --rSV \n 
+ */
+
 
 /*
 TODO:

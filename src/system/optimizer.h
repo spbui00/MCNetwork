@@ -28,9 +28,10 @@ public:
 private:
     int electrodeNumber, voltageScanPoints;
     int controlElectrodeNumber;
-    double fitness = 0,fitnessUncert = 0,optEnergy = 0,normedDiff = 0;
+    double fitness = 0,fitnessUncert = 0,optEnergy = 0;  /*!< optimization energy of last simulated voltage set. set by calcOptimizationEnergy() */
+    double normedDiff = 0;
 
-    std::string mode;
+    std::string mode; /*!< circle or rect */
 
     std::vector<std::vector<double>> voltageSets;
     std::vector<std::vector<double>> outputCurrents;

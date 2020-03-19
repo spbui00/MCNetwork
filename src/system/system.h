@@ -54,29 +54,29 @@ public:
 private:
     int acceptorNumber, hoppingSiteNumber, electrodeNumber;
     double * donorPositionsX, * donorPositionsY, * acceptorPositionsX, * acceptorPositionsY, * electrodePositionsX, * electrodePositionsY; // 1D
-    double *            distances;      // 2D-array: hopping site distances 
-    double *            energies;       // 1D-array: single hopping site energies 
-    int *               currentCounter; // 1D-array: counter for all electrodes
-    double *            pairEnergies;   // 2D-array: coulomb interaction between pair of hopping sites 
-    double *            deltaEnergies;  // 2D-array: difference between hopping site energies
-    double *            rates;          // 2D-array: transition rates 
-    double *            baseRates;      // 2D-array: constant distance dependend part of transition rates 
-    std::vector<bool>   occupation;     // 1D-array: occupation of hopping sites
+    double *            distances;      /*!<  2D-array: hopping site distances */
+    double *            energies;       /*!<  1D-array: single hopping site energies  */
+    int *               currentCounter; /*!<  1D-array: counter for all electrodes */
+    double *            pairEnergies;   /*!<  2D-array: coulomb interaction between pair of hopping sites  */
+    double *            deltaEnergies;  /*!<  2D-array: difference between hopping site energies */
+    double *            rates;          /*!<  2D-array: transition rates  */
+    double *            baseRates;      /*!<  2D-array: constant distance dependend part of transition rates  */
+    std::vector<bool>   occupation;     /*!<  1D-array: occupation of hopping sites */
 
     std::vector<std::vector<int>> interactionPartners;
     std::vector<std::vector<int>> hoppingPartnersAcceptors;
     std::vector<std::vector<int>> hoppingPartnersElectrodes;
 
-    int lastSwapped1=0,lastSwapped2=0; // swap 1->2; int = index
+    int lastSwapped1=0,lastSwapped2=0; /*!< swap 1->2; int = index */
 
     double ratesSum=0;
     double constantRatesSumPart=0;
     double locLenA;
 
-    std::unique_ptr<FiniteElementeBase> finEle; //finEle device
+    std::unique_ptr<FiniteElementeBase> finEle; /*!< finEle device */
 
-    std::shared_ptr<std::vector<double>> partRatesSumList; //list of accumulated rates for binary search
-    std::shared_ptr< std::unordered_map<std::vector<bool>,std::shared_ptr<std::vector<double>>>> konwnPartRatesSumList; //map of lists of accumulated rates for binary search, to store known states
+    std::shared_ptr<std::vector<double>> partRatesSumList; /*!<ist of accumulated rates for binary search */
+    std::shared_ptr< std::unordered_map<std::vector<bool>,std::shared_ptr<std::vector<double>>>> konwnPartRatesSumList; /*!< map of lists of accumulated rates for binary search, to store known states */
     std::shared_ptr< std::unordered_map<std::vector<bool>,double>>  knownRatesSum;
 
     std::shared_ptr<ParameterStorage> parameterStorage;
@@ -85,8 +85,8 @@ private:
     void updateAfterSwap();
 
     bool readyForRun=false;
-    bool storingMode; // if set true performance is optimized by storing known states
-    bool ratesInMemory =false; //save if last step was found in stored states. if true, binary search is done to find swap
+    bool storingMode; /*!< if set true performance is optimized by storing known states */
+    bool ratesInMemory =false; /*!< save if last step was found in stored states. if true, binary search is done to find swap */
 
 
     bool storeKnownStates = true;
@@ -101,9 +101,9 @@ private:
 
 
     void findSwap();
-    void findSwapBS(); //using binary search
-    void updateRatesStoringMode(); //single processor, storing mode
-    void updateRates();// core calculation of rates
+    void findSwapBS(); /*!< using binary search */
+    void updateRatesStoringMode(); /*!< single processor, storing mode */
+    void updateRates(); /*!< core calculation of rates */
     void increaseTime();
 
     void resetPotential();

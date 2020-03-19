@@ -16,6 +16,12 @@
 
 using namespace mfem;
 
+
+/*!
+  Class to solve laplace equation.
+  Parent class istself cant run, only childs.
+  Analogously implemented to https://github.com/mfem/mfem/blob/master/examples/ex1.cpp.
+*/
 class FiniteElementeBase
 {
 
@@ -47,10 +53,27 @@ public:
     void initRun(bool initDevice = false);
     void run();
     void updateElectrodeVoltage(int const & electrodeIndex, double const & voltage);
-
+    /*!
+        Get Potential using nearest neighbour interpolation
+        \param x in length units
+        \param y in length units
+    */
     virtual double getPotential(double const & x, double const & y){};
-    virtual void setElectrode(double const & voltage, double begin, double end){}; //begin/end given in radiant
-    virtual void setElectrode(double const & voltage, double begin, double end, int edge ){}; //begin/end given in length units
+    /*!
+        Set electrode position and voltage (boundary condition of laplace equation), polar version.
+        \param voltage in volts
+        \param begin in radiant
+        \param end in radiant
+    */
+    virtual void setElectrode(double const & voltage, double begin, double end){};
+    /*!
+        Set electrode position and voltage (boundary condition of laplace equation), cartesian version.
+        \param voltage in volts
+        \param begin in length units
+        \param end in length units
+        \param edge see ElectrodeParameters::edge
+    */
+   virtual void setElectrode(double const & voltage, double begin, double end, int edge ){};
 
 };
 
