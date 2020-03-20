@@ -9,9 +9,13 @@ FiniteElementeBase::FiniteElementeBase(bool saveSolution):
 
 void FiniteElementeBase::updateElectrodeVoltage(int const & electrodeIndex, double const & voltage){
     
+    // std::cout<<"setting electrode "<<electrodeIndex<<" to voltage "<<voltage<<" indices: ";
+
     for(auto index:electrodeVertexIndices[electrodeIndex]){
         (*solutionVector)[index]=voltage;
+        // std::cout<<index<<" ";
     }
+    // std::cout<<std::endl;
 }
 
 
@@ -409,8 +413,6 @@ void FiniteElementeCircle::setElectrode(double const & voltage, double begin, do
     // std::cout<<"beginIdx "<<beginIdx<< " endIdx "<<endIdx<<std::endl;
 
     //get vertex indices inside range
-    electrodeVertexIndices.push_back(std::vector<int>());
-
     if (beginIdx<endIdx){
         electrodeVertexIndices.push_back(std::vector<int>(endIdx-beginIdx));
         std::iota(electrodeVertexIndices.back().begin(), electrodeVertexIndices.back().end(), beginIdx);
@@ -459,6 +461,7 @@ void FiniteElementeCircle::setElectrode(double const & voltage, double begin, do
 double FiniteElementeCircle::getPotential(double const & x, double const & y){
     int layer = std::sqrt(x*x+y*y)/deltaR+0.5;
     double phi = std::atan2(y,x)/(2*PI);
+    // std::cout<<"return index: "<<int(3*(layers+1)*layers-3*layer*(layer+1) + (phi < 0 ? phi + 1 : phi) * 6 * layer + 0.5)<<std::endl;
     return (*solutionVector)[int(3*(layers+1)*layers-3*layer*(layer+1) + (phi < 0 ? phi + 1 : phi) * 6 * layer + 0.5)];
 }
 

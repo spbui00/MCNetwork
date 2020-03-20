@@ -127,6 +127,7 @@ void Optimizer::optimizeMC(bool rndStart /*= false*/){
     DEBUG_FUNC_START
 
     dataFile->createDataset("accepted",{1});
+    double accepted = 1;
     std::cout<<"running optimization - simple MC"<<std::endl;
     mode = "MC";
 
@@ -143,10 +144,18 @@ void Optimizer::optimizeMC(bool rndStart /*= false*/){
         for(int i=0; i < electrodeNumber; i++){
             voltageSets[0][i] = parameterStorage->electrodes[i].voltage;
         }
+
+        std::pair<std::vector<double>,std::vector<double>> result = jobManager.runControlVoltagesSetup(voltageSets[0]);
+        outputCurrents      [0] = result.first;
+        outputCurrentUncerts[0] = result.second;
+        calcOptimizationEnergy();
+        saveResults();
+        dataFile->addData("accepted",& accepted);
+
+        std::cout<<"optEnergy: "<<optEnergy    <<" fitness: ("<<fitness    <<" +- "<<fitnessUncert    <<") normedDiff: "<<normedDiff<<std::endl;
     }
 
     // constructive run
-    double accepted          = -1;
     double lastFitness       = fitness;
     double lastFitnessUncert = fitnessUncert;
     double lastOptEnergy     = optEnergy;
@@ -157,6 +166,7 @@ void Optimizer::optimizeMC(bool rndStart /*= false*/){
     int increaseNumber=0;
     while (optEnergy < parameterStorage->parameters.at("convergenceEnergy")){
         auto startTime = std::chrono::steady_clock::now();
+
 
         //get new random voltages
         std::cout<<"new random voltages: "<<std::endl;

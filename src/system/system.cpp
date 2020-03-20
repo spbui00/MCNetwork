@@ -689,10 +689,15 @@ void System::updatePotential(std::vector<double> const & voltages){
 
     resetPotential();
 
+
+
+
     //recalc potential
     for(int i=0;i < electrodeNumber;i++){
         finEle->updateElectrodeVoltage(i,voltages[i]);
+
     }
+
     finEle->run();
 
     setNewPotential();
@@ -804,7 +809,9 @@ void System::resetPotential(){
         energies[i]-=finEle->getPotential(acceptorPositionsX[i],acceptorPositionsY[i])*parameterStorage->parameters.at("e")/parameterStorage->parameters.at("kT");
     }
     for(int i=0;i<electrodeNumber;i++){
+        // std::cout<<"i "<<i<<" old "<<energies[(i+acceptorNumber)]<<std::endl;
         energies[(i+acceptorNumber)]-=finEle->getPotential(electrodePositionsX[i],electrodePositionsY[i])*parameterStorage->parameters.at("e")/parameterStorage->parameters.at("kT");
+        // std::cout<<"i "<<i<<" new "<<energies[(i+acceptorNumber)]<<std::endl;
     }
 
     DEBUG_FUNC_END
@@ -820,6 +827,7 @@ void System::setNewPotential(){
     }
     for(int i=0;i<electrodeNumber;i++){
         energies[(i+acceptorNumber)]+=finEle->getPotential(electrodePositionsX[i],electrodePositionsY[i])*parameterStorage->parameters.at("e")/parameterStorage->parameters.at("kT");
+        // std::cout<<"i "<<i<<" new "<<energies[(i+acceptorNumber)]<<std::endl;
     }
 
 
