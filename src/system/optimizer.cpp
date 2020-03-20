@@ -83,6 +83,7 @@ void Optimizer::calcOptimizationEnergy(){
     optEnergy = fitness - fitnessUncert*parameterStorage->parameters.at("fitnessUncertWeight") + normedDiff*parameterStorage->parameters.at("diffWeight");
 
     if (std::isnan(optEnergy)){
+        std::cerr<<"-------------------> invalid optEnergy <-------------------"<<std::endl;
         std::cout<<"-------------------> invalid optEnergy <-------------------"<<std::endl;
         optEnergy=-INFINITY;
     }
@@ -168,15 +169,10 @@ void Optimizer::optimizeMC(bool rndStart /*= false*/){
         auto startTime = std::chrono::steady_clock::now();
 
         //get new random voltages
-        voltageSets[0][1]=0.01883759;
-        voltageSets[0][2]=0.00540754;
-        voltageSets[0][4]= -0.12631014;
-        voltageSets[0][6]=-0.69188662;
-        voltageSets[0][7]=0.52402971;
         std::cout<<"new random voltages: "<<std::endl;
         for(int i=0;i<electrodeNumber;i++){
             if((i !=parameterStorage->parameters.at("outputElectrode")) & (i !=parameterStorage->parameters.at("inputElectrode1")) &(i !=parameterStorage->parameters.at("inputElectrode2"))){
-                // voltageSets[0][i]=enhance::random_double(std::max(parameterStorage->parameters.at("controlVoltageMin"),voltageSets[0][i]-parameterStorage->parameters.at("maxDeltaV")),std::min(parameterStorage->parameters.at("controlVoltageMax"),voltageSets[0][i]+parameterStorage->parameters.at("maxDeltaV")));
+                voltageSets[0][i]=enhance::random_double(std::max(parameterStorage->parameters.at("controlVoltageMin"),voltageSets[0][i]-parameterStorage->parameters.at("maxDeltaV")),std::min(parameterStorage->parameters.at("controlVoltageMax"),voltageSets[0][i]+parameterStorage->parameters.at("maxDeltaV")));
                 std::cout<<i<<" "<<voltageSets[0][i]<<std::endl;
             }
         }
