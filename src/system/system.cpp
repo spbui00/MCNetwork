@@ -734,6 +734,9 @@ void System::updatePotential(mfem::GridFunction const & potential){
 void System::updateOccupationAndPotential(std::vector<bool> const & newOccupation, mfem::GridFunction  const & potential){
     DEBUG_FUNC_START
     
+    //set occupation
+    occupation = newOccupation;
+
     //set new potential
     *(finEle->solutionVector) = potential;
 
@@ -773,22 +776,12 @@ void System::updateOccupationAndPotential(std::vector<bool> const & newOccupatio
     for(int i=acceptorNumber;i<hoppingSiteNumber;i++){
         for(int const & j : hoppingPartnersElectrodes[i]){
             deltaEnergies[i*hoppingSiteNumber+j]=energies[j]-energies[i];
-            deltaEnergies[j*hoppingSiteNumber+i]=energies[i]-energies[j];
 
-            if (deltaEnergies[i*hoppingSiteNumber+j] < 0){
-                rates[i*hoppingSiteNumber+j]=baseRates[i*hoppingSiteNumber+j];
-                rates[j*hoppingSiteNumber+i]=baseRates[j*hoppingSiteNumber+i]*enhance::mediumFastExp(-deltaEnergies[j*hoppingSiteNumber+i]);
-            }
-            else if (deltaEnergies[i*hoppingSiteNumber+j] > 0){
-                rates[i*hoppingSiteNumber+j]=baseRates[i*hoppingSiteNumber+j]*enhance::mediumFastExp(-deltaEnergies[i*hoppingSiteNumber+j]);
-                rates[j*hoppingSiteNumber+i]=baseRates[j*hoppingSiteNumber+i];
-            }
-            else{
-                rates[i*hoppingSiteNumber+j]=baseRates[i*hoppingSiteNumber+j];
-                rates[j*hoppingSiteNumber+i]=baseRates[j*hoppingSiteNumber+i];
-            }
+            if      (deltaEnergies[i*hoppingSiteNumber+j] < 0) rates[i*hoppingSiteNumber+j]=baseRates[i*hoppingSiteNumber+j];
+            else if (deltaEnergies[i*hoppingSiteNumber+j] > 0) rates[i*hoppingSiteNumber+j]=baseRates[i*hoppingSiteNumber+j]*enhance::mediumFastExp(-deltaEnergies[i*hoppingSiteNumber+j]);
+            else                                               rates[i*hoppingSiteNumber+j]=baseRates[i*hoppingSiteNumber+j];
+
             constantRatesSumPart+=rates[i*hoppingSiteNumber+j];
-            constantRatesSumPart+=rates[j*hoppingSiteNumber+i];
         }
     }
 
@@ -797,6 +790,32 @@ void System::updateOccupationAndPotential(std::vector<bool> const & newOccupatio
         swapTrackFile.open(std::string("swapTrackFile")+std::to_string(fileNumber)+std::string(".txt"), std::ios::out); // swapTracker
         fileNumber++; // swapTracker
     #endif
+
+    DEBUG_FUNC_END
+}
+
+void System::updateOccupation(std::vector<bool> const & newOccupation){
+    DEBUG_FUNC_START
+    
+    occupation = newOccupation;
+
+    // set acceptor energies
+    // donor interaction
+    for(int i=0;i<acceptorNumber;i++){
+        energies[i]=finEle->getPotential(acceptorPositionsX[i],acceptorPositionsY[i])*parameterStorage->parameters.at("e")/parameterStorage->parameters.at("kT");
+        for(int j=0;j<parameterStorage->parameters.at("donorNumber");j++){
+            energies[i]+=parameterStorage->parameters.at("I0")*1/std::sqrt(std::pow(acceptorPositionsX[i]-donorPositionsX[j],2)+std::pow(acceptorPositionsY[i]-donorPositionsY[j],2));
+        }
+    }
+    //set coulomb part (with start occupation)
+    for(int i=0;i<acceptorNumber;i++){ //coulomb interaction only with acceptors and..
+        if (not occupation[i]){ //.. only if they are unoccupied
+            for(int const & j : interactionPartners[i]){ //self interaction is ignored, bc pairEnergies[i][i]=0
+                energies[j]+=pairEnergies[i*acceptorNumber+j];
+            }
+        }
+    }
+
 
     DEBUG_FUNC_END
 }
@@ -824,10 +843,10 @@ void System::setNewPotential(){
     //set new potential
     for(int i=0;i<acceptorNumber;i++){
         energies[i]+=finEle->getPotential(acceptorPositionsX[i],acceptorPositionsY[i])*parameterStorage->parameters.at("e")/parameterStorage->parameters.at("kT");
+        // std::cout<<"i "<<i<<" new "<<energies[i]<<std::endl;
     }
     for(int i=0;i<electrodeNumber;i++){
         energies[(i+acceptorNumber)]+=finEle->getPotential(electrodePositionsX[i],electrodePositionsY[i])*parameterStorage->parameters.at("e")/parameterStorage->parameters.at("kT");
-        // std::cout<<"i "<<i<<" new "<<energies[(i+acceptorNumber)]<<std::endl;
     }
 
 
@@ -845,24 +864,22 @@ void System::setNewPotential(){
     for(int i=acceptorNumber;i<hoppingSiteNumber;i++){
         for(int const & j : hoppingPartnersElectrodes[i]){
             deltaEnergies[i*hoppingSiteNumber+j]=energies[j]-energies[i];
-            deltaEnergies[j*hoppingSiteNumber+i]=energies[i]-energies[j];
 
-            if (deltaEnergies[i*hoppingSiteNumber+j] < 0){
-                rates[i*hoppingSiteNumber+j]=baseRates[i*hoppingSiteNumber+j];
-                rates[j*hoppingSiteNumber+i]=baseRates[j*hoppingSiteNumber+i]*enhance::mediumFastExp(-deltaEnergies[j*hoppingSiteNumber+i]);
-            }
-            else if (deltaEnergies[i*hoppingSiteNumber+j] > 0){
-                rates[i*hoppingSiteNumber+j]=baseRates[i*hoppingSiteNumber+j]*enhance::mediumFastExp(-deltaEnergies[i*hoppingSiteNumber+j]);
-                rates[j*hoppingSiteNumber+i]=baseRates[i*hoppingSiteNumber+j];
-            }
-            else{
-                rates[i*hoppingSiteNumber+j]=baseRates[i*hoppingSiteNumber+j];
-                rates[j*hoppingSiteNumber+i]=baseRates[i*hoppingSiteNumber+j];
-            }
+            if      (deltaEnergies[i*hoppingSiteNumber+j] < 0) rates[i*hoppingSiteNumber+j]=baseRates[i*hoppingSiteNumber+j];
+            else if (deltaEnergies[i*hoppingSiteNumber+j] > 0) rates[i*hoppingSiteNumber+j]=baseRates[i*hoppingSiteNumber+j]*enhance::mediumFastExp(-deltaEnergies[i*hoppingSiteNumber+j]);
+            else                                               rates[i*hoppingSiteNumber+j]=baseRates[i*hoppingSiteNumber+j];
+
             constantRatesSumPart+=rates[i*hoppingSiteNumber+j];
-            constantRatesSumPart+=rates[j*hoppingSiteNumber+i];
         }
     }
+
+
+    // double sum = 0, sumAbs = 0;
+    // for(int i=acceptorNumber;i<hoppingSiteNumber;i++){
+    //     sum+=energies[i];
+    //     sumAbs+=std::abs(energies[i]);
+    // }
+    // std::cerr<<"sum "<<sum<<" abs "<<sumAbs<<std::endl;
 
     DEBUG_FUNC_END
 }
@@ -878,6 +895,8 @@ mfem::GridFunction System::getPotential() const{
 void System::findSwap(){
     DEBUG_FUNC_START
 
+
+    // noSwapFound:
     double rndNumber=enhance::random_double(0,ratesSum);
     double partRatesSum=0;
 
@@ -933,7 +952,9 @@ void System::findSwap(){
             }
         }
     }
-    // std::cout<<"no swapp found! ratesSum: "<<ratesSum<<" partRatesSum: "<<partRatesSum<<" rndNumber: "<<rndNumber<<std::endl;
+    std::cout<<"no swapp found! ratesSum: "<<ratesSum<<" partRatesSum: "<<partRatesSum<<" rndNumber: "<<rndNumber<<std::endl;
+
+    // goto noSwapFound;
 
     foundSwap:;
     // std::cout<<"rates: "<<std::endl;
@@ -1003,6 +1024,9 @@ void System::updateAfterSwap(){
     #ifdef SWAPTRACKER
     swapTrackFile<<lastSwapped1<<";"<<lastSwapped2<<std::endl; // swapTracker
     #endif
+
+    // std::cout<<lastSwapped1<<" -> "<<lastSwapped2<<std::endl; // swapTracker
+
 
     if (lastSwapped1 < acceptorNumber){ //last swapped1 = acceptor, else electrode
         occupation[lastSwapped1]=false;

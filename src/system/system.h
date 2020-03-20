@@ -44,6 +44,7 @@ public:
     
     void updatePotential(std::vector<double> const & voltages);
     void updatePotential(mfem::GridFunction  const & potential);
+    void updateOccupation(std::vector<bool> const & newOccupation);
     void updateOccupationAndPotential(std::vector<bool> const & newOccupation, mfem::GridFunction  const & potential);
     std::vector<bool> const & getOccupation();
 

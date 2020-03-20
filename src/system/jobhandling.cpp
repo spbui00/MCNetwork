@@ -118,6 +118,7 @@ void JobManager::handleJobList(std::vector<Job> & jobs,
                 system->updatePotential(bestJob->voltages);
                 bestJob->potential       = system->getPotential();
 
+
                 //calc equil steps
                 system->resetStoredStates();
                 system->run(bestJob->equilSteps);
@@ -132,7 +133,6 @@ void JobManager::handleJobList(std::vector<Job> & jobs,
                 bestJob->jobMutex->lock();
                 bestJob->jobMutex->unlock();
 
-                //copy shit here
                 system->updateOccupationAndPotential  (bestJob->equilOccupation, bestJob->potential);
             }
 
@@ -141,6 +141,9 @@ void JobManager::handleJobList(std::vector<Job> & jobs,
             system->reset();
             system->run(bestJob->stepsPerTask);
 
+            // int charge=200;
+            // for (auto b: system->getOccupation()) if(b) charge--;
+            // std::cout<<"c: "<<*system->outputCurrentCounter<<" t: "<<system->time<<" i: "<<*(system->outputCurrentCounter)/system->time<<" charge: "<<charge<<std::endl;
             bestJob->resultCurrent      +=*(system->outputCurrentCounter)/system->time;
             bestJob->resultCurrentUncert+=std::pow(*(system->outputCurrentCounter)/system->time,2); //storing current**2 here
             system->reset();
@@ -161,6 +164,10 @@ void JobManager::handleJobList(std::vector<Job> & jobs,
                         bestJob->timeFile<<system->time<<std::endl; // timeTracker
                     #endif
         
+                    // int charge=200;
+                    // for (auto b: system->getOccupation()) if(b) charge--;
+                    // std::cout<<"c: "<<*system->outputCurrentCounter<<" t: "<<system->time<<" i: "<<*(system->outputCurrentCounter)/system->time<<" charge: "<<charge<<std::endl;
+                    
                     bestJob->resultCurrent      +=*(system->outputCurrentCounter)/system->time;
                     bestJob->resultCurrentUncert+=std::pow(*(system->outputCurrentCounter)/system->time,2);
                     system->reset();

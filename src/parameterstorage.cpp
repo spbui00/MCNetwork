@@ -90,18 +90,11 @@ ParameterStorage::ParameterStorage(std::string filename)
     for (size_t i = 0; i < parameters.at("voltageScanPoints"); i++){
         inputVoltages.push_back(parameters.at("voltageScanMin")+i*parameters.at("voltageScanResoultion"));
     }
-    std::cout<<"Searching on "<<parameters.at("voltageScanPoints") <<" Voltage Points";
-    // if (inputVoltages.size() < 8){
-        std::cout<<":"<<std::endl;
+    std::cout<<"Searching on "<<parameters.at("voltageScanPoints") <<" Voltage Points: ";
         for (size_t i = 0; i < parameters.at("voltageScanPoints"); i++){
             std::cout<<inputVoltages[i]<<" ";
         }
         std::cout<<std::endl;
-    // }
-    // else{
-    //     std::cout<<std::endl;
-    // }
-    
 
 
     DEBUG_FUNC_END
