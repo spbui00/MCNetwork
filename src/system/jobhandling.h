@@ -25,7 +25,7 @@ class Job
 
         int equilSteps, totalSteps, stepsPerTask;
         int tasksToGo; 
-        static const int tasksPerJob = 20;
+        static const int tasksPerJob = 100;
         int threadNumber = 0;
         std::vector<double> voltages;
         double resultCurrent = 0, resultCurrentUncert = 0;

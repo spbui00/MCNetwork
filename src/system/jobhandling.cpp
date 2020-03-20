@@ -140,6 +140,7 @@ void JobManager::handleJobList(std::vector<Job> & jobs,
             system->resetStoredStates();
             system->reset();
             system->run(bestJob->stepsPerTask);
+            //std::cout<<*system->outputCurrentCounter<<std::endl;
             bestJob->resultCurrent      +=*(system->outputCurrentCounter)/system->time;
             bestJob->resultCurrentUncert+=std::pow(*(system->outputCurrentCounter)/system->time,2); //storing current**2 here
             system->reset();
@@ -160,10 +161,10 @@ void JobManager::handleJobList(std::vector<Job> & jobs,
                         bestJob->timeFile<<system->time<<std::endl; // timeTracker
                     #endif
         
-                    bestJob->resultCurrent      +=*(system->outputCurrentCounter)/system->time;
+                    //std::cout<<*system->outputCurrentCounter<<std::endl;
+		    bestJob->resultCurrent      +=*(system->outputCurrentCounter)/system->time;
                     bestJob->resultCurrentUncert+=std::pow(*(system->outputCurrentCounter)/system->time,2);
-
-                    system->reset();
+		    system->reset();
                 }
                 else{
                     if(bestJob->threadNumber == 1){
