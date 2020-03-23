@@ -10,8 +10,6 @@ Optimizer::Optimizer(std::shared_ptr<ParameterStorage> parameterStorage) :
 
     electrodeNumber=int(parameterStorage->electrodes.size());
 
-    std::string dataFileName = parameterStorage->workingDirecotry+ "data.hdf5";
-    dataFile = std::shared_ptr<DataFile>(new DataFile(dataFileName));
 
     voltageScanPoints = parameterStorage->parameters.at("voltageScanPoints");
 
@@ -22,13 +20,111 @@ Optimizer::Optimizer(std::shared_ptr<ParameterStorage> parameterStorage) :
     }
     controlElectrodeNumber = controlElectrodeIndices.size();
 
+    voltageSets         .push_back(std::vector<double>(electrodeNumber));
+    outputCurrents      .push_back(std::vector<double>(voltageScanPoints*voltageScanPoints));
+    outputCurrentUncerts.push_back(std::vector<double>(voltageScanPoints*voltageScanPoints));
+    voltageSets         .push_back(std::vector<double>(electrodeNumber));
 
-    dataFile->createDataset("outputCurrent",       {voltageScanPoints,voltageScanPoints});
-    dataFile->createDataset("outputCurrentUncert", {voltageScanPoints,voltageScanPoints});
-    dataFile->createDataset("voltages",            {electrodeNumber});
-    dataFile->createDataset("fitness",             {1});
-    dataFile->createDataset("fitnessUncert",       {1});
-    dataFile->createDataset("optEnergy",           {1});
+    DEBUG_FUNC_END
+}
+
+
+/*!
+  - create datafile
+  - if continue mode: search for last energy point
+  - start actual optimization routines
+  \param startMode 0 = use voltages defined in input file, 1 = search for random start using searchForRandomStart(), 2 = continue
+ */
+void Optimizer::run(std::string optimizationMode, int startMode){
+    DEBUG_FUNC_START
+
+    this->optimizationMode = optimizationMode;
+
+    //needed for genetic mode
+    std::vector<std::pair<std::vector<double>,double>> startGenome = {};
+
+    //setup data file
+    std::string dataFileName = parameterStorage->workingDirecotry+ "data.hdf5";
+    if (optimizationMode == "continue"){
+        startMode = 2;
+        //create DataFile by copying existing file
+        dataFile = std::make_shared<DataFile>(dataFileName, false);
+
+        if      (dataFile->checkDataSetExists("accepted")){
+            optimizationMode = "MC";
+            std::cout<< "continue MC optimization"<<std::endl;
+
+            // search for last accepted point in datafile
+            std::vector<double> accepted = * dataFile->readFullDataset("accepted"); 
+            int lastAccepted=0;
+            for (size_t i = accepted.size()-1; i >=0 ; i--){
+                if (accepted[i] == 1){
+                    lastAccepted=i;
+                    break;
+                }
+            }
+            
+            //set last accepted point
+            voltageSets[0]          = * dataFile->readDatasetSlice("voltages",lastAccepted); 
+            outputCurrents      [0] = * dataFile->readDatasetSlice("outputCurrent",lastAccepted);
+            outputCurrentUncerts[0] = * dataFile->readDatasetSlice("outputCurrentUncert",lastAccepted);
+
+            calcOptimizationEnergy();
+            
+            std::cout<<"last accepted point: optEnergy: "<<optEnergy    <<" fitness: ("<<fitness    <<" +- "<<fitnessUncert    <<") normedDiff: "<<normedDiff<<std::endl;
+        
+            std::cout<<"voltages: "<<std::endl;
+            for(int i=0;i<electrodeNumber;i++){
+                if((i !=parameterStorage->parameters.at("outputElectrode")) & (i !=parameterStorage->parameters.at("inputElectrode1")) &(i !=parameterStorage->parameters.at("inputElectrode2"))){
+                    std::cout<<i<<" "<<voltageSets[0][i]<<std::endl;
+                }
+            }
+
+
+
+
+        }
+        else if (dataFile->checkDataSetExists("generation")){
+            optimizationMode = "genetic";
+
+            throw std::logic_error("continuing genetic optimization - not implemented yet");
+
+        }
+        else if (dataFile->checkDataSetExists("basinNumber")){
+            optimizationMode = "basinHop";
+
+            throw std::logic_error("continuing basinHop optimization - not implemented yet");
+
+        }
+        else{
+            throw std::logic_error("no dataset found in datafile that matches a started optimization -> can not continue");
+        }
+
+    }
+    else{
+        //creating new file
+        dataFile = std::make_shared<DataFile>(dataFileName, true);
+        
+        dataFile->createDataset("outputCurrent",       {voltageScanPoints,voltageScanPoints});
+        dataFile->createDataset("outputCurrentUncert", {voltageScanPoints,voltageScanPoints});
+        dataFile->createDataset("voltages",            {electrodeNumber});
+        dataFile->createDataset("fitness",             {1});
+        dataFile->createDataset("fitnessUncert",       {1});
+        dataFile->createDataset("optEnergy",           {1});
+
+        //add mode specific datasets
+        if      (optimizationMode == "MC"      ){ dataFile->createDataset("accepted"   ,{1}); }
+        else if (optimizationMode == "genetic" ){ dataFile->createDataset("generation" ,{1}); }
+        else if (optimizationMode == "basinHop"){ dataFile->createDataset("basinNumber",{1}); }
+    }
+
+
+    // start run
+    if      (optimizationMode == "singleRun"){ singleRun();            }
+    else if (optimizationMode == "MC"       ){ optimizeMC(startMode);  }
+    else if (optimizationMode == "genetic"  ){ optimizeGenetic(startGenome);}
+    else if (optimizationMode == "basinHop" ){ optimizeBasinHopping(); }
+
 
     DEBUG_FUNC_END
 }
@@ -92,15 +188,17 @@ void Optimizer::calcOptimizationEnergy(){
 }
 
 
-void Optimizer::run(){
+
+
+/*!
+  not performing any optimization, just runing control voltages defined in input file
+ */
+void Optimizer::singleRun(){
     DEBUG_FUNC_START
     std::cout<<"running fixed setup"<<std::endl;
 
     auto startTime = std::chrono::steady_clock::now();
 
-    voltageSets         .push_back(std::vector<double>(electrodeNumber));
-    outputCurrents      .push_back(std::vector<double>(voltageScanPoints*voltageScanPoints));
-    outputCurrentUncerts.push_back(std::vector<double>(voltageScanPoints*voltageScanPoints));
 
     for(int i=0; i < electrodeNumber; i++){
         voltageSets[0][i] = parameterStorage->electrodes[i].voltage;
@@ -120,28 +218,22 @@ void Optimizer::run(){
     
     DEBUG_FUNC_END
 }
+
+
 /*!
   optimize cotrol voltages using simple Monte Carlo algorithm
   \param rndStart if True: searchForRandomStart() is called to find best start point, else: voltages given in input file are used
  */
-void Optimizer::optimizeMC(bool rndStart /*= false*/){
+void Optimizer::optimizeMC(int startMode /*= 0*/){
     DEBUG_FUNC_START
 
-    dataFile->createDataset("accepted",{1});
     double accepted = 1;
     std::cout<<"running optimization - simple MC"<<std::endl;
-    mode = "MC";
 
 
-    voltageSets         .push_back(std::vector<double>(electrodeNumber));
-    outputCurrents      .push_back(std::vector<double>(voltageScanPoints*voltageScanPoints));
-    outputCurrentUncerts.push_back(std::vector<double>(voltageScanPoints*voltageScanPoints));
     
-    // init random voltages
-    if (rndStart){
-        searchForRandomStart();
-    }
-    else{
+    // init voltages
+    if      (startMode == 0){
         for(int i=0; i < electrodeNumber; i++){
             voltageSets[0][i] = parameterStorage->electrodes[i].voltage;
         }
@@ -154,6 +246,11 @@ void Optimizer::optimizeMC(bool rndStart /*= false*/){
         dataFile->addData("accepted",& accepted);
 
         std::cout<<"optEnergy: "<<optEnergy    <<" fitness: ("<<fitness    <<" +- "<<fitnessUncert    <<") normedDiff: "<<normedDiff<<std::endl;
+    }
+    else if (startMode == 1) {
+        searchForRandomStart();
+    }
+    else if (startMode == 2) {
     }
 
     // constructive run
@@ -225,18 +322,13 @@ void Optimizer::optimizeMC(bool rndStart /*= false*/){
 void Optimizer::optimizeGenetic(std::vector<std::pair<std::vector<double>,double>> const & startGenome /* = {} */){
     DEBUG_FUNC_START
 
-    dataFile->createDataset("generation",{1});
     std::cout<<"running optimization - genetic"<<std::endl;
-    mode = "genetic";
 
     // lambda function needed later to sort genome set
     auto genomeComparator = []( const std::pair<std::vector<double>,double>& l, const std::pair<std::vector<double>,double>& r) { return l.second > r.second; };
 
 
 
-    voltageSets         .push_back(std::vector<double>(electrodeNumber));
-    outputCurrents      .push_back(std::vector<double>(voltageScanPoints*voltageScanPoints));
-    outputCurrentUncerts.push_back(std::vector<double>(voltageScanPoints*voltageScanPoints));
 
 
     double bestFitness       = 0;
@@ -421,16 +513,11 @@ void Optimizer::optimizeGenetic(std::vector<std::pair<std::vector<double>,double
 void Optimizer::optimizeBasinHopping(bool rndStart /*= false*/){
     DEBUG_FUNC_START
 
-    throw std::logic_error("not implemented yet");
+    throw std::logic_error("basin hopping - not implemented yet");
 
-    dataFile->createDataset("basinNumber",{1});
     std::cout<<"running optimization - basin hopping"<<std::endl;
-    mode = "basinHopping";
 
 
-    voltageSets         .push_back(std::vector<double>(electrodeNumber));
-    outputCurrents      .push_back(std::vector<double>(voltageScanPoints*voltageScanPoints));
-    outputCurrentUncerts.push_back(std::vector<double>(voltageScanPoints*voltageScanPoints));
     
 
 
@@ -585,11 +672,11 @@ void Optimizer::searchForRandomStart(){
 
         calcOptimizationEnergy();
         saveResults();
-        if (mode == "MC"){
-            int a = -1;
+        if (optimizationMode == "MC"){
+            int a = 1;
             dataFile->addData("accepted",& a);
         }
-        else if (mode == "basinHopping"){
+        else if (optimizationMode == "basinHop"){
             int a = -1;
             dataFile->addData("basinNumber",& a);
         }
@@ -636,7 +723,7 @@ bool Optimizer::desiredLogicFunction(double val1, double val2, std::string gate)
     else if(gate == "XOR" ){ return  (b1 ^ b2);}
     else if(gate == "NXOR"){ return !(b1 ^ b2);}
     else{
-        throw std::runtime_error("logic operation not found");
+        throw std::runtime_error("logic gate not found");
     }
 
     DEBUG_FUNC_END

@@ -952,9 +952,7 @@ void System::findSwap(){
             }
         }
     }
-    std::cout<<"no swapp found! ratesSum: "<<ratesSum<<" partRatesSum: "<<partRatesSum<<" rndNumber: "<<rndNumber<<std::endl;
-
-    // goto noSwapFound;
+    throw std::logic_error("internal error! no swap found. ratesSum: " + std::to_string(ratesSum) + " partRatesSum: " + std::to_string(partRatesSum) + " rndNumber: " + std::to_string(rndNumber));
 
     foundSwap:;
     // std::cout<<"rates: "<<std::endl;

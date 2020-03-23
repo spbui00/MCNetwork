@@ -18,21 +18,15 @@ class Optimizer
 public:
     Optimizer(std::shared_ptr<ParameterStorage>);
 
-    void optimizeMC(bool rndStart = false);
-    void optimizeGenetic(std::vector<std::pair<std::vector<double>,double>> const & startGenome = {});
-    void optimizeBasinHopping(bool rndStart = false);
-    void optimizeGradient(int basinNumber);
-    void run();
-    
-    
+    void run(std::string optimizationMode, int startMode);
+
 private:
     int electrodeNumber, voltageScanPoints;
     int controlElectrodeNumber;
     double fitness = 0,fitnessUncert = 0,optEnergy = 0;  /*!< optimization energy of last simulated voltage set. set by calcOptimizationEnergy() */
-    double normedDiff = 0;
-
-    std::string mode; /*!< circle or rect */
-
+    double normedDiff = 0; /*!< parameter to quantify difference between high und low output current */
+    std::string optimizationMode;  /*!< MC, genetic, basinHop, singleRun */
+    
     std::vector<std::vector<double>> voltageSets;
     std::vector<std::vector<double>> outputCurrents;
     std::vector<std::vector<double>> outputCurrentUncerts;
@@ -50,6 +44,12 @@ private:
     bool desiredLogicFunction(double val1, double val2, std::string gate);
 
     void searchForRandomStart();
+
+    void optimizeMC(int startMode = 0);
+    void optimizeGenetic(std::vector<std::pair<std::vector<double>,double>> const & startGenome = {});
+    void optimizeBasinHopping(bool rndStart = false);
+    void optimizeGradient(int basinNumber);
+    void singleRun();
 };
 
 

@@ -32,8 +32,6 @@ JobManager::JobManager(std::shared_ptr<ParameterStorage> parameterStorage) :
 std::pair<std::vector<double>,std::vector<double>> const JobManager::runControlVoltagesSetup(std::vector<double> const & voltages){
     DEBUG_FUNC_START
 
-
-
     //make Jobs
     for (size_t i = 0; i < voltageScanPoints; i++){
         for (size_t j = 0; j < voltageScanPoints; j++){

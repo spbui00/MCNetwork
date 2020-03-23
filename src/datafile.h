@@ -15,18 +15,26 @@
 #include <stdio.h>
 using namespace H5;
 
+
+
+
 class DataFile
 {
 public:
-    DataFile(std::string _filename);
+    DataFile(std::string filename, bool createNew);
     void createDataset(std::string datasetName, std::vector<int> dimensions);
     void createAttribute(std::string, double);
 
     template<typename Data>
     void addData(std::string datasetName,Data data);
 
+    std::unique_ptr<std::vector<double>> readFullDataset (std::string datasetName);
+    std::unique_ptr<std::vector<double>> readDatasetSlice(std::string datasetName, int index);
+
+    bool checkDataSetExists(std::string datasetName);
+
 private:    
-    std::map<std::string,int>    indexMap;
+    static std::map<std::string,int>    indexMap;  /*!< maps datset names to index to find properties, e.g. dims \n has to be static to be accessible by  C API in lambda function in constructor DataFile() */
     std::string                  filename;    
     int                          numberOfDatasets=0;
     std::vector< hsize_t >       dims;
@@ -36,7 +44,6 @@ private:
     std::vector< hsize_t * >     chunk_dims;
     std::vector< hsize_t * >     maxdimsf;
 
-    DataSpace spaceDummy;
 };
 
 
@@ -46,7 +53,6 @@ void DataFile::addData(std::string datasetName,Data data){
     size  [index][0]++;
     offset[index][0]=size[index][0]-1;
 
-    spaceDummy=DataSpace( dims[index], dimsf[index]);
 
     H5File file;
 
@@ -70,13 +76,19 @@ void DataFile::addData(std::string datasetName,Data data){
         goto tryAgian;
     }
 
+    //get data space
     DataSet dataset=file.openDataSet(datasetName);
-
     dataset.extend(size[index]);
     DataSpace fspace = dataset.getSpace ();
     fspace.selectHyperslab( H5S_SELECT_SET, dimsf[index], offset[index]);
 
-    dataset.write( data , PredType::NATIVE_DOUBLE, spaceDummy, fspace );
+    //get mem space
+    DataSpace memSpace (dims[index], dimsf[index]);
+
+
+    dataset.write( data , PredType::NATIVE_DOUBLE, memSpace, fspace );
 }
+
+
 
 #endif // DATAFILE_H

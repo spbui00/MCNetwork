@@ -105,23 +105,28 @@ int main(int argc, char *argv[]){
    std::shared_ptr<ParameterStorage> parameterStorage(new ParameterStorage(inputFileName));//all input parameters are stored in the shared pointer "inputfile". all classes get the pointer 
    parameterStorage->workingDirecotry=workingDirecotry;
    parameterStorage->makeNewDevice = vm.count("mnd");
+   int startMode                   = vm.count("rSV");
 
-
-   Optimizer optimizer(parameterStorage);
-
-
+   std::string optimizationMode;
    if (vm.count("optMC")){
-      optimizer.optimizeMC(vm.count("rSV"));
+      optimizationMode = "MC";
    }
    else if (vm.count("optGen")){
-      optimizer.optimizeGenetic();
+      optimizationMode = "genetic";
    }
    else if (vm.count("optBasinHop")){
-      optimizer.optimizeBasinHopping(vm.count("rSV"));
+      optimizationMode = "basinHop";
    }
    else if (vm.count("run")){
-      optimizer.run();
+      optimizationMode = "singleRun";
    }
+   if (vm.count("continue")){
+      optimizationMode = "continue";
+   }
+
+   Optimizer optimizer(parameterStorage);
+   optimizer.run(optimizationMode, startMode);
+
       
 
    DEBUG_FUNC_END
