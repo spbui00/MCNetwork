@@ -51,7 +51,7 @@ i=0
 with open(join(pathToSimFolder,"in.txt")) as oldFile:
     with open(join(pathToSimFolder,"in2.txt"),"w") as newFile:
         for rawLine in oldFile:
-            print(rawLine)
+            # print(rawLine)
             line = sub(r' #.*', "", rawLine)
             line = sub(r'#.*', "", line)
             

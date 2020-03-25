@@ -40,7 +40,6 @@ TODO:
    TECHNICAL:
       - set "-D SWAPTRACKER" in cmake file
       - improve argument parsing
-      - make crashed simulaten resumeable
       - add log file
       - support INT data format in datafile
    PHYSICAL:
@@ -52,7 +51,7 @@ TODO:
 OPT:
    - store only output electrode current
    - improve hash algorithm
-   - do not recalc all rates (if coulomb cut)
+   - in optimzer: store only control voltages
 */
 
 namespace po = boost::program_options;

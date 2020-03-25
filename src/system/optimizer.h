@@ -22,15 +22,17 @@ public:
 
 private:
     int electrodeNumber, voltageScanPoints;
-    int controlElectrodeNumber;
-    double fitness = 0,fitnessUncert = 0,optEnergy = 0;  /*!< optimization energy of last simulated voltage set. set by calcOptimizationEnergy() */
+    size_t controlElectrodeNumber;
+    double fitness = 0,fitnessUncert = 0,optEnergy = 0;  /*!< optimization energy of last simulated voltage set. set by calcOptimizationEnergy(). only local variable, use voltageEnergySets[i].second instead. */
     double normedDiff = 0; /*!< parameter to quantify difference between high und low output current */
+    size_t iteration=0;
     std::string optimizationMode;  /*!< MC, genetic, basinHop, singleRun */
+
+    std::vector<std::pair<std::vector<double>,double>> voltageEnergySets; /*!< all methods share one central storage for all sets of control voltages and corresponding optEnergies they need to know at a time. size and indexing differs from method to method, see methods doc for more details.\n voltageEnergySets consists of pair of vector of control voltages and optEnergy. \n first = voltages \n second = optEnergy. */
+    std::vector<double> outputCurrents;
+    std::vector<double> outputCurrentUncerts;
     
-    std::vector<std::vector<double>> voltageSets;
-    std::vector<std::vector<double>> outputCurrents;
-    std::vector<std::vector<double>> outputCurrentUncerts;
-    std::vector<int> controlElectrodeIndices;
+    std::vector<size_t> controlElectrodeIndices;
     
 
     std::shared_ptr<ParameterStorage> parameterStorage;
@@ -40,15 +42,15 @@ private:
     JobManager jobManager;
 
     void calcOptimizationEnergy();
-    void saveResults();
+    void saveResults(size_t index = 0);
     bool desiredLogicFunction(double val1, double val2, std::string gate);
 
     void searchForRandomStart();
 
-    void optimizeMC(int startMode = 0);
-    void optimizeGenetic(std::vector<std::pair<std::vector<double>,double>> const & startGenome = {});
-    void optimizeBasinHopping(bool rndStart = false);
-    void optimizeGradient(int basinNumber);
+    void optimizeMC          (size_t startMode = 0);
+    void optimizeGenetic     (size_t startMode = 0);
+    void optimizeBasinHopping(size_t startMode = 0);
+    void optimizeGradient();
     void singleRun();
 };
 

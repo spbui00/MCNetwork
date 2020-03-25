@@ -23,17 +23,29 @@ while fileOpenTries < 50:
         with h5py.File(join(pathToSimFolder,"data.hdf5"),"r") as dataFile:
             voltages=np.array(dataFile["/voltages"][:])
             optEnergy=np.array(dataFile["/optEnergy"][:])
-            try:
-                generations=np.array(dataFile["/generation"][:])
-                mode="genetic"
-            except KeyError:
+            while True:
+                try:
+                    generations=np.array(dataFile["/generation"][:])
+                    mode="genetic"
+                    break
+                except KeyError:
+                    pass
+                try:
+                    basinAccepted=np.array(dataFile["/basinAccepted"][:],dtype=int)
+                    accepted=basinAccepted.astype(bool)
+                    notAccepted=np.invert(accepted)
+                    mode="basinHop"
+                    break
+                except KeyError:
+                    pass
                 mode="MC"
                 try:
                     accepted=np.array(dataFile["/accepted"][:],dtype=bool)
                     notAccepted=np.invert(accepted)
-                except KeyError:
-                    accepted=np.ones(optEnergy.shape,dtype=bool)
+                except KeyError: 
+                    accepted=np.ones(optEnergy.shape,dtype=bool) #support for deprecated version
                     notAccepted=np.invert(accepted)
+                break
         break
     except OSError as e:
         if "No such file" in repr(e) :
@@ -91,7 +103,7 @@ fig=None
 
 
 
-# print(accepted)
+# print(mode)
 
 
 
@@ -110,10 +122,14 @@ if mode=="genetic":
     ax.plot(optEnergy,".",ms=1,color="darkgreen",label="all")
     ax.plot(genBest,color="darkblue",label="gen best")
 
-if mode=="MC":
+if mode=="MC" or mode =="basinHop":
     ax.plot(np.arange(optEnergy.shape[0])[notAccepted[:,0]],optEnergy[notAccepted],".",ms=1,color="darkred",label="not accepted")
     ax.plot(np.arange(optEnergy.shape[0])[accepted[:,0]],optEnergy[accepted],".",ms=1,color="darkgreen",label="accepted")
     
+if mode == "basinHop":
+    for i in np.where(basinAccepted[:,0] == 2)[0]:
+        ax.axvline(i, color = "k", zorder= -1 )
+        
 
 
 # ax.set_xlim(-0.15,0.65)

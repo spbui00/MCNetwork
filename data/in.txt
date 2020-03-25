@@ -57,14 +57,14 @@ radius 150 #nm
 
 
 
-electrode 0 0
-electrode 45 0.47266198
-electrode 90 -0.29371
-electrode 135 0
-electrode 180 0.1498348
-electrode 225 0
-electrode 270 0.65434059
-electrode 315 0.93018677
+electrode 0 0.0
+electrode 45 0.43644452914969567
+electrode 90 -0.3214122141745391
+electrode 135 0.0
+electrode 180 0.1344949937773669
+electrode 225 0.0
+electrode 270 0.6162584320452693
+electrode 315 0.9712917865704597
 
 
 
@@ -89,14 +89,17 @@ fitnessUncertWeight 2
 diffWeight 0.0
 rndStartPoints 20
 convergenceEnergy 0.95
-maxStepIncreases 10
+maxStepIncreases 0
 
 #MC opt
 MCTemp 0.01
 
 #basin opt
-basinTemp 0.04
-basinDeltaV 0.2
+basinTemp 0.2
+basinDeltaV 0.5
+basinWaitSteps 20 #steps after which a basin jump is done
+
+#grad opt
 gradDeltaV 0.02
 
 
