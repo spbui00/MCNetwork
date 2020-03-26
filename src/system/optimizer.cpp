@@ -564,11 +564,13 @@ void Optimizer::optimizeBasinHopping(size_t startMode /*= 0*/){
             if((voltageEnergySets[2].second < voltageEnergySets[3].second) & (enhance::fastExp((voltageEnergySets[2].second-voltageEnergySets[3].second)/parameterStorage->parameters.at("basinTemp"))<enhance::random_double(0,1))){
                 std::cout<<"-- basin not accepted --"<<std::endl;
                 voltageEnergySets[0] = voltageEnergySets[3]; //update current point (for next basin)
+                basinAccepted = 2; 
             }
             else {
                 std::cout<<"-- basin accepted --"<<std::endl;
                 voltageEnergySets[0] = voltageEnergySets[2]; //update current point (for next basin)
                 voltageEnergySets[3] = voltageEnergySets[2]; //update last basin best
+                basinAccepted = 3; 
             }
 
             std::cout<<"new random voltages: "<<std::endl;
@@ -584,7 +586,6 @@ void Optimizer::optimizeBasinHopping(size_t startMode /*= 0*/){
             calcOptimizationEnergy();
             voltageEnergySets[0].second = optEnergy;
             saveResults(0);
-            basinAccepted = 2; 
             dataFile->addData("basinAccepted",& basinAccepted);
 
             std::cout<<"optEnergy: "<<voltageEnergySets[0].second    <<" fitness: ("<<fitness    <<" +- "<<fitnessUncert    <<") normedDiff: "<<normedDiff<<std::endl;
@@ -751,14 +752,14 @@ void Optimizer::searchForRandomStart(){
 
         auto startTime = std::chrono::steady_clock::now();
 
-        std::pair<std::vector<double>,std::vector<double>> result = jobManager.runControlVoltagesSetup(voltageEnergySets[0].first);
+        std::pair<std::vector<double>,std::vector<double>> result = jobManager.runControlVoltagesSetup(voltageEnergySets[k].first);
         outputCurrents       = result.first;
         outputCurrentUncerts = result.second;
 
         calcOptimizationEnergy();
         voltageEnergySets[k].second=optEnergy;
         saveResults(k);
-        int a = -1;
+        double a = -1;
         if      (optimizationMode == "MC"      ){dataFile->addData("accepted"     ,& a);}
         else if (optimizationMode == "basinHop"){dataFile->addData("basinAccepted",& a);}
         

@@ -128,7 +128,9 @@ if mode=="MC" or mode =="basinHop":
     
 if mode == "basinHop":
     for i in np.where(basinAccepted[:,0] == 2)[0]:
-        ax.axvline(i, color = "k", zorder= -1 )
+        ax.axvline(i, color = "darkred", zorder= -1 )
+    for i in np.where(basinAccepted[:,0] == 3)[0]:
+        ax.axvline(i, color = "darkgreen", zorder= -1 )
         
 
 
