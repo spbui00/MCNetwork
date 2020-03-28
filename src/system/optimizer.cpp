@@ -37,64 +37,13 @@ void Optimizer::run(std::string optimizationMode, int startMode){
 
     this->optimizationMode = optimizationMode;
 
-    //setup data file
-    std::string dataFileName = parameterStorage->workingDirecotry+ "data.hdf5";
     if (optimizationMode == "continue"){
         startMode = 2;
-        //create DataFile by copying existing file
-        dataFile = std::make_shared<DataFile>(dataFileName, false);
-
-        if      (dataFile->checkDataSetExists("accepted")){
-            optimizationMode = "MC";
-            std::cout<< "continue MC optimization"<<std::endl;
-
-            // search for last accepted point in datafile
-            std::vector<double> accepted = * dataFile->readFullDataset("accepted"); 
-            int lastAccepted=0;
-            for (size_t i = accepted.size()-1; i >=0 ; i--){
-                if (accepted[i] == 1){
-                    lastAccepted=i;
-                    break;
-                }
-            }
-            
-            //set last accepted point
-            voltageEnergySets[0].first = * dataFile->readDatasetSlice("voltages"           ,lastAccepted); 
-            outputCurrents             = * dataFile->readDatasetSlice("outputCurrent"      ,lastAccepted);
-            outputCurrentUncerts       = * dataFile->readDatasetSlice("outputCurrentUncert",lastAccepted);
-
-            calcOptimizationEnergy();
-            voltageEnergySets[0].second = optEnergy; 
-
-            
-            std::cout<<"last accepted point: optEnergy: "<<voltageEnergySets[0].second    <<" fitness: ("<<fitness    <<" +- "<<fitnessUncert    <<") normedDiff: "<<normedDiff<<std::endl;
-        
-            std::cout<<"voltages: "<<std::endl;
-            for(int i=0;i<controlElectrodeNumber;i++){
-                std::cout<<controlElectrodeIndices[i]<<" "<<voltageEnergySets[0].first[controlElectrodeIndices[i]]<<std::endl;
-            }
-
-        }
-        else if (dataFile->checkDataSetExists("generation")){
-            optimizationMode = "genetic";
-
-            throw std::logic_error("continuing genetic optimization - not implemented yet");
-
-        }
-        else if (dataFile->checkDataSetExists("basinAccepted")){
-            optimizationMode = "basinHop";
-
-            throw std::logic_error("continuing basinHop optimization - not implemented yet");
-
-        }
-        else{
-            throw std::logic_error("no dataset found in datafile that matches a started optimization -> can not continue");
-        }
-
+        continueSimulation();
     }
     else{
         //creating new file
-        dataFile = std::make_shared<DataFile>(dataFileName, true);
+        dataFile = std::make_shared<DataFile>(parameterStorage->workingDirecotry+ "data.hdf5", true);
         
         dataFile->createDataset("outputCurrent",       {voltageScanPoints,voltageScanPoints});
         dataFile->createDataset("outputCurrentUncert", {voltageScanPoints,voltageScanPoints});
@@ -104,16 +53,137 @@ void Optimizer::run(std::string optimizationMode, int startMode){
         dataFile->createDataset("optEnergy",           {1});
 
         //add mode specific datasets
-        if      (optimizationMode == "MC"      ){ dataFile->createDataset("accepted"     ,{1}); } // -1 = start, 0 = false, 1 = true
-        else if (optimizationMode == "genetic" ){ dataFile->createDataset("generation"   ,{1}); } // generation number
-        else if (optimizationMode == "basinHop"){ dataFile->createDataset("basinAccepted",{1}); } // -1 = start, 0 = flase, 1 =true, 2 = basin jump
+        if      (this->optimizationMode == "MC"      ){ dataFile->createDataset("accepted"     ,{1}); } // -1 = start, 0 = false, 1 = true
+        else if (this->optimizationMode == "genetic" ){ dataFile->createDataset("generation"   ,{1}); } // generation number
+        else if (this->optimizationMode == "basinHop"){ dataFile->createDataset("basinAccepted",{1}); } // -1 = start, 0 = flase, 1 =true, 2 = basin jump
     }
 
     // start run
-    if      (optimizationMode == "singleRun"){ singleRun()                    ;}
-    else if (optimizationMode == "MC"       ){ optimizeMC          (startMode);}
-    else if (optimizationMode == "genetic"  ){ optimizeGenetic     (startMode);}
-    else if (optimizationMode == "basinHop" ){ optimizeBasinHopping(startMode);}
+    if      (this->optimizationMode == "singleRun"){ singleRun()                    ;}
+    else if (this->optimizationMode == "MC"       ){ optimizeMC          (startMode);}
+    else if (this->optimizationMode == "genetic"  ){ optimizeGenetic     (startMode);}
+    else if (this->optimizationMode == "basinHop" ){ optimizeBasinHopping(startMode);}
+
+    DEBUG_FUNC_END
+}
+
+void Optimizer::continueSimulation(){
+    DEBUG_FUNC_START
+
+    //create DataFile by copying existing file
+    dataFile = std::make_shared<DataFile>(parameterStorage->workingDirecotry+ "data.hdf5", false);
+
+    //check existing datasets in datafile to determine optimization mode
+    if(dataFile->checkDataSetExists("accepted")){
+        optimizationMode = "MC";
+        std::cout<< "continue MC optimization"<<std::endl;
+
+        // search for last accepted point in datafile
+        std::vector<double> accepted = * dataFile->readFullDataset("accepted"); 
+        int lastAccepted=0;
+        for (size_t i = accepted.size()-1; i >=0 ; i--){
+            if (accepted[i] == 1){
+                lastAccepted=i;
+                break;
+            }
+        }
+        
+        //set last accepted point
+        voltageEnergySets[0].first = * dataFile->readDatasetSlice("voltages"           ,lastAccepted); 
+        outputCurrents             = * dataFile->readDatasetSlice("outputCurrent"      ,lastAccepted);
+        outputCurrentUncerts       = * dataFile->readDatasetSlice("outputCurrentUncert",lastAccepted);
+
+        calcOptimizationEnergy();
+        voltageEnergySets[0].second = optEnergy; 
+
+        
+        std::cout<<"last accepted point: optEnergy: "<<voltageEnergySets[0].second    <<" fitness: ("<<fitness    <<" +- "<<fitnessUncert    <<") normedDiff: "<<normedDiff<<std::endl;
+    
+        std::cout<<"voltages: "<<std::endl;
+        for(int i=0;i<controlElectrodeNumber;i++){
+            std::cout<<controlElectrodeIndices[i]<<" "<<voltageEnergySets[0].first[controlElectrodeIndices[i]]<<std::endl;
+        }
+
+    }
+    else if (dataFile->checkDataSetExists("generation")){
+        optimizationMode = "genetic";
+        std::cout<< "continue genetic optimization"<<std::endl;
+
+        throw std::logic_error("continuing genetic optimization - not implemented yet");
+
+    }
+    else if (dataFile->checkDataSetExists("basinAccepted")){
+        optimizationMode = "basinHop";
+        std::cout<< "continue basinHop optimization"<<std::endl;
+
+        while (voltageEnergySets.size()< 4){
+            voltageEnergySets.push_back(std::pair<std::vector<double>,double>(std::vector<double>(electrodeNumber),0));
+        }
+
+        std::vector<double> accepted  = * dataFile->readFullDataset("basinAccepted"); 
+        std::vector<double> optEnergy = * dataFile->readFullDataset("optEnergy"); 
+        int index=0;
+        iteration = accepted.size();
+
+        // search for last accepted point
+        for (size_t i = accepted.size()-1; i >=0 ; i--){
+            if (accepted[i] == 1){
+                index=i;
+                break;
+            }
+        }
+        voltageEnergySets[0].first  =  * dataFile->readDatasetSlice("voltages" ,index); 
+        voltageEnergySets[0].second = optEnergy[index];
+
+        // search for current basin best
+        double best = -INFINITY;
+        for (size_t i = accepted.size()-1; i >=0 ; i--){
+            if (optEnergy[i] > best){
+                best  = optEnergy[i];
+                index = i;
+            }
+            if (accepted[i] == 2 | accepted[i] == 3){
+                break;
+            }
+        }
+        voltageEnergySets[2].first  =  * dataFile->readDatasetSlice("voltages" ,index); 
+        voltageEnergySets[2].second = best; 
+        lastIterationIncrease = index;
+
+
+        // search for last accepted basin best
+        // first search for last accepted basin
+        best  = -INFINITY;
+        index = 0;
+        for (size_t i = accepted.size()-1; i >=0 ; i--){
+            if (accepted[i] == 3){
+                index = i;
+                break;
+            }
+        }
+        //search for best energy in basin
+        for (size_t i = index-1; i >=0 ; i--){ //starting at last basin
+            if (optEnergy[i] > best){
+                best  = optEnergy[i];
+                index = i;
+            }
+            if (accepted[i] == 2 | accepted[i] == 3){
+                break;
+            }
+        }
+        voltageEnergySets[3].first  =  * dataFile->readDatasetSlice("voltages" ,index); 
+        voltageEnergySets[3].second = best; 
+
+
+        std::cout<<"last accepted:      "<< voltageEnergySets[0].second <<std::endl;
+        std::cout<<"current basin best: "<< voltageEnergySets[2].second <<std::endl;
+        std::cout<<"last    basin best: "<< voltageEnergySets[3].second <<std::endl;
+
+
+    }
+    else{
+        throw std::logic_error("no dataset found in datafile that matches a started optimization -> can not continue");
+    }
 
     DEBUG_FUNC_END
 }
@@ -534,7 +604,7 @@ void Optimizer::optimizeBasinHopping(size_t startMode /*= 0*/){
         dataFile->addData("basinAccepted",& basinAccepted);
 
         std::cout<<"optEnergy: "<<voltageEnergySets[0].second    <<" fitness: ("<<fitness    <<" +- "<<fitnessUncert    <<") normedDiff: "<<normedDiff<<std::endl;
-        voltageEnergySets[2] = voltageEnergySets[1]; //basin best
+        voltageEnergySets[2] = voltageEnergySets[0]; //basin best
         voltageEnergySets[3].second = -INFINITY;     // last basin best
     }
     else if (startMode == 1) { //rnd start
@@ -548,7 +618,6 @@ void Optimizer::optimizeBasinHopping(size_t startMode /*= 0*/){
     double lastFitness       = fitness;
     double lastFitnessUncert = fitnessUncert;
     double lastNormedDiff    = normedDiff;
-    size_t lastIterationIncrease = 0; //last time optEnergy increased
     
     voltageEnergySets[1]   = voltageEnergySets[0];
 
@@ -716,7 +785,7 @@ void Optimizer::optimizeGradient(){
 }
 
 /*!
-    generates "rndStartPoints" random control voltage points and sets voltageEnergySets[0].first and optEnergy to the best result
+    generates "rndStartPoints" random control voltage points and sets voltageEnergySets[0] to the best result
 */
 void Optimizer::searchForRandomStart(){
     DEBUG_FUNC_START

@@ -4,7 +4,7 @@ from os.path import join
 from re import sub
 import numpy as np
 import matplotlib as ma
-ma.use("agg")
+# ma.use("agg")
 import matplotlib.pylab as plt
 
 plt.rc('text', usetex=True)
@@ -27,7 +27,7 @@ def readParameters(pathToSimFolder):
             # print(splitted)
             if splitted[0]=="electrode":
                 try:             geom = parameters["geometry"]
-                except KeyError: geom = "rect" #to support old files where geometry wasnt defined yet
+                except KeyError: geom = "rect" #to support old files where geometry wasnt defined yet   
                 if geom == "rect":
                     electrodes.append([float(splitted[1]),float(splitted[2]),float(splitted[3])])
                 elif geom == "circle":

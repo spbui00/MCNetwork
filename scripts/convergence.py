@@ -84,9 +84,9 @@ MSD = np.sum((cotrolVoltages[0]-cotrolVoltages[:])**2,axis=1)
 fig, ax=plt.subplots(1,1,figsize=(4.980614173228346,3.2))
 
 
-ax.plot(range(len(MSD)), MSD, "k-",label = "MSD")
+ax.plot(range(len(MSD)), MSD, "r-",label = "MSD")
 ax2=ax.twinx()
-ax2.plot(range(int(distance+meanRange/2),cotrolVoltages.shape[0]), displace, "r-",label="displacement")
+ax2.plot(range(int(distance+meanRange/2),cotrolVoltages.shape[0]), displace, "k-",label="displacement")
 
 ax.legend()
 ax2.legend()
@@ -132,7 +132,14 @@ if mode == "basinHop":
     for i in np.where(basinAccepted[:,0] == 3)[0]:
         ax.axvline(i, color = "darkgreen", zorder= -1 )
         
-
+    basinChanges = np.where(np.logical_or(basinAccepted[:,0] == 2,  basinAccepted[:,0] == 3))[0] 
+    ax.plot(np.arange(0,basinChanges[0]),np.maximum.accumulate(optEnergy[:basinChanges[0]]),color="darkblue",label="basin best")
+    for i in range(1,len(basinChanges)):
+        ax.plot(np.arange(basinChanges[i-1],basinChanges[i]),np.maximum.accumulate(optEnergy[basinChanges[i-1]:basinChanges[i]]),color="darkblue")
+    ax.plot(np.arange(basinChanges[-1],len(optEnergy)),np.maximum.accumulate(optEnergy[basinChanges[-1]:]),color="darkblue")
+        
+        
+        
 
 # ax.set_xlim(-0.15,0.65)
 ax.set_ylim(0.15,1.05)
@@ -145,7 +152,7 @@ ax.legend()
 
 
 plt.savefig(join(pathToSimFolder,"convergence.png"),bbox_inches="tight",dpi=300)    
-# plt.show()
+plt.show()
 plt.close()
 fig=None
 
@@ -161,10 +168,24 @@ if mode=="genetic":
     ax.plot(optEnergy,".",ms=1,color="darkgreen",label="all")
     ax.plot(genBest,color="darkblue",label="gen best")
 
-if mode=="MC":
+
+if mode=="MC" or mode =="basinHop":
     ax.plot(np.arange(optEnergy.shape[0])[notAccepted[:,0]],optEnergy[notAccepted],".",ms=1,color="darkred",label="not accepted")
     ax.plot(np.arange(optEnergy.shape[0])[accepted[:,0]],optEnergy[accepted],".",ms=1,color="darkgreen",label="accepted")
     
+if mode == "basinHop":
+    for i in np.where(basinAccepted[:,0] == 2)[0]:
+        ax.axvline(i, color = "darkred", zorder= -1 )
+    for i in np.where(basinAccepted[:,0] == 3)[0]:
+        ax.axvline(i, color = "darkgreen", zorder= -1 )
+        
+    basinChanges = np.where(np.logical_or(basinAccepted[:,0] == 2,  basinAccepted[:,0] == 3))[0] 
+    ax.plot(np.arange(0,basinChanges[0]),np.maximum.accumulate(optEnergy[:basinChanges[0]]),color="darkblue",label="basin best")
+    for i in range(1,len(basinChanges)):
+        ax.plot(np.arange(basinChanges[i-1],basinChanges[i]),np.maximum.accumulate(optEnergy[basinChanges[i-1]:basinChanges[i]]),color="darkblue")
+    ax.plot(np.arange(basinChanges[-1],len(optEnergy)),np.maximum.accumulate(optEnergy[basinChanges[-1]:]),color="darkblue")
+        
+        
 
 ax2=ax.twinx()
 ax.set_zorder(ax2.get_zorder()+1)
