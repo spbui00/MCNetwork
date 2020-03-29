@@ -44,7 +44,6 @@ TODO:
       - support INT data format in datafile
    PHYSICAL:
       - implement replica exchange
-      - implement basin hopping
    ANALYSIS:
       - calc correlation between voltages and visible currents (using swap track)
       - calc single trajectories

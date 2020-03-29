@@ -4,7 +4,7 @@ from os.path import join
 from re import sub
 import numpy as np
 import matplotlib as ma
-# ma.use("agg")
+ma.use("agg")
 import matplotlib.pylab as plt
 
 plt.rc('text', usetex=True)
