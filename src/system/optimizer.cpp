@@ -59,7 +59,7 @@ void Optimizer::run(std::string optimizationMode, int startMode){
     }
 
     // start run
-    if      (this->optimizationMode == "singleRun"){ singleRun()                    ;}
+    if      (this->optimizationMode == "singleRun"){ singleRun           (startMode);}
     else if (this->optimizationMode == "MC"       ){ optimizeMC          (startMode);}
     else if (this->optimizationMode == "genetic"  ){ optimizeGenetic     (startMode);}
     else if (this->optimizationMode == "basinHop" ){ optimizeBasinHopping(startMode);}
@@ -252,17 +252,26 @@ void Optimizer::calcOptimizationEnergy(){
 /*!
   not performing any optimization, just runing control voltages defined in input file
  */
-void Optimizer::singleRun(){
+void Optimizer::singleRun(size_t startMode){
     DEBUG_FUNC_START
     std::cout<<"running fixed setup"<<std::endl;
 
     auto startTime = std::chrono::steady_clock::now();
 
 
-    for(int i=0; i < electrodeNumber; i++){
-        voltageEnergySets[0].first[i] = parameterStorage->electrodes[i].voltage;
+
+    if (startMode == 0){ //voltages given in input
+        for(int i=0; i < electrodeNumber; i++){
+                voltageEnergySets[0].first[i] = parameterStorage->electrodes[i].voltage;
+            }
+    }
+    else if (startMode == 1){ //rnd point
+        for(int i=0; i < electrodeNumber; i++){
+                voltageEnergySets[0].first[i] = enhance::random_double(parameterStorage->parameters.at("controlVoltageMin"),parameterStorage->parameters.at("controlVoltageMax"));
+            }
     }
 
+    
 
     std::pair<std::vector<double>,std::vector<double>> result = jobManager.runControlVoltagesSetup(voltageEnergySets[0].first);
     outputCurrents       = result.first;

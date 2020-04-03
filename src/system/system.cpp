@@ -1132,8 +1132,7 @@ void System::reset(){
 void System::resetStoredStates(){
     DEBUG_FUNC_START
 
-    std::cout<<"stored states: "<<knownRatesSum->size()<<" size: "<<(hoppingSiteNumber*hoppingSiteNumber+2)*8*knownRatesSum->size()*1e-6<<" MB"<<std::endl;
-
+    // std::cout<<"stored states: "<<knownRatesSum->size()<<" size: "<<(hoppingSiteNumber*hoppingSiteNumber+2)*8*knownRatesSum->size()*1e-6<<" MB"<<std::endl;
     knownRatesSum->clear();
     konwnPartRatesSumList->clear();
 

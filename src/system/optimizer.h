@@ -49,11 +49,11 @@ private:
 
     void searchForRandomStart();
 
+    void singleRun           (size_t startMode = 0);
     void optimizeMC          (size_t startMode = 0);
     void optimizeGenetic     (size_t startMode = 0);
     void optimizeBasinHopping(size_t startMode = 0);
     void optimizeGradient();
-    void singleRun();
 
     void continueSimulation();
 };
