@@ -116,6 +116,11 @@ void System::initilizeMatrices(){
     electrodePositionsX = new double[electrodeNumber];
     electrodePositionsY = new double[electrodeNumber];
 
+    //set rates to 0. only needed for creation of partRatesSumList in storing mode
+    for(int i=0; i < hoppingSiteNumber*hoppingSiteNumber; i++){
+        rates[i]=0;
+    }
+
     DEBUG_FUNC_END
 }
 
@@ -532,7 +537,7 @@ void System::updateRatesStoringMode(){
     else{ //state unknown
         if (storeKnownStates){ //still saving (memory limit not exceeded)
             
-            //following part is nearly calcRates(), only ratesSum is not calculated (set as last component of partRatesSumList afterwards)
+            //following part is nearly calcRates(), only ratesSum is not calculated (instead set as last component of partRatesSumList afterwards)
             {
                 //acc acc hopp
                 for(int i=0;i<acceptorNumber;i++){
@@ -884,7 +889,9 @@ void System::setNewPotential(){
     DEBUG_FUNC_END
 }
 
-
+/*!
+    returns FiniteElementeBase::solutionVector of System::finEle
+ */
 mfem::GridFunction System::getPotential() const{
     DEBUG_FUNC_START
     DEBUG_FUNC_END
@@ -964,6 +971,9 @@ void System::findSwap(){
     DEBUG_FUNC_END
 }
 
+/*!
+    find swapping pair using binary search (BS) algorithm. only used if state is known (in store known states)
+ */
 void System::findSwapBS(){
     DEBUG_FUNC_START
     double rndNumber=enhance::random_double(0,ratesSum);
@@ -1013,6 +1023,10 @@ void System::findSwapBS(){
     DEBUG_FUNC_END
 }
 
+
+/*!
+    updates System::occupation and System::energies after swap pair was found
+ */
 void System::updateAfterSwap(){
     DEBUG_FUNC_START
 
@@ -1058,7 +1072,9 @@ void System::run(int steps){
             // check if memory limit is exceeded
             if (storeKnownStates & (i%1000 ==0) & (((hoppingSiteNumber*hoppingSiteNumber+2)*8*knownRatesSum->size()) >= (parameterStorage->parameters.at("memoryLimit")*1e6))){
                 storeKnownStates=false;
-                // std::cout<<"memory limit exceeded, stopping to store states"<<std::endl;
+                std::cout<<"memory limit exceeded, stopping to store states"<<std::endl;
+                std::cout<<"stored states: "<<knownRatesSum->size()<<" size: "<<(hoppingSiteNumber*hoppingSiteNumber+2)*8*knownRatesSum->size()*1e-6<<" MB"<<std::endl;
+
             }
             updateRatesStoringMode();
             if (ratesInMemory){
@@ -1084,7 +1100,9 @@ void System::run(int steps){
     DEBUG_FUNC_END
 }
 
-
+/*!
+    increase time recording to exponential distribution
+ */
 void System::increaseTime(){
     DEBUG_FUNC_START
 
@@ -1094,6 +1112,9 @@ void System::increaseTime(){
     DEBUG_FUNC_END
 }
 
+/*!
+    set System::time = 0 and System::currentCounter[i] = 0
+ */
 void System::reset(){
     DEBUG_FUNC_START
 
@@ -1105,8 +1126,13 @@ void System::reset(){
     DEBUG_FUNC_END
 }
 
+/*!
+    clears System::knownRatesSum and System::konwnPartRatesSumList
+ */
 void System::resetStoredStates(){
     DEBUG_FUNC_START
+
+    std::cout<<"stored states: "<<knownRatesSum->size()<<" size: "<<(hoppingSiteNumber*hoppingSiteNumber+2)*8*knownRatesSum->size()*1e-6<<" MB"<<std::endl;
 
     knownRatesSum->clear();
     konwnPartRatesSumList->clear();

@@ -76,7 +76,7 @@ private:
 
     std::unique_ptr<FiniteElementeBase> finEle; /*!< finEle device */
 
-    std::shared_ptr<std::vector<double>> partRatesSumList; /*!<ist of accumulated rates for binary search */
+    std::shared_ptr< std::vector<double>> partRatesSumList; /*!<ist of accumulated rates for binary search */
     std::shared_ptr< std::unordered_map<std::vector<bool>,std::shared_ptr<std::vector<double>>>> konwnPartRatesSumList; /*!< map of lists of accumulated rates for binary search, to store known states */
     std::shared_ptr< std::unordered_map<std::vector<bool>,double>>  knownRatesSum;
 

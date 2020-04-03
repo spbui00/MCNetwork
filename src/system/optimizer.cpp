@@ -287,6 +287,7 @@ void Optimizer::singleRun(){
 void Optimizer::optimizeMC(size_t startMode /*= 0*/){
     DEBUG_FUNC_START
     //voltageEnergySets positioning: 0: current point. 1: last point
+                system->resetStoredStates();
     while (voltageEnergySets.size()< 2){
         voltageEnergySets.push_back(std::pair<std::vector<double>,double>(std::vector<double>(electrodeNumber),0));
     }
@@ -848,6 +849,9 @@ void Optimizer::searchForRandomStart(){
         }
         std::cout<<std::endl;
     }
+
+    fitness       = 0;
+    fitnessUncert = 0;
 
     DEBUG_FUNC_END
 }

@@ -106,6 +106,8 @@ void JobManager::handleJobList(std::vector<Job> & jobs,
             // std::cout<<"joining job: "<<bestJob->ID<<" "<<std::hash<std::thread::id>{}(std::this_thread::get_id())<<std::endl;
             bestJob->threadNumber += 1;
             bestJob->tasksToGo    -= 1;
+            system->resetStoredStates();
+            
             //check if job was started already by another thread
             if (bestJob->tasksToGo + 1 == bestJob->tasksPerJob){
                 //first thread in job, so potential and equilibrium state have to be computed. therefor first lock the job.
@@ -117,8 +119,7 @@ void JobManager::handleJobList(std::vector<Job> & jobs,
                 bestJob->potential       = system->getPotential();
 
 
-                //calc equil steps
-                system->resetStoredStates();
+                //run equil steps
                 system->run(bestJob->equilSteps);
                 bestJob->equilOccupation = system->getOccupation();
 
@@ -135,7 +136,6 @@ void JobManager::handleJobList(std::vector<Job> & jobs,
             }
 
             //first task
-            system->resetStoredStates();
             system->reset();
             system->run(bestJob->stepsPerTask);
 
@@ -145,6 +145,7 @@ void JobManager::handleJobList(std::vector<Job> & jobs,
             bestJob->resultCurrent      +=*(system->outputCurrentCounter)/system->time;
             bestJob->resultCurrentUncert+=std::pow(*(system->outputCurrentCounter)/system->time,2); //storing current**2 here
             system->reset();
+
             // std::cout<<"current "<<bestJob->resultCurrent<<" current counter "<< *(system->outputCurrentCounter) <<" time "<<system->time<<std::endl;
 
 

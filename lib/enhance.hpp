@@ -24,7 +24,7 @@ namespace enhance
     double random_triangle(double min, double peak, double max);
 
     float fastExp(float x);
-    float mediumFastExp(float x);
+    double mediumFastExp(double x);
     double sigmoid(std::vector<double>& coeff, double x);
     double polynom(std::vector<double>& coeff, double x);
 

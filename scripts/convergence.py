@@ -291,16 +291,18 @@ if mode == "basinHop":
     basinChanges = np.append(basinChanges, np.array([buff,np.ones(buff.shape)],dtype = int), axis = 1)
     basinChanges = basinChanges[:,np.argsort(basinChanges[0])]
 
-    for i in range(basinChanges.shape[1]):
-        if basinChanges[1,i]:
-            ax.axvline(basinChanges[0,i], color = "darkgreen", zorder= -1 )
-        else:
-            ax.axvline(basinChanges[0,i], color = "darkred", zorder= -1 )
-        
-    ax.plot(np.arange(0,basinChanges[0,0]),np.maximum.accumulate(optEnergy[:basinChanges[0,0]]),color="darkblue",label="basin best")
-    for i in range(1,basinChanges.shape[1]):
-        ax.plot(np.arange(basinChanges[0,i-1],basinChanges[0,i]),np.maximum.accumulate(optEnergy[basinChanges[0,i-1]:basinChanges[0,i]]),color="darkblue")
-    ax.plot(np.arange(basinChanges[0,-1],len(optEnergy)),np.maximum.accumulate(optEnergy[basinChanges[0,-1]:]),color="darkblue")
+
+    if basinChanges.shape[1] > 0:
+        for i in range(basinChanges.shape[1]):
+            if basinChanges[1,i]:
+                ax.axvline(basinChanges[0,i], color = "darkgreen", zorder= -1 )
+            else:
+                ax.axvline(basinChanges[0,i], color = "darkred", zorder= -1 )
+            
+        ax.plot(np.arange(0,basinChanges[0,0]),np.maximum.accumulate(optEnergy[:basinChanges[0,0]]),color="darkblue",label="basin best")
+        for i in range(1,basinChanges.shape[1]):
+            ax.plot(np.arange(basinChanges[0,i-1],basinChanges[0,i]),np.maximum.accumulate(optEnergy[basinChanges[0,i-1]:basinChanges[0,i]]),color="darkblue")
+        ax.plot(np.arange(basinChanges[0,-1],len(optEnergy)),np.maximum.accumulate(optEnergy[basinChanges[0,-1]:]),color="darkblue")
         
         
 
@@ -332,23 +334,17 @@ if mode == "basinHop":
     ax.plot(np.arange(optEnergy.shape[0])[accepted[:,0]],optEnergy[accepted],".",ms=1,color="darkgreen",label="accepted")
     
     
-    buff = np.where(basinAccepted[:,0] == 2)[0]
-    basinChanges = np.array([buff,np.zeros(buff.shape)],dtype = int)
-    buff = np.where(basinAccepted[:,0] == 3)[0]
-    basinChanges = np.append(basinChanges, np.array([buff,np.ones(buff.shape)],dtype = int), axis = 1)
-    basinChanges = basinChanges[:,np.argsort(basinChanges[0])]
-
-
-    for i in range(basinChanges.shape[1]):
-        if basinChanges[1,i]:
-            ax.axvline(basinChanges[0,i], color = "darkgreen", zorder= -1 )
-        else:
-            ax.axvline(basinChanges[0,i], color = "darkred", zorder= -1 )
-        
-    ax.plot(np.arange(0,basinChanges[0,0]),np.maximum.accumulate(optEnergy[:basinChanges[0,0]]),color="darkblue",label="basin best")
-    for i in range(1,basinChanges.shape[1]):
-        ax.plot(np.arange(basinChanges[0,i-1],basinChanges[0,i]),np.maximum.accumulate(optEnergy[basinChanges[0,i-1]:basinChanges[0,i]]),color="darkblue")
-    ax.plot(np.arange(basinChanges[0,-1],len(optEnergy)),np.maximum.accumulate(optEnergy[basinChanges[0,-1]:]),color="darkblue")
+    if basinChanges.shape[1] > 0:
+        for i in range(basinChanges.shape[1]):
+            if basinChanges[1,i]:
+                ax.axvline(basinChanges[0,i], color = "darkgreen", zorder= -1 )
+            else:
+                ax.axvline(basinChanges[0,i], color = "darkred", zorder= -1 )
+            
+        ax.plot(np.arange(0,basinChanges[0,0]),np.maximum.accumulate(optEnergy[:basinChanges[0,0]]),color="darkblue",label="basin best")
+        for i in range(1,basinChanges.shape[1]):
+            ax.plot(np.arange(basinChanges[0,i-1],basinChanges[0,i]),np.maximum.accumulate(optEnergy[basinChanges[0,i-1]:basinChanges[0,i]]),color="darkblue")
+        ax.plot(np.arange(basinChanges[0,-1],len(optEnergy)),np.maximum.accumulate(optEnergy[basinChanges[0,-1]:]),color="darkblue")
         
         
 

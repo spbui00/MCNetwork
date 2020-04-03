@@ -47,10 +47,15 @@ namespace enhance
         return x;        
     }
 
-    float mediumFastExp(float x)
+    double mediumFastExp(double x)
     // !!! WARNING yielding completly wrong results if not x << n (here n=4096) !!!
     {
         // std::cout<<"x= "<<x;
+        if (x < -200.0){
+            // std::cout<<" exp(x) = 0"<<std::endl;
+            return 0;
+        }
+
         x = 1.0 + x / 4096.0;
         x *= x; x *= x; x *= x; x *= x;
         x *= x; x *= x; x *= x; x *= x;
