@@ -4,7 +4,7 @@ from os.path import join
 from re import sub
 import numpy as np
 import matplotlib as ma
-ma.use("agg")
+# ma.use("agg")
 import matplotlib.pylab as plt
 
 plt.rc('text', usetex=True)
@@ -90,7 +90,8 @@ def logical(a,b,gate):
     
     
 from matplotlib.ticker import FuncFormatter
-
+            
+            
 def to_percent(y, position):
     # Ignore the passed in position. This has the effect of scaling the default
     # tick locations.
@@ -101,5 +102,18 @@ def to_percent(y, position):
         return s + r'$\%$'
     else:
         return s + '%'
-    
+
 percentFormatter = FuncFormatter(to_percent)
+
+
+def WAM(values,uncert,axis=None,includeStatUncert = True):
+    meanUncert= 1/np.sqrt(np.sum(1/uncert**2,axis=axis))
+    mean = meanUncert**2 * np.sum(values/uncert**2,axis=axis)
+    if includeStatUncert:
+        if axis == None        : N = np.prod(values.shape)
+        elif type(axis) == int : N = values.shape[axis]
+        else :
+            N = 1
+            for a in axis: N *= values.shape[a]
+        meanUncert = np.sqrt(meanUncert**2+(np.std(values,axis=axis)/np.sqrt(N))**2)
+    return mean, meanUncert

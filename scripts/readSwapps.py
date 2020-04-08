@@ -98,6 +98,7 @@ for fileNumber in [1,2,3,4]:
         fig, ax=plt.subplots(1,1,figsize=(4.980614173228346,3.2))
 
 
+        electodePlotWidth = 8
         for i in range(len(electrodes)):
             if   i == parameters["outputElectrode"]: color= "blue"
             elif i == parameters["inputElectrode1"]:
@@ -107,13 +108,17 @@ for fileNumber in [1,2,3,4]:
                 if fileNumber in [2,4]: color = "red"
                 else:                   color = "rosybrown"
             else:                                    color= "green"
-
+            
             if parameters["geometry"] == "rect":
-                ax.scatter(*electrodePositions[i],c=color,marker=".",s=400,zorder = -1)
+                if   electrodes[i][1]==0: angle = 0 ; xy = (0-electodePlotWidth/2                                             , electrodes[i][0]*parameters["lenY"]-parameters["electrodeWidth"]/2) 
+                elif electrodes[i][1]==1: angle = 0 ; xy = (parameters["lenX"]-electodePlotWidth/2                            , electrodes[i][0]*parameters["lenY"]-parameters["electrodeWidth"]/2) 
+                elif electrodes[i][1]==2: angle = 90; xy = (electrodes[i][0]*parameters["lenX"]+parameters["electrodeWidth"]/2, 0-electodePlotWidth/2                                             ) 
+                elif electrodes[i][1]==3: angle = 90; xy = (electrodes[i][0]*parameters["lenX"]+parameters["electrodeWidth"]/2, parameters["lenY"]-electodePlotWidth/2                            ) 
+                ax.add_artist(plt.Rectangle(xy,electodePlotWidth, parameters["electrodeWidth"], angle=angle, fc=color,ec=color,zorder = -1))
             elif parameters["geometry"] == "circle":
-                width = 8
                 electrodeWidth = parameters["electrodeWidth"]/(parameters["radius"]*2*np.pi)*360 #in degrees
-                ax.add_artist(Wedge((0,0),parameters["radius"]+width/2,electrodes[i][0]-electrodeWidth/2,electrodes[i][0]+electrodeWidth/2, width = width, fc=color,ec=color,zorder = -1))
+                ax.add_artist(Wedge((0,0),parameters["radius"]+electodePlotWidth/2,electrodes[i][0]-electrodeWidth/2,electrodes[i][0]+electrodeWidth/2, width = electodePlotWidth, fc=color,ec=color,zorder = -1))
+
 
 
 
@@ -153,19 +158,21 @@ for fileNumber in [1,2,3,4]:
     
     
     
+        ax.axis('off')
         if parameters["geometry"] == "circle":
             ax.add_artist(plt.Circle((0,0),parameters["radius"],fc='none',ec="k",zorder = -2)) 
-            ax.axis('off')
+        elif parameters["geometry"] == "rect":
+            ax.add_artist(plt.Rectangle((0,0),parameters["lenX"],parameters["lenY"],fc='none',ec="k",zorder = -2)) 
             
         if parameters["geometry"] == "rect":
-            ax.set_xlim(-0.1*parameters["lenX"],1.1*parameters["lenX"])
-            ax.set_ylim(-0.1*parameters["lenY"],1.1*parameters["lenY"])
+            ax.set_xlim(-electodePlotWidth/2,parameters["lenX"]+electodePlotWidth/2)
+            ax.set_ylim(-electodePlotWidth/2,parameters["lenY"]+electodePlotWidth/2)
         elif parameters["geometry"] == "circle":
-            ax.set_xlim(-parameters["radius"]*1.1,parameters["radius"]*1.1)
-            ax.set_ylim(-parameters["radius"]*1.1,parameters["radius"]*1.1)
+            ax.set_xlim(-parameters["radius"]-electodePlotWidth,parameters["radius"]+electodePlotWidth)
+            ax.set_ylim(-parameters["radius"]-electodePlotWidth,parameters["radius"]+electodePlotWidth)
             
-
         ax.set_aspect('equal')
+
 
         plt.savefig(join(pathToSimFolder,f"swapTrack_{mode}_{inp[fileNumber-1]}.png"),bbox_inches="tight",dpi=300)    
 

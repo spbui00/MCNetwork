@@ -160,7 +160,9 @@ void JobManager::handleJobList(std::vector<Job> & jobs,
                     system->run(bestJob->stepsPerTask);
 
                     #ifdef TIMETRACKER
+                        bestJob->jobMutex->lock();
                         bestJob->timeFile<<system->time<<std::endl; // timeTracker
+                        bestJob->jobMutex->unlock();
                     #endif
         
                     // int charge=200;
