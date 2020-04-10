@@ -117,7 +117,7 @@ if mode == "MC":
     ax.set_ylim(0.15,1.05)
 
     ax.set_xlabel("iteration")
-    ax.set_ylabel("optEnergy")
+    ax.set_ylabel(r"$\mathcal{F}$")
 
 
     ax.legend()
@@ -149,7 +149,7 @@ if mode == "MC":
     ax.set_ylim(0.15,1.05)
 
     ax.set_xlabel("iteration")
-    ax.set_ylabel("optEnergy")
+    ax.set_ylabel(r"$\mathcal{F}$")
     ax2.set_ylabel("displacement")
 
 
@@ -222,7 +222,7 @@ if mode == "genetic":
     ax.set_ylim(0.15,1.05)
 
     ax.set_xlabel("iteration")
-    ax.set_ylabel("optEnergy")
+    ax.set_ylabel(r"$\mathcal{F}$")
 
 
     ax.legend()
@@ -254,7 +254,7 @@ if mode == "genetic":
     ax.set_ylim(0.15,1.05)
 
     ax.set_xlabel("iteration")
-    ax.set_ylabel("optEnergy")
+    ax.set_ylabel(r"$\mathcal{F}$")
     ax2.set_ylabel("displacement")
 
 
@@ -310,7 +310,7 @@ if mode == "basinHop":
     ax.set_ylim(0.15,1.05)
 
     ax.set_xlabel("iteration")
-    ax.set_ylabel("optEnergy")
+    ax.set_ylabel(r"$\mathcal{F}$")
 
 
     ax.legend()
@@ -371,7 +371,7 @@ if mode == "basinHop":
     ax.set_ylim(0.15,1.05)
 
     ax.set_xlabel("iteration")
-    ax.set_ylabel("optEnergy")
+    ax.set_ylabel(r"$\mathcal{F}$")
     ax2.set_ylabel("dist")
 
 
