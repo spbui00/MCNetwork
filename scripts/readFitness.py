@@ -64,7 +64,7 @@ if voltageScanPoints==2:
 
 
     ax.set_xlabel("gate input")
-    ax.set_ylabel("output current")
+    ax.set_ylabel(r"$I^{\textrm{out}}$")
 
     plt.savefig(join(pathToSimFolder,"fitness_1D.png"),bbox_inches="tight",dpi=300)    
     # plt.show()
@@ -114,8 +114,8 @@ ax.scatter([0,0,0.5,0.5],[0,0.5,0,0.5],c="r",marker="x")
 # ax.set_xlim(-0.15,0.65)
 # ax.set_ylim(-0.15,0.65)
 
-ax.set_xlabel(r"$V^{in}_1$ [V]")
-ax.set_ylabel(r"$V^{in}_2$ [V]")
+ax.set_xlabel(r"$V^\textrm{in}_1$ [V]")
+ax.set_ylabel(r"$V^\textrm{in}_2$ [V]")
 
 
 plt.colorbar(im)
@@ -136,8 +136,8 @@ ax.scatter([0,0,0.5,0.5],[0,0.5,0,0.5],c="r",marker="x")
 # ax.set_xlim(-0.15,0.65)
 # ax.set_ylim(-0.15,0.65)
 
-ax.set_xlabel(r"$V^{in}_1$ [V]")
-ax.set_ylabel(r"$V^{in}_2$ [V]")
+ax.set_xlabel(r"$V^\textrm{in}_1$ [V]")
+ax.set_ylabel(r"$V^\textrm{in}_2$ [V]")
 
 plt.colorbar(im)
 
@@ -158,7 +158,7 @@ if voltageScanPoints!=2:
     plt.savefig(join(pathToSimFolder,"fitness_1D.png"),bbox_inches="tight",dpi=300)
 
     ax.set_xlabel("gate input")
-    ax.set_ylabel("output current")
+    ax.set_ylabel(r"$I^{\textrm{out}}$")
     # plt.show()
     plt.close()
     fig=None

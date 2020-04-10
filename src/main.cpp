@@ -43,10 +43,7 @@ TODO:
       - add log file
       - support INT data format in datafile
    PHYSICAL:
-      - implement replica exchange
    ANALYSIS:
-      - calc correlation between voltages and visible currents (using swap track)
-      - calc single trajectories
 OPT:
    - store only output electrode current
    - improve hash algorithm

@@ -32,8 +32,8 @@ ax.plot(np.maximum.accumulate(optEnergy2[:minIterations]),"-",ms=1,color="darkbl
 # ax.set_xlim(-0.15,0.65)
 # ax.set_ylim(-1.1,1.1)
 
-ax.set_xlabel("iteration")
-ax.set_ylabel("optEnergy")
+ax.set_xlabel(r"iteration")
+ax.set_ylabel(r"$\mathcal F$")
 
 
 ax.legend()
