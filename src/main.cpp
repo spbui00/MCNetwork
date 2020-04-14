@@ -67,11 +67,11 @@ int main(int argc, char *argv[]){
 
    po::options_description desc("Allowed options");
    desc.add_options()
-      ("continue"   , "continues last optimization")
+      ("continue"   , "continues last optimization. optimization mode will be detected, no further options needed")
       ("mnd"        , "make new device")
-      ("optMC"      , "optimize control voltages using Monte Carlo Search")
-      ("optGen"     , "optimize control voltages using GeneticAlgorithm")
-      ("optBasinHop", "optimize control voltages using Basin Hopping")
+      ("optMC"      , "optimize control voltages using Monte Carlo search")
+      ("optGen"     , "optimize control voltages using genetic algorithm")
+      ("optBasinHop", "optimize control voltages using basin hopping")
       ("run"        , "just run control voltages defined in in.txt")
       ("rSV"        , "random start voltages (only in combination with opt)")
       ("dir"        , po::value<std::string>(),"define working dir. has to contain 'in.txt'")
