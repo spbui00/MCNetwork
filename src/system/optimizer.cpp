@@ -163,7 +163,9 @@ void Optimizer::continueSimulation(){
         }
         //search for best energy in basin
         for (int i = index-1; i >=0 ; i--){ //starting at last basin
-            if (optEnergy[i] > best){index
+            if (optEnergy[i] > best){
+                best  = optEnergy[i];
+                index = i;
             }
             if (accepted[i] == 2 | accepted[i] == 3){
                 break;

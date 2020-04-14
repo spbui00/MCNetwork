@@ -1,9 +1,9 @@
 #simulation parameters
 gate XOR 
 memoryLimit 800 #in MB (should be around 100mb under real limit), real memory consumption is memoryLimit*threads
-threads 4 
+threads 8 
 finiteElementsResolution 1e5 #(min 1e5)
-equilSteps 1e3
+equilSteps 1e4
 calcCurrentSteps 1e4
 storingMode 0 
 
@@ -13,16 +13,16 @@ storingMode 0
 
 #physical parameters
 T 77
-acceptorNumber 150 
+acceptorNumber 200 
 donorNumber 3
-eps 6
-a 15
+eps 5.106333333333334 # eps=4.5 --> I0= 15meV
+a 10 #nm
 minDist 0 #nm
 electrodeWidth 60 #nm
 
 #cuts
-minHoppingDist 3  #nm
-maxHoppingDist 80
+minHoppingDist 4  #nm
+maxHoppingDist 50 #nm
 maxInteractionDist 500 #nm
 
 #geometry parameters
@@ -55,16 +55,14 @@ radius 150 #nm
 #positions given in degrees 
 #pos voltage 
 
-
-
-electrode 0 0.0
-electrode 45 0.43644452914969567
-electrode 90 -0.3214122141745391
-electrode 135 0.0
-electrode 180 0.1344949937773669
-electrode 225 0.0
-electrode 270 0.6162584320452693
-electrode 315 0.9712917865704597
+electrode 0 0
+electrode 45 0
+electrode 90 0
+electrode 135 0.4
+electrode 180 -0.2
+electrode 225 -1
+electrode 270 0.5
+electrode 315 1
 
 
 
@@ -77,7 +75,7 @@ controlVoltageMin -1
 controlVoltageMax 1
 
 
-voltageScanMin 0 
+voltageScanMin 0
 voltageScanMax 0.5
 voltageScanPoints 2 # 0 and 0.5 should be in exactly
 seperationVoltage 0.25
@@ -89,17 +87,14 @@ fitnessUncertWeight 2
 diffWeight 0.0
 rndStartPoints 20
 convergenceEnergy 0.95
-maxStepIncreases 0
+maxStepIncreases 10
 
 #MC opt
-MCTemp 0.01
+MCTemp 0.005
 
 #basin opt
-basinTemp 0.2
-basinDeltaV 0.5
-basinWaitSteps 20 #steps after which a basin jump is done
-
-#grad opt
+basinTemp 0.04
+basinDeltaV 0.2
 gradDeltaV 0.02
 
 
