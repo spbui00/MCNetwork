@@ -11,22 +11,24 @@
 #include <vector>
 #include <map>
 
-//(un)comment to (en/dis)able time tracker
+//(un)comment to (en/dis)able time tracker, e.g. after each task writing out the system time to txt file 
 // #define TIMETRACKER
 
-
+/*!
+    one job consits of one set of fixed voltages (incl. input voltages). steps to run are split up in tasksPerJob packs. each task can be handeled by single thread.
+ */
 class Job
 {
     public:
         int ID; 
         std::unique_ptr<std::mutex> jobMutex;
-        mfem::GridFunction potential;
-        std::vector<bool> equilOccupation;
+        mfem::GridFunction potential; /*!< solution of laplace eq. calculated only once by first thread and saved to pass it to other threads that might join work on this job */
+        std::vector<bool> equilOccupation; /*!< equilibrium occupation of system. calculated only once by first thread and saved to pass it to other threads that might join work on this job */
 
         int equilSteps, totalSteps, stepsPerTask;
         int tasksToGo; 
         static const int tasksPerJob = 100;
-        int threadNumber = 0;
+        int threadNumber = 0; /*!< number of threads that are currently working on this job */
         std::vector<double> voltages;
         double resultCurrent = 0, resultCurrentUncert = 0;
 
@@ -37,7 +39,9 @@ class Job
         #endif
 };
 
-
+/*!
+    handler for parallelization.
+ */
 class JobManager
 {
 public:
@@ -50,7 +54,7 @@ private:
     std::shared_ptr<ParameterStorage> parameterStorage;
     std::vector<System * > systems;
     std::vector<Job> jobs;
-    std::mutex jobSearchMutex;
+    std::mutex jobSearchMutex; /*!< its only allowed to one thread at a time to search for new work! */
     static void handleJobList(std::vector<Job> & jobs, System * const system, std::mutex & searchMutex);
 
 };

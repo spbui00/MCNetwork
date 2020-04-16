@@ -42,7 +42,6 @@ ax.legend()
 plt.savefig(join(pathToSimFolder1,"convergenceCompare.png"),bbox_inches="tight",dpi=300)    
 # plt.savefig(join(pathToSimFolder2,"convergenceCompare.png"),bbox_inches="tight",dpi=300)    
 plt.show()
-plt.close()
-fig=None
+plt.close(fig)
 
 

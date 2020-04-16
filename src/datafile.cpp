@@ -147,7 +147,9 @@ void DataFile::createDataset(std::string datasetName, std::vector<int> dimension
 }
 
 
-
+/*!
+     -- not tested -- 
+ */
 void DataFile::createAttribute(std::string attrName, double val)
 {
     H5File file= H5File(filename, H5F_ACC_RDWR );

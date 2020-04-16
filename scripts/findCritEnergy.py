@@ -83,8 +83,7 @@ for distance in [25,50,100,200,500,1000]:
 
         plt.savefig(join(pathToSimFolder,f"run_{r+1}/critFitness_{r+1}.png"),bbox_inches="tight",dpi=300)
         # plt.show()
-        plt.close()
-        fig=None
+        plt.close(fig)
         """
         
         dataX = np.array(dataX)
@@ -117,8 +116,7 @@ for distance in [25,50,100,200,500,1000]:
 
     plt.savefig(join(pathToSimFolder,f"critFitness_{distance}.png"),bbox_inches="tight",dpi=300)    
     # plt.show()
-    plt.close()
-    fig=None
+    plt.close(fig)
 
 
 
@@ -139,5 +137,4 @@ for distance in [25,50,100,200,500,1000]:
 
     plt.savefig(join(pathToSimFolder,f"critFitness_mean_{distance}.png"),bbox_inches="tight",dpi=300)    
     # plt.show()
-    plt.close()
-    fig=None
+    plt.close(fig)

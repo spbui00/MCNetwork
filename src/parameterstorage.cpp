@@ -1,4 +1,8 @@
 #include "parameterstorage.h"
+/*!
+    - reads input file "filename" and creates parameter map
+    - converts all length to internal length scale "R"
+ */
 ParameterStorage::ParameterStorage(std::string filename)
 {
     DEBUG_FUNC_START

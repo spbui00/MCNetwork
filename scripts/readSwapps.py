@@ -177,8 +177,7 @@ for fileNumber in [1,2,3,4]:
         plt.savefig(join(pathToSimFolder,f"swapTrack_{mode}_{inp[fileNumber-1]}.png"),bbox_inches="tight",dpi=300)    
 
         # plt.show()
-        plt.close()
-        fig=None
+        plt.close(fig)
 
 
 

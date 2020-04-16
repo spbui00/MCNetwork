@@ -68,8 +68,7 @@ if voltageScanPoints==2:
 
     plt.savefig(join(pathToSimFolder,"fitness_1D.png"),bbox_inches="tight",dpi=300)    
     # plt.show()
-    plt.close()
-    fig=None
+    plt.close(fig)
 
 
 
@@ -122,8 +121,7 @@ plt.colorbar(im)
 
 plt.savefig(join(pathToSimFolder,"fitness_2D.png"),bbox_inches="tight",dpi=300)    
 # plt.show()
-plt.close()
-fig=None
+plt.close(fig)
 
 
 fig, ax=plt.subplots(1,1,figsize=(4.980614173228346,3.2))
@@ -143,8 +141,7 @@ plt.colorbar(im)
 
 plt.savefig(join(pathToSimFolder,"fitness_2D_normed.png"),bbox_inches="tight",dpi=300)    
 # plt.show()
-plt.close()
-fig=None
+plt.close(fig)
 
 if voltageScanPoints!=2:
     fig, ax=plt.subplots(1,1,figsize=(4.980614173228346,3.2))
@@ -160,6 +157,5 @@ if voltageScanPoints!=2:
     ax.set_xlabel("gate input")
     ax.set_ylabel(r"$I^{\textrm{out}}$")
     # plt.show()
-    plt.close()
-    fig=None
+    plt.close(fig)
 

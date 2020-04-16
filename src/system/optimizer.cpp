@@ -28,7 +28,6 @@ Optimizer::Optimizer(std::shared_ptr<ParameterStorage> parameterStorage) :
 
 /*!
   - create datafile
-  - if continue mode: search for last energy point
   - start actual optimization routines
   \param startMode 0 = use voltages defined in input file, 1 = search for random start using searchForRandomStart(), 2 = continue
  */
@@ -67,6 +66,9 @@ void Optimizer::run(std::string optimizationMode, int startMode){
     DEBUG_FUNC_END
 }
 
+/*!
+    is called by Optimizer::run in case of "--continue" option set. setup optimization parameters for continuation.
+ */
 void Optimizer::continueSimulation(){
     DEBUG_FUNC_START
 
@@ -188,7 +190,10 @@ void Optimizer::continueSimulation(){
     DEBUG_FUNC_END
 }
 
-
+/*!
+    saves following datsets to dataFile: Optimizer::outputCurrent, Optimizer::outputCurrentUncert, Optimizer::voltages, Optimizer::fitness, Optimizer::fitnessUncert, oOptimizer::ptEnergy
+    \param index determines which set stored in Optimizer::voltageEnergySets shall be saved. default = 0.
+ */
 void Optimizer::saveResults(size_t index /* = 0 */){
     DEBUG_FUNC_START
 
@@ -202,7 +207,10 @@ void Optimizer::saveResults(size_t index /* = 0 */){
     DEBUG_FUNC_END
 }
 
-
+/*!
+    calcOptimizationEnergy using values stored in Optimizer::outputCurrents and Optimizer::outputCurrentUncerts. saves output to Optimizer::fitness, Optimizer::fitnessUncert, Optimizer::normedDiff, Optimizer::optEnergy
+    \param index determines which set stored in voltageEnergySets shall be saved. default = 0.
+ */
 void Optimizer::calcOptimizationEnergy(){
     DEBUG_FUNC_START
 
@@ -336,7 +344,7 @@ void Optimizer::optimizeMC(size_t startMode /*= 0*/){
     voltageEnergySets[1]   = voltageEnergySets[0];
 
     int increaseNumber=0;
-    while (optEnergy < parameterStorage->parameters.at("convergenceEnergy")){
+    while (optEnergy < parameterStorage->parameters.at("convergenceEnergy") &  iteration < parameterStorage->parameters.at("maxIterations")){
         iteration++;
         auto startTime = std::chrono::steady_clock::now();
 
@@ -388,7 +396,8 @@ void Optimizer::optimizeMC(size_t startMode /*= 0*/){
             std::cout<<"############ steps increased!! now: "<<parameterStorage->parameters["calcCurrentSteps"]<<" #############"<<std::endl;
         }
     }
-    std::cout<<"-------------------> convergence reached <-------------------"<<std::endl;
+    std::cout<<"-------------------> optimization stopped <-------------------"<<std::endl;
+    std::cout<<"iteration: "<<iteration<<" optEnergy: "<<optEnergy<<std::endl;
     
     DEBUG_FUNC_END
 }
@@ -578,7 +587,9 @@ void Optimizer::optimizeGenetic(size_t startMode /* = 0 */){
             parameterStorage->parameters["calcCurrentSteps"]*=2;
             std::cout<<"############ steps increased!! now: "<<parameterStorage->parameters.at("calcCurrentSteps")<<" #############"<<std::endl;
         }
-        if (voltageEnergySets[0].second > parameterStorage->parameters.at("convergenceEnergy")){
+        if (voltageEnergySets[0].second > parameterStorage->parameters.at("convergenceEnergy") | generation*25 > parameterStorage->parameters.at("maxIterations")){
+            std::cout<<"-------------------> optimization stopped <-------------------"<<std::endl;
+            std::cout<<"generation: "<<generation<<" optEnergy: "<<voltageEnergySets[0].second<<std::endl;
             break;
         }
 
@@ -587,6 +598,10 @@ void Optimizer::optimizeGenetic(size_t startMode /* = 0 */){
     DEBUG_FUNC_END
 }
 
+/*!
+  optimize cotrol voltages using basin hopping
+  \param rndStart 0: searchForRandomStart() is called to find best start point \n 1: voltages given in input file are used \n 2: used in continue mode, voltages have been set before
+ */
 void Optimizer::optimizeBasinHopping(size_t startMode /*= 0*/){
     DEBUG_FUNC_START
     //voltageEnergySets positioning: 0: current. 1: last. 2: current basin best. 3: last basin best
@@ -631,7 +646,7 @@ void Optimizer::optimizeBasinHopping(size_t startMode /*= 0*/){
     voltageEnergySets[1]   = voltageEnergySets[0];
 
     int increaseNumber=0;
-    while (optEnergy < parameterStorage->parameters.at("convergenceEnergy")){
+    while (optEnergy < parameterStorage->parameters.at("convergenceEnergy") &  iteration < parameterStorage->parameters.at("maxIterations")){
         iteration++;
         // --------------- basin hopp check ------------------------------
         if (iteration - lastIterationIncrease > parameterStorage->parameters.at("basinWaitSteps")){ // no increase in last basinWaitSteps
@@ -740,12 +755,13 @@ void Optimizer::optimizeBasinHopping(size_t startMode /*= 0*/){
             std::cout<<"############ steps increased!! now: "<<parameterStorage->parameters["calcCurrentSteps"]<<" #############"<<std::endl;
         }
     }
-    std::cout<<"-------------------> convergence reached <-------------------"<<std::endl;
-    
+    std::cout<<"-------------------> optimization stopped <-------------------"<<std::endl;
+    std::cout<<"iteration: "<<iteration<<" optEnergy: "<<optEnergy<<std::endl;    
     DEBUG_FUNC_END
 }
+
 /*!
-  optimize cotrol voltages along the local gradient
+  optimize cotrol voltages along the local gradient - not implemented yet
  */
 void Optimizer::optimizeGradient(){
     DEBUG_FUNC_START

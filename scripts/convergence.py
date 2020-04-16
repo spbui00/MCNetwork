@@ -98,8 +98,7 @@ if mode == "MC":
 
     plt.savefig(join(pathToSimFolder,"displacement.png"),bbox_inches="tight",dpi=300)    
     # plt.show()
-    plt.close()
-    fig=None
+    plt.close(fig)
 
 
 
@@ -125,8 +124,7 @@ if mode == "MC":
 
     plt.savefig(join(pathToSimFolder,"convergence.png"),bbox_inches="tight",dpi=300)    
     # plt.show()
-    plt.close()
-    fig=None
+    plt.close(fig)
 
 
 
@@ -158,8 +156,7 @@ if mode == "MC":
 
     plt.savefig(join(pathToSimFolder,"convergence_displacement.png"),bbox_inches="tight",dpi=300)    
     # plt.show()
-    plt.close()
-    fig=None
+    plt.close(fig)
 
 
 
@@ -198,8 +195,7 @@ if mode == "genetic":
 
     plt.savefig(join(pathToSimFolder,"displacement.png"),bbox_inches="tight",dpi=300)    
     # plt.show()
-    plt.close()
-    fig=None
+    plt.close(fig)
 
 
 
@@ -230,8 +226,7 @@ if mode == "genetic":
 
     plt.savefig(join(pathToSimFolder,"convergence.png"),bbox_inches="tight",dpi=300)    
     # plt.show()
-    plt.close()
-    fig=None
+    plt.close(fig)
 
 
 
@@ -263,8 +258,7 @@ if mode == "genetic":
 
     plt.savefig(join(pathToSimFolder,"convergence_displacement.png"),bbox_inches="tight",dpi=300)    
     # plt.show()
-    plt.close()
-    fig=None
+    plt.close(fig)
 
 
 
@@ -318,8 +312,7 @@ if mode == "basinHop":
 
     plt.savefig(join(pathToSimFolder,"convergence.png"),bbox_inches="tight",dpi=300)    
     # plt.show()
-    plt.close()
-    fig=None
+    plt.close(fig)
 
 
 
@@ -380,8 +373,7 @@ if mode == "basinHop":
 
     plt.savefig(join(pathToSimFolder,"convergence_dist.png"),bbox_inches="tight",dpi=300)    
     # plt.show()
-    plt.close()
-    fig=None
+    plt.close(fig)
 
 
 

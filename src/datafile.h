@@ -17,7 +17,9 @@ using namespace H5;
 
 
 
-
+/*!
+    container class for hdf5 output file. 
+ */
 class DataFile
 {
 public:
@@ -37,16 +39,20 @@ private:
     static std::map<std::string,int>    indexMap;  /*!< maps datset names to index to find properties, e.g. dims \n has to be static to be accessible by  C API in lambda function in constructor DataFile() */
     std::string                  filename;    
     int                          numberOfDatasets=0;
-    std::vector< hsize_t >       dims;
-    std::vector< hsize_t * >     dimsf;
-    std::vector< hsize_t * >     size;
-    std::vector< hsize_t * >     offset;
-    std::vector< hsize_t * >     chunk_dims;
-    std::vector< hsize_t * >     maxdimsf;
+    std::vector< hsize_t >       dims;      /*!< see hdf5 c++ examples */
+    std::vector< hsize_t * >     dimsf;     /*!< see hdf5 c++ examples */
+    std::vector< hsize_t * >     size;      /*!< see hdf5 c++ examples */
+    std::vector< hsize_t * >     offset;    /*!< see hdf5 c++ examples */
+    std::vector< hsize_t * >     chunk_dims;/*!< see hdf5 c++ examples */
+    std::vector< hsize_t * >     maxdimsf;  /*!< see hdf5 c++ examples */
 
 };
 
-
+/*!
+    extends existing dataset by one slice in dimension 0.
+    \param  datasetName dataset must be created beforehand 
+    \param data c-array !!! currently ONLY DOUBLE array supported !! i.e. ints will raise no error, but produce incorrect data!
+ */
 template<typename Data>
 void DataFile::addData(std::string datasetName,Data data){
     int index=indexMap.at(datasetName);

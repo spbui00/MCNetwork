@@ -10,10 +10,6 @@
 
 /*! \mainpage MCNetwork
  *
- * \section intro_sec Introduction
- *
- * This is the introduction.
- *
  * \section install_sec Installation
  *
  * \subsection step1 Step 1: Dependencies
@@ -42,6 +38,7 @@ TODO:
       - improve argument parsing
       - add log file
       - support INT data format in datafile
+      - split up optimizer in child classes
    PHYSICAL:
    ANALYSIS:
 OPT:

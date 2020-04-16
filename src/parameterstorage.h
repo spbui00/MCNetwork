@@ -19,21 +19,25 @@ struct ElectrodeParameters{
 };
 
 
+/*!
+    class used to read and store parameters from input file. one instance is created in main.cpp and passed to all other classes as shared pointer
+    length parameters are stored in units of internal length scale R
+ */
 class ParameterStorage
 {
     
 public:
-    std::string gate;
-    std::string geometry;
-    std::map<std::string,double> parameters; /*!< general parameter map */
-    std::vector<ElectrodeParameters> electrodes;
+    std::string gate; /*!< AND, OR, XOR ... */
+    std::string geometry; /*!< "circle"/"rect" */
+    std::map<std::string,double> parameters; /*!< general parameter map, used */
+    std::vector<ElectrodeParameters> electrodes; /*!< voltages are only set in start routine and not used/updated during optimization!*/
     std::string workingDirecotry ="./";
     
     bool makeNewDevice = false;
     std::vector<double> inputVoltages; /*!< input voltage points to scan */
 
 
-    ParameterStorage(std::string);
+    ParameterStorage(std::string filename);
 };
 
 

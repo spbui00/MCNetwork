@@ -1,32 +1,32 @@
 #simulation parameters
 gate XOR 
-memoryLimit 800 #in MB (should be around 100mb under real limit), real memory consumption is memoryLimit*threads
-threads 8 
+threads 4 
 finiteElementsResolution 1e5 #(min 1e5)
-equilSteps 1e4
-calcCurrentSteps 1e4
-storingMode 0 
+equilSteps 1e4 #equilibration steps (should be around 1e4)
+calcCurrentSteps 1e5  #steps to run KMC simulation
+storingMode 0 # if 1: store states (rates + ocupation) until memoryLimit is reached. might increase performance in the case of limit number of states occuring 
+memoryLimit 800 #in MB (should be around 100mb under real limit), real memory consumption is memoryLimit*threads
 
 
 
 
 
 #physical parameters
-T 77
+T 77 #temperature
 acceptorNumber 200 
 donorNumber 3
-eps 5.106333333333334 # eps=4.5 --> I0= 15meV
-a 10 #nm
-minDist 0 #nm
-electrodeWidth 60 #nm
+eps 10 #relative permitivity (scales coulomb interaction) eps=4.5 --> I0= 15meV 
+a 20 #nm #localization length
+minDist 0 #nm #minimal distance between acceptors (normally not used)
+electrodeWidth 60 #nm #used for boundary condition in laplace equation
 
 #cuts
-minHoppingDist 4  #nm
-maxHoppingDist 50 #nm
-maxInteractionDist 500 #nm
+minHoppingDist 4  #nm #cut on minimal distance for hop
+maxHoppingDist 50 #nm #cut on maximal distance for hop
+maxInteractionDist 500 #nm #cut coulomb interaction range (not used)
 
 #geometry parameters
-geometry circle #rect/circle, dependent parameters: if rect -> lenX, lenY ; if circle -> radius
+geometry circle #rect/circle. if rect -> lenX, lenY must be defined ; if circle -> radius must be defined
 lenX 300 #nm
 lenY 300 #nm
 radius 150 #nm
@@ -35,13 +35,13 @@ radius 150 #nm
 #electrode positions 
 ### rect: ####
 #positions given in fractions of lens  
-#pos edge voltage 
 #edges:
 # 0 --> x=0
 # 1 --> x=len
 # 2 --> y=0
 # 3 --> y=width
 
+#        pos edge voltage 
 #electrode 0.25 0 0
 #electrode 0.75 0 0
 #electrode 0.25 1 0
@@ -53,8 +53,8 @@ radius 150 #nm
 
 ### circle: ####
 #positions given in degrees 
-#pos voltage 
 
+#       pos voltage 
 electrode 0 0
 electrode 45 0
 electrode 90 0
@@ -66,37 +66,41 @@ electrode 315 1
 
 
 
-inputElectrode1 3
-inputElectrode2 5
-outputElectrode 0
+inputElectrode1 3 #index of input electrode 1
+inputElectrode2 5 #index of input electrode 2
+outputElectrode 0 #index of output electrode 
 
 
-controlVoltageMin -1
-controlVoltageMax 1
+controlVoltageMin -1  #possible interval for control voltages
+controlVoltageMax 1 #possible interval for control voltages
 
 
-voltageScanMin 0
-voltageScanMax 0.5
-voltageScanPoints 2 # 0 and 0.5 should be in exactly
-seperationVoltage 0.25
+voltageScanMin 0    #min search voltage
+voltageScanMax 0.5  #max search voltage
+voltageScanPoints 2 # number of points to search on. range between "voltageScanMin" and "voltageScanMax" is split in "voltageScanPoints" number of points.  #0V and 0.5V should be hit exactly
+seperationVoltage 0.25 # "voltage < seperationVoltage" -> false. "voltage > seperationVoltage" -> true. 
 
 
 #optimization parameters
-maxDeltaV 0.05
-fitnessUncertWeight 2
-diffWeight 0.0
-rndStartPoints 20
-convergenceEnergy 0.95
-maxStepIncreases 10
+fitnessUncertWeight 2 #weight in fitness dunction (c2 in thesis)
+diffWeight 0 #weight in fitness dunction (c3 in thesis)
+rndStartPoints 20 #number of phase space points to try as start points for optimization
+convergenceEnergy 0.95 #stop simulation after this optEnergy is reached
+maxIterations 1e8 #stop simulation after this number of iterations
+maxStepIncreases 10 #if fitness + fitnessUncert > 1 => "calcCurrentSteps" is doubled. maximal number of doublings given by maxStepIncreases.
+
 
 #MC opt
 MCTemp 0.005
+maxDeltaV 0.05 #step inside ball with this radius
 
 #basin opt
 basinTemp 0.04
-basinDeltaV 0.2
-gradDeltaV 0.02
+basinDeltaV 1 #step inside ball with this radius
+basinWaitSteps 1000 #steps after which a basin jump is done
 
+#grad opt
+gradDeltaV 0.02
 
 
 

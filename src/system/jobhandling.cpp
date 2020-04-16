@@ -51,7 +51,7 @@ std::pair<std::vector<double>,std::vector<double>> const JobManager::runControlV
     }
     
 
-
+    //start jobs
     if (parameterStorage->parameters.at("threads") > 1){
         std::vector<std::thread> threads;
         for(int k=0; k < parameterStorage->parameters.at("threads"); k++){
@@ -83,6 +83,14 @@ std::pair<std::vector<double>,std::vector<double>> const JobManager::runControlV
     DEBUG_FUNC_END
 }
 
+/*!
+    method passed to parallel threads.
+    1. search jobs vector for job to work on
+    2. if first thread in job -> solve laplace eq, run equil steps
+    3. run tasks
+    4. if last thread -> finish job
+    5. repeat with 1. until all jobs done
+ */
 void JobManager::handleJobList(std::vector<Job> & jobs,
                                System *           system,
                                std::mutex &       searchMutex){

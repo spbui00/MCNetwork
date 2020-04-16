@@ -17,6 +17,11 @@ System::System(const std::shared_ptr<ParameterStorage> & parameterStorage) : par
 
     DEBUG_FUNC_END
 }
+
+
+/*!
+    copy constructor. used in parallelization. 
+ */
 System::System(System const & oldSys) : 
                                         parameterStorage          (oldSys.parameterStorage         ),
                                         acceptorNumber            (oldSys.acceptorNumber           ),
@@ -96,9 +101,11 @@ System::System(System const & oldSys) :
     DEBUG_FUNC_END
 }
 
+/*!
+    init c arrays
+ */
 void System::initilizeMatrices(){
     DEBUG_FUNC_START
-    //setup matrices
     pairEnergies   = new double[acceptorNumber*acceptorNumber];
     distances      = new double[hoppingSiteNumber*hoppingSiteNumber];
     deltaEnergies  = new double[hoppingSiteNumber*hoppingSiteNumber];
@@ -124,6 +131,10 @@ void System::initilizeMatrices(){
     DEBUG_FUNC_END
 }
 
+
+/*!
+    creates device and saves it to "device.txt"
+ */
 void System::createRandomNewDevice(){
     DEBUG_FUNC_START
 
@@ -267,6 +278,10 @@ void System::createRandomNewDevice(){
     DEBUG_FUNC_END
 }
 
+
+/*!
+    loads device from "device.txt". no error handling! does not check if number of acceptors/donors matches -> unexpected errors might occur
+ */
 void System::loadDevice(){
     DEBUG_FUNC_START
 
@@ -320,6 +335,14 @@ void System::loadDevice(){
     DEBUG_FUNC_END
 }
 
+/*!
+    - calc positions of electrodes
+    - init laplace solver
+    - calc distances and pair energies
+    - evaluates cuts (e.g. setting System::hoppingPartnersAcceptors, System::hoppingPartnersElectrodes)
+    - calc base rates, e.g. constant part of rate (exp(-2r/a))
+    - set random start occupation
+ */
 void System::getReadyForRun(){
     DEBUG_FUNC_START
 
@@ -491,7 +514,9 @@ void System::getReadyForRun(){
 }
 
 
-
+/*!
+    set new occupation and update energies
+ */
 void System::setOccupation(std::vector<bool> const & newOccupation){
     DEBUG_FUNC_START
     
@@ -517,13 +542,17 @@ void System::setOccupation(std::vector<bool> const & newOccupation){
     DEBUG_FUNC_END
 }
 
+
+
 std::vector<bool> const & System::getOccupation(){
     DEBUG_FUNC_START
     DEBUG_FUNC_END
     return occupation;
 }
 
-
+/*!
+    see System::updateRates(). only used in storing mode. additionally setting unused rates = 0. checking for saved states/saving state.
+ */
 void System::updateRatesStoringMode(){
     DEBUG_FUNC_START
 
@@ -631,6 +660,9 @@ void System::updateRatesStoringMode(){
     DEBUG_FUNC_END
 }
 
+/*!
+    update rates after each swap
+ */
 void System::updateRates(){
     ratesSum = constantRatesSumPart;
 
@@ -688,14 +720,13 @@ void System::updateRates(){
     }
 }
 
-
+/*!
+    updates voltages and solves laplace eq
+ */
 void System::updatePotential(std::vector<double> const & voltages){
     DEBUG_FUNC_START
 
     resetPotential();
-
-
-
 
     //recalc potential
     for(int i=0;i < electrodeNumber;i++){
@@ -708,6 +739,7 @@ void System::updatePotential(std::vector<double> const & voltages){
     setNewPotential();
 
     #ifdef SWAPTRACKER
+        //creates new file each time a new potential is apllied
         swapTrackFile.close(); // swapTracker
         swapTrackFile.open(std::string("swapTrackFile")+std::to_string(fileNumber)+std::string(".txt"), std::ios::out); // swapTracker
         fileNumber++; // swapTracker
@@ -716,6 +748,9 @@ void System::updatePotential(std::vector<double> const & voltages){
     DEBUG_FUNC_END
 }
 
+/*!
+    copys laplace equation solution, does not solve laplace eq itself.
+ */
 void System::updatePotential(mfem::GridFunction const & potential){
     DEBUG_FUNC_START
 
@@ -728,6 +763,7 @@ void System::updatePotential(mfem::GridFunction const & potential){
     setNewPotential();
 
     #ifdef SWAPTRACKER
+        //creates new file each time a new potential is apllied
         swapTrackFile.close(); // swapTracker
         swapTrackFile.open(std::string("swapTrackFile")+std::to_string(fileNumber)+std::string(".txt"), std::ios::out); // swapTracker
         fileNumber++; // swapTracker
@@ -736,6 +772,9 @@ void System::updatePotential(mfem::GridFunction const & potential){
     DEBUG_FUNC_END
 }
 
+/*!
+    see System::updatePotential and  System::setOccupation. by updating both at once the energies have to be recalculated only once
+ */
 void System::updateOccupationAndPotential(std::vector<bool> const & newOccupation, mfem::GridFunction  const & potential){
     DEBUG_FUNC_START
     
@@ -791,6 +830,7 @@ void System::updateOccupationAndPotential(std::vector<bool> const & newOccupatio
     }
 
     #ifdef SWAPTRACKER
+        //creates new file each time a new potential is apllied
         swapTrackFile.close(); // swapTracker
         swapTrackFile.open(std::string("swapTrackFile")+std::to_string(fileNumber)+std::string(".txt"), std::ios::out); // swapTracker
         fileNumber++; // swapTracker
@@ -799,32 +839,10 @@ void System::updateOccupationAndPotential(std::vector<bool> const & newOccupatio
     DEBUG_FUNC_END
 }
 
-void System::updateOccupation(std::vector<bool> const & newOccupation){
-    DEBUG_FUNC_START
-    
-    occupation = newOccupation;
 
-    // set acceptor energies
-    // donor interaction
-    for(int i=0;i<acceptorNumber;i++){
-        energies[i]=finEle->getPotential(acceptorPositionsX[i],acceptorPositionsY[i])*parameterStorage->parameters.at("e")/parameterStorage->parameters.at("kT");
-        for(int j=0;j<parameterStorage->parameters.at("donorNumber");j++){
-            energies[i]+=parameterStorage->parameters.at("I0")*1/std::sqrt(std::pow(acceptorPositionsX[i]-donorPositionsX[j],2)+std::pow(acceptorPositionsY[i]-donorPositionsY[j],2));
-        }
-    }
-    //set coulomb part (with start occupation)
-    for(int i=0;i<acceptorNumber;i++){ //coulomb interaction only with acceptors and..
-        if (not occupation[i]){ //.. only if they are unoccupied
-            for(int const & j : interactionPartners[i]){ //self interaction is ignored, bc pairEnergies[i][i]=0
-                energies[j]+=pairEnergies[i*acceptorNumber+j];
-            }
-        }
-    }
-
-
-    DEBUG_FUNC_END
-}
-
+/*!
+    set all energies to 0
+ */
 void System::resetPotential(){
     DEBUG_FUNC_START
     
@@ -841,7 +859,9 @@ void System::resetPotential(){
     DEBUG_FUNC_END
 }
 
-
+/*!
+    set energies to potential set before
+ */
 void System::setNewPotential(){
     DEBUG_FUNC_START
 
@@ -898,7 +918,9 @@ mfem::GridFunction System::getPotential() const{
     return *(finEle->solutionVector);
 }
 
-
+/*!
+    sets System::lastSwapped1 and System::lastSwapped2 to swap pair
+ */
 void System::findSwap(){
     DEBUG_FUNC_START
 
@@ -1062,7 +1084,9 @@ void System::updateAfterSwap(){
 
 
 
-
+/*!
+    run kinetic MC
+ */
 void System::run(int steps){
     DEBUG_FUNC_START
 

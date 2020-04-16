@@ -27,19 +27,19 @@ find_package (MFEM)
 if (NOT (${HDF5_FOUND} OR ${MFEM_FOUND}))
   message(" -->> could not find MFEM or HDF5(incl CXX) in default path, maybe on bagheera? searching locally...  <<-- ")
 
-  find_package (MFEM REQUIRED PATHS /home/m_beck52/local)
-  find_package (HDF5 REQUIRED COMPONENTS CXX PATHS /home/m_beck52/local NO_DEFAULT_PATH)
+  find_package (MFEM REQUIRED PATHS ~/local)
+  find_package (HDF5 REQUIRED COMPONENTS CXX PATHS ~/local NO_DEFAULT_PATH)
 
   message(" -->> found HDF5 and MFEM ! <<-- ")
 
-  link_directories(/home/m_beck52/local/lib/)
-  include_directories(/home/m_beck52/local/include/)
-  file(GLOB BAGHEERA_SRC /home/m_beck52/local/include/*.hpp)
+  link_directories(~/local/lib/)
+  include_directories(~/local/include/)
+  file(GLOB BAGHEERA_SRC ~/local/include/*.hpp)
 
 
 endif (NOT (${HDF5_FOUND} OR ${MFEM_FOUND}))
 
-# include_directories(${HDF5_INCLUDE_DIRS})
+include_directories(${HDF5_INCLUDE_DIRS})
 
 
 add_executable(MCnetwork ${MCnetwork_SRC} ${sources} ${BAGHEERA_SRC})
@@ -54,3 +54,6 @@ target_link_libraries(MCnetwork finiteElemente)
 target_link_libraries(MCnetwork hdf5 hdf5_cpp)
 target_link_libraries(MCnetwork ${Boost_LIBRARIES})
 target_link_libraries(MCnetwork mfem)
+
+#install does not copy libraries properly
+install(TARGETS MCnetwork DESTINATION bin LIBRARY DESTINATION lib)

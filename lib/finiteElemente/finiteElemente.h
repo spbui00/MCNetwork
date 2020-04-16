@@ -46,6 +46,9 @@ protected:
 
 
 public:
+    /*!
+        \param saveSolution if true: save mesh and solution in each step. can be visualized using "glivs -m finEle.mesh -g laplace_solution0.gf"
+    */
     FiniteElementeBase(bool saveSolution);
     ~FiniteElementeBase();
     GridFunction * solutionVector; // changed to pointer, named x in example

@@ -180,8 +180,7 @@ for fileNumber in [1,2,3,4]:
         plt.savefig(join(pathToSimFolder,f"trajectory_fromEl_{k}_{inp[fileNumber-1]}.png"),bbox_inches="tight",dpi=300)    
 
         # plt.show()
-        plt.close()
-        fig=None
+        plt.close(fig)
 
 
     for k in range(len(electrodes)):
@@ -260,7 +259,6 @@ for fileNumber in [1,2,3,4]:
         plt.savefig(join(pathToSimFolder,f"trajectory_toEl_{k}_{inp[fileNumber-1]}.png"),bbox_inches="tight",dpi=300)    
 
         # plt.show()
-        plt.close()
-        fig=None
+        plt.close(fig)
 
 

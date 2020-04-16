@@ -121,8 +121,7 @@ for fileNumber in [1,2,3,4]:
     plt.savefig(join(pathToSimFolder,f"swapHist_{inp[fileNumber-1]}.png"),bbox_inches="tight",dpi=300)    
 
     # plt.show()
-    plt.close()
-    fig=None
+    plt.close(fig)
 
     
     fig, ax=plt.subplots(1,1,figsize=(4.980614173228346,3.2))
@@ -135,7 +134,6 @@ for fileNumber in [1,2,3,4]:
     plt.savefig(join(pathToSimFolder,f"swapHist_{inp[fileNumber-1]}_log.png"),bbox_inches="tight",dpi=300)    
 
     # plt.show()
-    plt.close()
-    fig=None
+    plt.close(fig)
 
 
