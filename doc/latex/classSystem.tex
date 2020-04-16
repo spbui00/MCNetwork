@@ -1,0 +1,472 @@
+\hypertarget{classSystem}{}\section{System Class Reference}
+\label{classSystem}\index{System@{System}}
+
+
+{\ttfamily \#include $<$system.\+h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classSystem_afb9e8e41153aa000fee8976c4f254682}\label{classSystem_afb9e8e41153aa000fee8976c4f254682}} 
+{\bfseries System} (std\+::shared\+\_\+ptr$<$ \hyperlink{classParameterStorage}{Parameter\+Storage} $>$ const \&)
+\item 
+\hyperlink{classSystem_afe81cf1082ba164e244acfb72735b753}{System} (\hyperlink{classSystem}{System} const \&old\+Sys)
+\item 
+void \hyperlink{classSystem_a5ce3d5c7024ac817ab218b65d96ed1eb}{create\+Random\+New\+Device} ()
+\item 
+void \hyperlink{classSystem_abe7a2b35b346ac9d823b5431d277d391}{load\+Device} ()
+\item 
+void \hyperlink{classSystem_a4fddf46176e76cc8d9e1ef91d38d82be}{initilize\+Matrices} ()
+\item 
+void \hyperlink{classSystem_a943bc42d8dc42ae1aaf1a5798ce723b8}{get\+Ready\+For\+Run} ()
+\item 
+void \hyperlink{classSystem_a2029214f3faeefd335b67b2264b61fe5}{reset} ()
+\item 
+void \hyperlink{classSystem_ab8fd982f98b67cb94f9cb0085b440751}{reset\+Stored\+States} ()
+\item 
+void \hyperlink{classSystem_a166f8dc2f77ff0ff2df9b25f8740a134}{run} (int steps)
+\item 
+void \hyperlink{classSystem_a398b2539956dc5c456dff4bbe24eb1ba}{update\+Potential} (std\+::vector$<$ double $>$ const \&voltages)
+\item 
+void \hyperlink{classSystem_a3d2943951e8fd2aece2c27065ed16e3d}{update\+Potential} (mfem\+::\+Grid\+Function const \&potential)
+\item 
+void \hyperlink{classSystem_adabb9bdb6516b565f63345ea74a10de7}{update\+Occupation\+And\+Potential} (std\+::vector$<$ bool $>$ const \&new\+Occupation, mfem\+::\+Grid\+Function const \&potential)
+\item 
+\mbox{\Hypertarget{classSystem_a5833eb4c881e1495f1e24456e9b225ad}\label{classSystem_a5833eb4c881e1495f1e24456e9b225ad}} 
+std\+::vector$<$ bool $>$ const  \& {\bfseries get\+Occupation} ()
+\item 
+mfem\+::\+Grid\+Function \hyperlink{classSystem_a8b1198a23ff52e2460fd605f727419c2}{get\+Potential} () const
+\end{DoxyCompactItemize}
+\subsection*{Data Fields}
+\begin{DoxyCompactItemize}
+\item 
+int $\ast$ \hyperlink{classSystem_a236f2d392daa817d39a5b23a8e6a57d5}{output\+Current\+Counter}
+\item 
+double \hyperlink{classSystem_aa9e002a5f2f169e37c545b76ee67e724}{time} =0
+\end{DoxyCompactItemize}
+\subsection*{Private Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{classSystem_ad32d6fd369f822d075e19698f8e6a2ae}{update\+After\+Swap} ()
+\item 
+void \hyperlink{classSystem_ac449110fcd692cdec9987730635179df}{set\+Occupation} (std\+::vector$<$ bool $>$ const \&new\+Occupation)
+\item 
+void \hyperlink{classSystem_a2570343111c1794aca7e6005b4726b92}{find\+Swap} ()
+\item 
+void \hyperlink{classSystem_afbafce4188cca27e7e37892049b45856}{find\+Swap\+BS} ()
+\item 
+void \hyperlink{classSystem_a2b1664dce6144f6a8104ebb678fb5c8b}{update\+Rates\+Storing\+Mode} ()
+\item 
+void \hyperlink{classSystem_a1f50240f4eecb60f8302307e6df814af}{update\+Rates} ()
+\item 
+void \hyperlink{classSystem_a6167b888fa30f9d8fa56a246c5f461b9}{increase\+Time} ()
+\item 
+void \hyperlink{classSystem_a94a96fbd71935aac883f3d9e026661ac}{reset\+Potential} ()
+\item 
+void \hyperlink{classSystem_ad41034bcdfc24395e67fe7e3d5f50330}{set\+New\+Potential} ()
+\end{DoxyCompactItemize}
+\subsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+int \hyperlink{classSystem_a1537030f9695aa1ec4184cd5669c73c3}{acceptor\+Number}
+\item 
+\mbox{\Hypertarget{classSystem_a12c3b3c11046ab5d78b8805b72fae470}\label{classSystem_a12c3b3c11046ab5d78b8805b72fae470}} 
+int {\bfseries electrode\+Number}
+\item 
+int \hyperlink{classSystem_abace9493421abf20f1ae9502963a9b5d}{hopping\+Site\+Number}
+\item 
+\mbox{\Hypertarget{classSystem_aa8a48bb1ca893cd2835daf8c0c9ecb31}\label{classSystem_aa8a48bb1ca893cd2835daf8c0c9ecb31}} 
+double $\ast$ {\bfseries donor\+PositionsX}
+\item 
+\mbox{\Hypertarget{classSystem_ab4c8bb2714bac75e32ed8c96110059db}\label{classSystem_ab4c8bb2714bac75e32ed8c96110059db}} 
+double $\ast$ {\bfseries donor\+PositionsY}
+\item 
+\mbox{\Hypertarget{classSystem_a36edfe2e62188f33cd8a5176e86da7ee}\label{classSystem_a36edfe2e62188f33cd8a5176e86da7ee}} 
+double $\ast$ {\bfseries acceptor\+PositionsX}
+\item 
+\mbox{\Hypertarget{classSystem_af1f617f7f8675673bbc672dd14738882}\label{classSystem_af1f617f7f8675673bbc672dd14738882}} 
+double $\ast$ {\bfseries acceptor\+PositionsY}
+\item 
+\mbox{\Hypertarget{classSystem_a15808f18033c796219fe010534d8e8df}\label{classSystem_a15808f18033c796219fe010534d8e8df}} 
+double $\ast$ {\bfseries electrode\+PositionsX}
+\item 
+double $\ast$ \hyperlink{classSystem_a19886677a5c1f1989fee3a9d1d4b4c80}{electrode\+PositionsY}
+\item 
+double $\ast$ \hyperlink{classSystem_a682a961342b2200c748da544fb84488a}{distances}
+\item 
+double $\ast$ \hyperlink{classSystem_aee5f3f70dcfa30875997d09e2a077dce}{energies}
+\item 
+int $\ast$ \hyperlink{classSystem_a8d4858c73f66a84785384ff1fb741e7e}{current\+Counter}
+\item 
+double $\ast$ \hyperlink{classSystem_acbe0d31bddfc490ec048dfaca2df2558}{pair\+Energies}
+\item 
+double $\ast$ \hyperlink{classSystem_aef68ee60ffd49b2beafde87dcf4a4fe3}{delta\+Energies}
+\item 
+double $\ast$ \hyperlink{classSystem_ad89fb08497a4d886f64a91a7d302b296}{rates}
+\item 
+double $\ast$ \hyperlink{classSystem_a046174e3f233b5c31249aaec257c83ff}{base\+Rates}
+\item 
+std\+::vector$<$ bool $>$ \hyperlink{classSystem_af13aaae75d6cff51d202b004a9fdc3d4}{occupation}
+\item 
+std\+::vector$<$ std\+::vector$<$ int $>$ $>$ \hyperlink{classSystem_a7938c9208ca6b86c4d1629418aabd98f}{interaction\+Partners}
+\item 
+std\+::vector$<$ std\+::vector$<$ int $>$ $>$ \hyperlink{classSystem_ae9ca6aa54468effc1fae57c2adc6c578}{hopping\+Partners\+Acceptors}
+\item 
+std\+::vector$<$ std\+::vector$<$ int $>$ $>$ \hyperlink{classSystem_a777232d4fec6f13fc7423a477f629a0f}{hopping\+Partners\+Electrodes}
+\item 
+int \hyperlink{classSystem_a6cae5a9a0157f7e6042bda0807879568}{last\+Swapped1} =0
+\item 
+int \hyperlink{classSystem_a6ddf57bedba9389eb75ffb60cad1391c}{last\+Swapped2} =0
+\item 
+\mbox{\Hypertarget{classSystem_ad3aaea748694e196166f840d967de4fa}\label{classSystem_ad3aaea748694e196166f840d967de4fa}} 
+double {\bfseries rates\+Sum} =0
+\item 
+double \hyperlink{classSystem_a51bded18390c13a28f8737c3b7a911bb}{constant\+Rates\+Sum\+Part} =0
+\item 
+double \hyperlink{classSystem_a292939d005702b34cb3d40d169b24639}{loc\+LenA}
+\item 
+std\+::unique\+\_\+ptr$<$ \hyperlink{classFiniteElementeBase}{Finite\+Elemente\+Base} $>$ \hyperlink{classSystem_a586a959bbcb019f061535e63d7a96852}{fin\+Ele}
+\item 
+std\+::shared\+\_\+ptr$<$ std\+::vector$<$ double $>$ $>$ \hyperlink{classSystem_ae1d936be9d2c423ef42a2c16dc269e6c}{part\+Rates\+Sum\+List}
+\item 
+std\+::shared\+\_\+ptr$<$ std\+::unordered\+\_\+map$<$ std\+::vector$<$ bool $>$, std\+::shared\+\_\+ptr$<$ std\+::vector$<$ double $>$ $>$ $>$ $>$ \hyperlink{classSystem_a9892a3f67a51872cce3577ec50a55a5d}{konwn\+Part\+Rates\+Sum\+List}
+\item 
+std\+::shared\+\_\+ptr$<$ std\+::unordered\+\_\+map$<$ std\+::vector$<$ bool $>$, double $>$ $>$ \hyperlink{classSystem_af23703acd38834ecb9381425724f4ca5}{known\+Rates\+Sum}
+\item 
+\mbox{\Hypertarget{classSystem_a990aa61d9baff5dd50f6188c79609092}\label{classSystem_a990aa61d9baff5dd50f6188c79609092}} 
+std\+::shared\+\_\+ptr$<$ \hyperlink{classParameterStorage}{Parameter\+Storage} $>$ {\bfseries parameter\+Storage}
+\item 
+bool \hyperlink{classSystem_a0d59e20f6ebffb9b2b6e31f7e85d1756}{ready\+For\+Run} =false
+\item 
+bool \hyperlink{classSystem_afe51eb9409a63748242e0a987c98caf0}{storing\+Mode}
+\item 
+bool \hyperlink{classSystem_abdb9c2321ac8dbfc6a5febc07ae4def9}{rates\+In\+Memory} =false
+\item 
+bool \hyperlink{classSystem_aa121c1c34382800d39106aa81d9c36f4}{store\+Known\+States} = true
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+main class for physical model 
+
+\subsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{classSystem_afe81cf1082ba164e244acfb72735b753}\label{classSystem_afe81cf1082ba164e244acfb72735b753}} 
+\index{System@{System}!System@{System}}
+\index{System@{System}!System@{System}}
+\subsubsection{\texorpdfstring{System()}{System()}}
+{\footnotesize\ttfamily System\+::\+System (\begin{DoxyParamCaption}\item[{\hyperlink{classSystem}{System} const \&}]{old\+Sys }\end{DoxyParamCaption})}
+
+copy constructor. used in parallelization. 
+
+\subsection{Member Function Documentation}
+\mbox{\Hypertarget{classSystem_a5ce3d5c7024ac817ab218b65d96ed1eb}\label{classSystem_a5ce3d5c7024ac817ab218b65d96ed1eb}} 
+\index{System@{System}!create\+Random\+New\+Device@{create\+Random\+New\+Device}}
+\index{create\+Random\+New\+Device@{create\+Random\+New\+Device}!System@{System}}
+\subsubsection{\texorpdfstring{create\+Random\+New\+Device()}{createRandomNewDevice()}}
+{\footnotesize\ttfamily void System\+::create\+Random\+New\+Device (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+creates device and saves it to \char`\"{}device.\+txt\char`\"{} \mbox{\Hypertarget{classSystem_a2570343111c1794aca7e6005b4726b92}\label{classSystem_a2570343111c1794aca7e6005b4726b92}} 
+\index{System@{System}!find\+Swap@{find\+Swap}}
+\index{find\+Swap@{find\+Swap}!System@{System}}
+\subsubsection{\texorpdfstring{find\+Swap()}{findSwap()}}
+{\footnotesize\ttfamily void System\+::find\+Swap (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+sets \hyperlink{classSystem_a6cae5a9a0157f7e6042bda0807879568}{System\+::last\+Swapped1} and \hyperlink{classSystem_a6ddf57bedba9389eb75ffb60cad1391c}{System\+::last\+Swapped2} to swap pair \mbox{\Hypertarget{classSystem_afbafce4188cca27e7e37892049b45856}\label{classSystem_afbafce4188cca27e7e37892049b45856}} 
+\index{System@{System}!find\+Swap\+BS@{find\+Swap\+BS}}
+\index{find\+Swap\+BS@{find\+Swap\+BS}!System@{System}}
+\subsubsection{\texorpdfstring{find\+Swap\+B\+S()}{findSwapBS()}}
+{\footnotesize\ttfamily void System\+::find\+Swap\+BS (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+using binary search
+
+find swapping pair using binary search (BS) algorithm. only used if state is known (in store known states) \mbox{\Hypertarget{classSystem_a8b1198a23ff52e2460fd605f727419c2}\label{classSystem_a8b1198a23ff52e2460fd605f727419c2}} 
+\index{System@{System}!get\+Potential@{get\+Potential}}
+\index{get\+Potential@{get\+Potential}!System@{System}}
+\subsubsection{\texorpdfstring{get\+Potential()}{getPotential()}}
+{\footnotesize\ttfamily mfem\+::\+Grid\+Function System\+::get\+Potential (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+returns Finite\+Elemente\+Base\+::solution\+Vector of \hyperlink{classSystem_a586a959bbcb019f061535e63d7a96852}{System\+::fin\+Ele} \mbox{\Hypertarget{classSystem_a943bc42d8dc42ae1aaf1a5798ce723b8}\label{classSystem_a943bc42d8dc42ae1aaf1a5798ce723b8}} 
+\index{System@{System}!get\+Ready\+For\+Run@{get\+Ready\+For\+Run}}
+\index{get\+Ready\+For\+Run@{get\+Ready\+For\+Run}!System@{System}}
+\subsubsection{\texorpdfstring{get\+Ready\+For\+Run()}{getReadyForRun()}}
+{\footnotesize\ttfamily void System\+::get\+Ready\+For\+Run (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+\begin{DoxyItemize}
+\item calc positions of electrodes
+\item init laplace solver
+\item calc distances and pair energies
+\item evaluates cuts (e.\+g. setting \hyperlink{classSystem_ae9ca6aa54468effc1fae57c2adc6c578}{System\+::hopping\+Partners\+Acceptors}, \hyperlink{classSystem_a777232d4fec6f13fc7423a477f629a0f}{System\+::hopping\+Partners\+Electrodes})
+\item calc base rates, e.\+g. constant part of rate (exp(-\/2r/a))
+\item set random start occupation 
+\end{DoxyItemize}\mbox{\Hypertarget{classSystem_a6167b888fa30f9d8fa56a246c5f461b9}\label{classSystem_a6167b888fa30f9d8fa56a246c5f461b9}} 
+\index{System@{System}!increase\+Time@{increase\+Time}}
+\index{increase\+Time@{increase\+Time}!System@{System}}
+\subsubsection{\texorpdfstring{increase\+Time()}{increaseTime()}}
+{\footnotesize\ttfamily void System\+::increase\+Time (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+increase time recording to exponential distribution \mbox{\Hypertarget{classSystem_a4fddf46176e76cc8d9e1ef91d38d82be}\label{classSystem_a4fddf46176e76cc8d9e1ef91d38d82be}} 
+\index{System@{System}!initilize\+Matrices@{initilize\+Matrices}}
+\index{initilize\+Matrices@{initilize\+Matrices}!System@{System}}
+\subsubsection{\texorpdfstring{initilize\+Matrices()}{initilizeMatrices()}}
+{\footnotesize\ttfamily void System\+::initilize\+Matrices (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+init c arrays \mbox{\Hypertarget{classSystem_abe7a2b35b346ac9d823b5431d277d391}\label{classSystem_abe7a2b35b346ac9d823b5431d277d391}} 
+\index{System@{System}!load\+Device@{load\+Device}}
+\index{load\+Device@{load\+Device}!System@{System}}
+\subsubsection{\texorpdfstring{load\+Device()}{loadDevice()}}
+{\footnotesize\ttfamily void System\+::load\+Device (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+loads device from \char`\"{}device.\+txt\char`\"{}. no error handling! does not check if number of acceptors/donors matches -\/$>$ unexpected errors might occur \mbox{\Hypertarget{classSystem_a2029214f3faeefd335b67b2264b61fe5}\label{classSystem_a2029214f3faeefd335b67b2264b61fe5}} 
+\index{System@{System}!reset@{reset}}
+\index{reset@{reset}!System@{System}}
+\subsubsection{\texorpdfstring{reset()}{reset()}}
+{\footnotesize\ttfamily void System\+::reset (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+set \hyperlink{classSystem_aa9e002a5f2f169e37c545b76ee67e724}{System\+::time} = 0 and \hyperlink{classSystem_a8d4858c73f66a84785384ff1fb741e7e}{System\+::current\+Counter}\mbox{[}i\mbox{]} = 0 \mbox{\Hypertarget{classSystem_a94a96fbd71935aac883f3d9e026661ac}\label{classSystem_a94a96fbd71935aac883f3d9e026661ac}} 
+\index{System@{System}!reset\+Potential@{reset\+Potential}}
+\index{reset\+Potential@{reset\+Potential}!System@{System}}
+\subsubsection{\texorpdfstring{reset\+Potential()}{resetPotential()}}
+{\footnotesize\ttfamily void System\+::reset\+Potential (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+set all energies to 0 \mbox{\Hypertarget{classSystem_ab8fd982f98b67cb94f9cb0085b440751}\label{classSystem_ab8fd982f98b67cb94f9cb0085b440751}} 
+\index{System@{System}!reset\+Stored\+States@{reset\+Stored\+States}}
+\index{reset\+Stored\+States@{reset\+Stored\+States}!System@{System}}
+\subsubsection{\texorpdfstring{reset\+Stored\+States()}{resetStoredStates()}}
+{\footnotesize\ttfamily void System\+::reset\+Stored\+States (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+clears \hyperlink{classSystem_af23703acd38834ecb9381425724f4ca5}{System\+::known\+Rates\+Sum} and \hyperlink{classSystem_a9892a3f67a51872cce3577ec50a55a5d}{System\+::konwn\+Part\+Rates\+Sum\+List} \mbox{\Hypertarget{classSystem_a166f8dc2f77ff0ff2df9b25f8740a134}\label{classSystem_a166f8dc2f77ff0ff2df9b25f8740a134}} 
+\index{System@{System}!run@{run}}
+\index{run@{run}!System@{System}}
+\subsubsection{\texorpdfstring{run()}{run()}}
+{\footnotesize\ttfamily void System\+::run (\begin{DoxyParamCaption}\item[{int}]{steps }\end{DoxyParamCaption})}
+
+run kinetic MC \mbox{\Hypertarget{classSystem_ad41034bcdfc24395e67fe7e3d5f50330}\label{classSystem_ad41034bcdfc24395e67fe7e3d5f50330}} 
+\index{System@{System}!set\+New\+Potential@{set\+New\+Potential}}
+\index{set\+New\+Potential@{set\+New\+Potential}!System@{System}}
+\subsubsection{\texorpdfstring{set\+New\+Potential()}{setNewPotential()}}
+{\footnotesize\ttfamily void System\+::set\+New\+Potential (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+set energies to potential set before \mbox{\Hypertarget{classSystem_ac449110fcd692cdec9987730635179df}\label{classSystem_ac449110fcd692cdec9987730635179df}} 
+\index{System@{System}!set\+Occupation@{set\+Occupation}}
+\index{set\+Occupation@{set\+Occupation}!System@{System}}
+\subsubsection{\texorpdfstring{set\+Occupation()}{setOccupation()}}
+{\footnotesize\ttfamily void System\+::set\+Occupation (\begin{DoxyParamCaption}\item[{std\+::vector$<$ bool $>$ const \&}]{new\+Occupation }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+set new occupation and update energies \mbox{\Hypertarget{classSystem_ad32d6fd369f822d075e19698f8e6a2ae}\label{classSystem_ad32d6fd369f822d075e19698f8e6a2ae}} 
+\index{System@{System}!update\+After\+Swap@{update\+After\+Swap}}
+\index{update\+After\+Swap@{update\+After\+Swap}!System@{System}}
+\subsubsection{\texorpdfstring{update\+After\+Swap()}{updateAfterSwap()}}
+{\footnotesize\ttfamily void System\+::update\+After\+Swap (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+updates \hyperlink{classSystem_af13aaae75d6cff51d202b004a9fdc3d4}{System\+::occupation} and \hyperlink{classSystem_aee5f3f70dcfa30875997d09e2a077dce}{System\+::energies} after swap pair was found \mbox{\Hypertarget{classSystem_adabb9bdb6516b565f63345ea74a10de7}\label{classSystem_adabb9bdb6516b565f63345ea74a10de7}} 
+\index{System@{System}!update\+Occupation\+And\+Potential@{update\+Occupation\+And\+Potential}}
+\index{update\+Occupation\+And\+Potential@{update\+Occupation\+And\+Potential}!System@{System}}
+\subsubsection{\texorpdfstring{update\+Occupation\+And\+Potential()}{updateOccupationAndPotential()}}
+{\footnotesize\ttfamily void System\+::update\+Occupation\+And\+Potential (\begin{DoxyParamCaption}\item[{std\+::vector$<$ bool $>$ const \&}]{new\+Occupation,  }\item[{mfem\+::\+Grid\+Function const \&}]{potential }\end{DoxyParamCaption})}
+
+see \hyperlink{classSystem_a398b2539956dc5c456dff4bbe24eb1ba}{System\+::update\+Potential} and \hyperlink{classSystem_ac449110fcd692cdec9987730635179df}{System\+::set\+Occupation}. by updating both at once the energies have to be recalculated only once \mbox{\Hypertarget{classSystem_a398b2539956dc5c456dff4bbe24eb1ba}\label{classSystem_a398b2539956dc5c456dff4bbe24eb1ba}} 
+\index{System@{System}!update\+Potential@{update\+Potential}}
+\index{update\+Potential@{update\+Potential}!System@{System}}
+\subsubsection{\texorpdfstring{update\+Potential()}{updatePotential()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily void System\+::update\+Potential (\begin{DoxyParamCaption}\item[{std\+::vector$<$ double $>$ const \&}]{voltages }\end{DoxyParamCaption})}
+
+updates voltages and solves laplace eq \mbox{\Hypertarget{classSystem_a3d2943951e8fd2aece2c27065ed16e3d}\label{classSystem_a3d2943951e8fd2aece2c27065ed16e3d}} 
+\index{System@{System}!update\+Potential@{update\+Potential}}
+\index{update\+Potential@{update\+Potential}!System@{System}}
+\subsubsection{\texorpdfstring{update\+Potential()}{updatePotential()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily void System\+::update\+Potential (\begin{DoxyParamCaption}\item[{mfem\+::\+Grid\+Function const \&}]{potential }\end{DoxyParamCaption})}
+
+copys laplace equation solution, does not solve laplace eq itself. \mbox{\Hypertarget{classSystem_a1f50240f4eecb60f8302307e6df814af}\label{classSystem_a1f50240f4eecb60f8302307e6df814af}} 
+\index{System@{System}!update\+Rates@{update\+Rates}}
+\index{update\+Rates@{update\+Rates}!System@{System}}
+\subsubsection{\texorpdfstring{update\+Rates()}{updateRates()}}
+{\footnotesize\ttfamily void System\+::update\+Rates (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+core calculation of rates
+
+update rates after each swap \mbox{\Hypertarget{classSystem_a2b1664dce6144f6a8104ebb678fb5c8b}\label{classSystem_a2b1664dce6144f6a8104ebb678fb5c8b}} 
+\index{System@{System}!update\+Rates\+Storing\+Mode@{update\+Rates\+Storing\+Mode}}
+\index{update\+Rates\+Storing\+Mode@{update\+Rates\+Storing\+Mode}!System@{System}}
+\subsubsection{\texorpdfstring{update\+Rates\+Storing\+Mode()}{updateRatesStoringMode()}}
+{\footnotesize\ttfamily void System\+::update\+Rates\+Storing\+Mode (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+single processor, storing mode
+
+see \hyperlink{classSystem_a1f50240f4eecb60f8302307e6df814af}{System\+::update\+Rates()}. only used in storing mode. additionally setting unused rates = 0. checking for saved states/saving state. 
+
+\subsection{Field Documentation}
+\mbox{\Hypertarget{classSystem_a1537030f9695aa1ec4184cd5669c73c3}\label{classSystem_a1537030f9695aa1ec4184cd5669c73c3}} 
+\index{System@{System}!acceptor\+Number@{acceptor\+Number}}
+\index{acceptor\+Number@{acceptor\+Number}!System@{System}}
+\subsubsection{\texorpdfstring{acceptor\+Number}{acceptorNumber}}
+{\footnotesize\ttfamily int System\+::acceptor\+Number\hspace{0.3cm}{\ttfamily [private]}}
+
+acceptors = dopants \mbox{\Hypertarget{classSystem_a046174e3f233b5c31249aaec257c83ff}\label{classSystem_a046174e3f233b5c31249aaec257c83ff}} 
+\index{System@{System}!base\+Rates@{base\+Rates}}
+\index{base\+Rates@{base\+Rates}!System@{System}}
+\subsubsection{\texorpdfstring{base\+Rates}{baseRates}}
+{\footnotesize\ttfamily double$\ast$ System\+::base\+Rates\hspace{0.3cm}{\ttfamily [private]}}
+
+2\+D-\/array\+: constant distance dependend part of transition rates (exp(-\/2r/a)) \mbox{\Hypertarget{classSystem_a51bded18390c13a28f8737c3b7a911bb}\label{classSystem_a51bded18390c13a28f8737c3b7a911bb}} 
+\index{System@{System}!constant\+Rates\+Sum\+Part@{constant\+Rates\+Sum\+Part}}
+\index{constant\+Rates\+Sum\+Part@{constant\+Rates\+Sum\+Part}!System@{System}}
+\subsubsection{\texorpdfstring{constant\+Rates\+Sum\+Part}{constantRatesSumPart}}
+{\footnotesize\ttfamily double System\+::constant\+Rates\+Sum\+Part =0\hspace{0.3cm}{\ttfamily [private]}}
+
+rates of electrode-\/electrode hops are constant \mbox{\Hypertarget{classSystem_a8d4858c73f66a84785384ff1fb741e7e}\label{classSystem_a8d4858c73f66a84785384ff1fb741e7e}} 
+\index{System@{System}!current\+Counter@{current\+Counter}}
+\index{current\+Counter@{current\+Counter}!System@{System}}
+\subsubsection{\texorpdfstring{current\+Counter}{currentCounter}}
+{\footnotesize\ttfamily int$\ast$ System\+::current\+Counter\hspace{0.3cm}{\ttfamily [private]}}
+
+1\+D-\/array\+: counter for all electrodes \mbox{\Hypertarget{classSystem_aef68ee60ffd49b2beafde87dcf4a4fe3}\label{classSystem_aef68ee60ffd49b2beafde87dcf4a4fe3}} 
+\index{System@{System}!delta\+Energies@{delta\+Energies}}
+\index{delta\+Energies@{delta\+Energies}!System@{System}}
+\subsubsection{\texorpdfstring{delta\+Energies}{deltaEnergies}}
+{\footnotesize\ttfamily double$\ast$ System\+::delta\+Energies\hspace{0.3cm}{\ttfamily [private]}}
+
+2\+D-\/array\+: difference between hopping site energies \mbox{\Hypertarget{classSystem_a682a961342b2200c748da544fb84488a}\label{classSystem_a682a961342b2200c748da544fb84488a}} 
+\index{System@{System}!distances@{distances}}
+\index{distances@{distances}!System@{System}}
+\subsubsection{\texorpdfstring{distances}{distances}}
+{\footnotesize\ttfamily double$\ast$ System\+::distances\hspace{0.3cm}{\ttfamily [private]}}
+
+2\+D-\/array\+: hopping site distances \mbox{\Hypertarget{classSystem_a19886677a5c1f1989fee3a9d1d4b4c80}\label{classSystem_a19886677a5c1f1989fee3a9d1d4b4c80}} 
+\index{System@{System}!electrode\+PositionsY@{electrode\+PositionsY}}
+\index{electrode\+PositionsY@{electrode\+PositionsY}!System@{System}}
+\subsubsection{\texorpdfstring{electrode\+PositionsY}{electrodePositionsY}}
+{\footnotesize\ttfamily double $\ast$ System\+::electrode\+PositionsY\hspace{0.3cm}{\ttfamily [private]}}
+
+2\+D-\/array\+: hopping site distances 1D -\/ array \mbox{\Hypertarget{classSystem_aee5f3f70dcfa30875997d09e2a077dce}\label{classSystem_aee5f3f70dcfa30875997d09e2a077dce}} 
+\index{System@{System}!energies@{energies}}
+\index{energies@{energies}!System@{System}}
+\subsubsection{\texorpdfstring{energies}{energies}}
+{\footnotesize\ttfamily double$\ast$ System\+::energies\hspace{0.3cm}{\ttfamily [private]}}
+
+1\+D-\/array\+: single hopping site energies \mbox{\Hypertarget{classSystem_a586a959bbcb019f061535e63d7a96852}\label{classSystem_a586a959bbcb019f061535e63d7a96852}} 
+\index{System@{System}!fin\+Ele@{fin\+Ele}}
+\index{fin\+Ele@{fin\+Ele}!System@{System}}
+\subsubsection{\texorpdfstring{fin\+Ele}{finEle}}
+{\footnotesize\ttfamily std\+::unique\+\_\+ptr$<$\hyperlink{classFiniteElementeBase}{Finite\+Elemente\+Base}$>$ System\+::fin\+Ele\hspace{0.3cm}{\ttfamily [private]}}
+
+fin\+Ele device \mbox{\Hypertarget{classSystem_ae9ca6aa54468effc1fae57c2adc6c578}\label{classSystem_ae9ca6aa54468effc1fae57c2adc6c578}} 
+\index{System@{System}!hopping\+Partners\+Acceptors@{hopping\+Partners\+Acceptors}}
+\index{hopping\+Partners\+Acceptors@{hopping\+Partners\+Acceptors}!System@{System}}
+\subsubsection{\texorpdfstring{hopping\+Partners\+Acceptors}{hoppingPartnersAcceptors}}
+{\footnotesize\ttfamily std\+::vector$<$std\+::vector$<$int$>$ $>$ System\+::hopping\+Partners\+Acceptors\hspace{0.3cm}{\ttfamily [private]}}
+
+indices of possible hopping partner (acceptors). needed bc of cut on hopping\+Partners by \char`\"{}min\+Hopping\+Dist\char`\"{} and \char`\"{}max\+Hopping\+Dist\char`\"{}. sorted by hopping\+Site index. example\+: hopping\+Partners\+Acceptors\mbox{[}hopping\+Site\+Index\mbox{]} $<$-\/ vector of indices of acceptors where hole form hopping\+Site\+Index can hop to. \mbox{\Hypertarget{classSystem_a777232d4fec6f13fc7423a477f629a0f}\label{classSystem_a777232d4fec6f13fc7423a477f629a0f}} 
+\index{System@{System}!hopping\+Partners\+Electrodes@{hopping\+Partners\+Electrodes}}
+\index{hopping\+Partners\+Electrodes@{hopping\+Partners\+Electrodes}!System@{System}}
+\subsubsection{\texorpdfstring{hopping\+Partners\+Electrodes}{hoppingPartnersElectrodes}}
+{\footnotesize\ttfamily std\+::vector$<$std\+::vector$<$int$>$ $>$ System\+::hopping\+Partners\+Electrodes\hspace{0.3cm}{\ttfamily [private]}}
+
+indices of possible hopping partner (electrodes). needed bc of cut on hopping\+Partners by \char`\"{}min\+Hopping\+Dist\char`\"{} and \char`\"{}max\+Hopping\+Dist\char`\"{}. sorted by hopping\+Site index. example\+: hopping\+Partners\+Electrodes\mbox{[}hopping\+Site\+Index\mbox{]} $<$-\/ vector of indices of electrodes where hole form hopping\+Site\+Index can hop to. \mbox{\Hypertarget{classSystem_abace9493421abf20f1ae9502963a9b5d}\label{classSystem_abace9493421abf20f1ae9502963a9b5d}} 
+\index{System@{System}!hopping\+Site\+Number@{hopping\+Site\+Number}}
+\index{hopping\+Site\+Number@{hopping\+Site\+Number}!System@{System}}
+\subsubsection{\texorpdfstring{hopping\+Site\+Number}{hoppingSiteNumber}}
+{\footnotesize\ttfamily int System\+::hopping\+Site\+Number\hspace{0.3cm}{\ttfamily [private]}}
+
+acceptors and electrodes are both hopping\+Sites =$>$ hopping\+Site\+Number = acceptor\+Number + electrode\+Number \mbox{\Hypertarget{classSystem_a7938c9208ca6b86c4d1629418aabd98f}\label{classSystem_a7938c9208ca6b86c4d1629418aabd98f}} 
+\index{System@{System}!interaction\+Partners@{interaction\+Partners}}
+\index{interaction\+Partners@{interaction\+Partners}!System@{System}}
+\subsubsection{\texorpdfstring{interaction\+Partners}{interactionPartners}}
+{\footnotesize\ttfamily std\+::vector$<$std\+::vector$<$int$>$ $>$ System\+::interaction\+Partners\hspace{0.3cm}{\ttfamily [private]}}
+
+indices of coulomb interacting partners. needed bc of cut on coulomb interaction by \char`\"{}max\+Interaction\+Dist\char`\"{}. sorted by hopping\+Site index \mbox{\Hypertarget{classSystem_af23703acd38834ecb9381425724f4ca5}\label{classSystem_af23703acd38834ecb9381425724f4ca5}} 
+\index{System@{System}!known\+Rates\+Sum@{known\+Rates\+Sum}}
+\index{known\+Rates\+Sum@{known\+Rates\+Sum}!System@{System}}
+\subsubsection{\texorpdfstring{known\+Rates\+Sum}{knownRatesSum}}
+{\footnotesize\ttfamily std\+::shared\+\_\+ptr$<$ std\+::unordered\+\_\+map$<$std\+::vector$<$bool$>$,double$>$ $>$ System\+::known\+Rates\+Sum\hspace{0.3cm}{\ttfamily [private]}}
+
+map of rate sums for binary search, to store known states. only used in storing mode. \mbox{\Hypertarget{classSystem_a9892a3f67a51872cce3577ec50a55a5d}\label{classSystem_a9892a3f67a51872cce3577ec50a55a5d}} 
+\index{System@{System}!konwn\+Part\+Rates\+Sum\+List@{konwn\+Part\+Rates\+Sum\+List}}
+\index{konwn\+Part\+Rates\+Sum\+List@{konwn\+Part\+Rates\+Sum\+List}!System@{System}}
+\subsubsection{\texorpdfstring{konwn\+Part\+Rates\+Sum\+List}{konwnPartRatesSumList}}
+{\footnotesize\ttfamily std\+::shared\+\_\+ptr$<$ std\+::unordered\+\_\+map$<$std\+::vector$<$bool$>$,std\+::shared\+\_\+ptr$<$std\+::vector$<$double$>$ $>$ $>$ $>$ System\+::konwn\+Part\+Rates\+Sum\+List\hspace{0.3cm}{\ttfamily [private]}}
+
+map of lists of accumulated rates for binary search, to store known states. only used in storing mode. \mbox{\Hypertarget{classSystem_a6cae5a9a0157f7e6042bda0807879568}\label{classSystem_a6cae5a9a0157f7e6042bda0807879568}} 
+\index{System@{System}!last\+Swapped1@{last\+Swapped1}}
+\index{last\+Swapped1@{last\+Swapped1}!System@{System}}
+\subsubsection{\texorpdfstring{last\+Swapped1}{lastSwapped1}}
+{\footnotesize\ttfamily int System\+::last\+Swapped1 =0\hspace{0.3cm}{\ttfamily [private]}}
+
+swap 1-\/$>$2; int = index \mbox{\Hypertarget{classSystem_a6ddf57bedba9389eb75ffb60cad1391c}\label{classSystem_a6ddf57bedba9389eb75ffb60cad1391c}} 
+\index{System@{System}!last\+Swapped2@{last\+Swapped2}}
+\index{last\+Swapped2@{last\+Swapped2}!System@{System}}
+\subsubsection{\texorpdfstring{last\+Swapped2}{lastSwapped2}}
+{\footnotesize\ttfamily int System\+::last\+Swapped2 =0\hspace{0.3cm}{\ttfamily [private]}}
+
+swap 1-\/$>$2; int = index \mbox{\Hypertarget{classSystem_a292939d005702b34cb3d40d169b24639}\label{classSystem_a292939d005702b34cb3d40d169b24639}} 
+\index{System@{System}!loc\+LenA@{loc\+LenA}}
+\index{loc\+LenA@{loc\+LenA}!System@{System}}
+\subsubsection{\texorpdfstring{loc\+LenA}{locLenA}}
+{\footnotesize\ttfamily double System\+::loc\+LenA\hspace{0.3cm}{\ttfamily [private]}}
+
+physical parameter \char`\"{}a\char`\"{}. copied from input file for better performance (otherwise map.\+at() had to be called a lot of times) \mbox{\Hypertarget{classSystem_af13aaae75d6cff51d202b004a9fdc3d4}\label{classSystem_af13aaae75d6cff51d202b004a9fdc3d4}} 
+\index{System@{System}!occupation@{occupation}}
+\index{occupation@{occupation}!System@{System}}
+\subsubsection{\texorpdfstring{occupation}{occupation}}
+{\footnotesize\ttfamily std\+::vector$<$bool$>$ System\+::occupation\hspace{0.3cm}{\ttfamily [private]}}
+
+1\+D-\/array\+: occupation of hopping sites \mbox{\Hypertarget{classSystem_a236f2d392daa817d39a5b23a8e6a57d5}\label{classSystem_a236f2d392daa817d39a5b23a8e6a57d5}} 
+\index{System@{System}!output\+Current\+Counter@{output\+Current\+Counter}}
+\index{output\+Current\+Counter@{output\+Current\+Counter}!System@{System}}
+\subsubsection{\texorpdfstring{output\+Current\+Counter}{outputCurrentCounter}}
+{\footnotesize\ttfamily int$\ast$ System\+::output\+Current\+Counter}
+
+counts hops to/from output electrode \mbox{\Hypertarget{classSystem_acbe0d31bddfc490ec048dfaca2df2558}\label{classSystem_acbe0d31bddfc490ec048dfaca2df2558}} 
+\index{System@{System}!pair\+Energies@{pair\+Energies}}
+\index{pair\+Energies@{pair\+Energies}!System@{System}}
+\subsubsection{\texorpdfstring{pair\+Energies}{pairEnergies}}
+{\footnotesize\ttfamily double$\ast$ System\+::pair\+Energies\hspace{0.3cm}{\ttfamily [private]}}
+
+2\+D-\/array\+: coulomb interaction between pair of hopping sites \mbox{\Hypertarget{classSystem_ae1d936be9d2c423ef42a2c16dc269e6c}\label{classSystem_ae1d936be9d2c423ef42a2c16dc269e6c}} 
+\index{System@{System}!part\+Rates\+Sum\+List@{part\+Rates\+Sum\+List}}
+\index{part\+Rates\+Sum\+List@{part\+Rates\+Sum\+List}!System@{System}}
+\subsubsection{\texorpdfstring{part\+Rates\+Sum\+List}{partRatesSumList}}
+{\footnotesize\ttfamily std\+::shared\+\_\+ptr$<$ std\+::vector$<$double$>$ $>$ System\+::part\+Rates\+Sum\+List\hspace{0.3cm}{\ttfamily [private]}}
+
+list of accumulated rates. only used in storing mode for binary search \mbox{\Hypertarget{classSystem_ad89fb08497a4d886f64a91a7d302b296}\label{classSystem_ad89fb08497a4d886f64a91a7d302b296}} 
+\index{System@{System}!rates@{rates}}
+\index{rates@{rates}!System@{System}}
+\subsubsection{\texorpdfstring{rates}{rates}}
+{\footnotesize\ttfamily double$\ast$ System\+::rates\hspace{0.3cm}{\ttfamily [private]}}
+
+2\+D-\/array\+: transition rates \mbox{\Hypertarget{classSystem_abdb9c2321ac8dbfc6a5febc07ae4def9}\label{classSystem_abdb9c2321ac8dbfc6a5febc07ae4def9}} 
+\index{System@{System}!rates\+In\+Memory@{rates\+In\+Memory}}
+\index{rates\+In\+Memory@{rates\+In\+Memory}!System@{System}}
+\subsubsection{\texorpdfstring{rates\+In\+Memory}{ratesInMemory}}
+{\footnotesize\ttfamily bool System\+::rates\+In\+Memory =false\hspace{0.3cm}{\ttfamily [private]}}
+
+save if last step was found in stored states. if true, binary search is done to find swap \mbox{\Hypertarget{classSystem_a0d59e20f6ebffb9b2b6e31f7e85d1756}\label{classSystem_a0d59e20f6ebffb9b2b6e31f7e85d1756}} 
+\index{System@{System}!ready\+For\+Run@{ready\+For\+Run}}
+\index{ready\+For\+Run@{ready\+For\+Run}!System@{System}}
+\subsubsection{\texorpdfstring{ready\+For\+Run}{readyForRun}}
+{\footnotesize\ttfamily bool System\+::ready\+For\+Run =false\hspace{0.3cm}{\ttfamily [private]}}
+
+set by \hyperlink{classSystem_a943bc42d8dc42ae1aaf1a5798ce723b8}{System\+::get\+Ready\+For\+Run()} \mbox{\Hypertarget{classSystem_aa121c1c34382800d39106aa81d9c36f4}\label{classSystem_aa121c1c34382800d39106aa81d9c36f4}} 
+\index{System@{System}!store\+Known\+States@{store\+Known\+States}}
+\index{store\+Known\+States@{store\+Known\+States}!System@{System}}
+\subsubsection{\texorpdfstring{store\+Known\+States}{storeKnownStates}}
+{\footnotesize\ttfamily bool System\+::store\+Known\+States = true\hspace{0.3cm}{\ttfamily [private]}}
+
+set false after memory limit is reached \mbox{\Hypertarget{classSystem_afe51eb9409a63748242e0a987c98caf0}\label{classSystem_afe51eb9409a63748242e0a987c98caf0}} 
+\index{System@{System}!storing\+Mode@{storing\+Mode}}
+\index{storing\+Mode@{storing\+Mode}!System@{System}}
+\subsubsection{\texorpdfstring{storing\+Mode}{storingMode}}
+{\footnotesize\ttfamily bool System\+::storing\+Mode\hspace{0.3cm}{\ttfamily [private]}}
+
+if set true performance is optimized by storing known states \mbox{\Hypertarget{classSystem_aa9e002a5f2f169e37c545b76ee67e724}\label{classSystem_aa9e002a5f2f169e37c545b76ee67e724}} 
+\index{System@{System}!time@{time}}
+\index{time@{time}!System@{System}}
+\subsubsection{\texorpdfstring{time}{time}}
+{\footnotesize\ttfamily double System\+::time =0}
+
+system time. see \hyperlink{classSystem_a6167b888fa30f9d8fa56a246c5f461b9}{System\+::increase\+Time()} 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/home/marlon/\+Documents/\+Uni/master\+Chemie/\+M\+C\+Network/src/system/system.\+h\item 
+/home/marlon/\+Documents/\+Uni/master\+Chemie/\+M\+C\+Network/src/system/system.\+cpp\end{DoxyCompactItemize}

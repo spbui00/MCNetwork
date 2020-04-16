@@ -1,0 +1,146 @@
+\hypertarget{classDataFile}{}\section{Data\+File Class Reference}
+\label{classDataFile}\index{Data\+File@{Data\+File}}
+
+
+{\ttfamily \#include $<$datafile.\+h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classDataFile_a506afaa3e498c06d841cfd2166724add}{Data\+File} (std\+::string filename, bool create\+New)
+\item 
+\mbox{\Hypertarget{classDataFile_a85ee9b657be8e2e0bb69301352712c05}\label{classDataFile_a85ee9b657be8e2e0bb69301352712c05}} 
+void {\bfseries create\+Dataset} (std\+::string dataset\+Name, std\+::vector$<$ int $>$ dimensions)
+\item 
+void \hyperlink{classDataFile_a6da2338acc382d3538d53f5747e46b21}{create\+Attribute} (std\+::string, double)
+\item 
+{\footnotesize template$<$typename Data $>$ }\\void \hyperlink{classDataFile_a51739c09c99007a2cd3faa960efd45ed}{add\+Data} (std\+::string dataset\+Name, Data data)
+\item 
+\mbox{\Hypertarget{classDataFile_a07469209523bf5bb9b4997588f7fc822}\label{classDataFile_a07469209523bf5bb9b4997588f7fc822}} 
+std\+::unique\+\_\+ptr$<$ std\+::vector$<$ double $>$ $>$ {\bfseries read\+Full\+Dataset} (std\+::string dataset\+Name)
+\item 
+\mbox{\Hypertarget{classDataFile_a39c29339dc09376f18e5bdd3554f71ca}\label{classDataFile_a39c29339dc09376f18e5bdd3554f71ca}} 
+std\+::unique\+\_\+ptr$<$ std\+::vector$<$ double $>$ $>$ {\bfseries read\+Dataset\+Slice} (std\+::string dataset\+Name, int index)
+\item 
+\mbox{\Hypertarget{classDataFile_a775c1da3cdfc1cb6d986fe2e40c0a495}\label{classDataFile_a775c1da3cdfc1cb6d986fe2e40c0a495}} 
+bool {\bfseries check\+Data\+Set\+Exists} (std\+::string dataset\+Name)
+\end{DoxyCompactItemize}
+\subsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classDataFile_abc135462835aa32daf961c8382448ca4}\label{classDataFile_abc135462835aa32daf961c8382448ca4}} 
+std\+::string {\bfseries filename}
+\item 
+\mbox{\Hypertarget{classDataFile_a32283899b559bf2816f4eb582af95ec2}\label{classDataFile_a32283899b559bf2816f4eb582af95ec2}} 
+int {\bfseries number\+Of\+Datasets} =0
+\item 
+std\+::vector$<$ hsize\+\_\+t $>$ \hyperlink{classDataFile_affee6a54566b327d75def5fb21a9351b}{dims}
+\item 
+std\+::vector$<$ hsize\+\_\+t $\ast$$>$ \hyperlink{classDataFile_a93dc46888578ba19d25940638904c678}{dimsf}
+\item 
+std\+::vector$<$ hsize\+\_\+t $\ast$$>$ \hyperlink{classDataFile_ace2d4ef0b734ca4f1945b60f3acc9912}{size}
+\item 
+std\+::vector$<$ hsize\+\_\+t $\ast$$>$ \hyperlink{classDataFile_a6574c6c8e7e7a161b1a97f5ab669e2a6}{offset}
+\item 
+std\+::vector$<$ hsize\+\_\+t $\ast$$>$ \hyperlink{classDataFile_afec13483acd0763fbe2b635c5bf459f9}{chunk\+\_\+dims}
+\item 
+std\+::vector$<$ hsize\+\_\+t $\ast$$>$ \hyperlink{classDataFile_a60c9e3ae1cf557b5a396754c203a08c7}{maxdimsf}
+\end{DoxyCompactItemize}
+\subsection*{Static Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+static std\+::map$<$ std\+::string, int $>$ \hyperlink{classDataFile_ab08fca1e2ac3355f2279faf37054ddfc}{index\+Map}
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+container class for hdf5 output file. 
+
+\subsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{classDataFile_a506afaa3e498c06d841cfd2166724add}\label{classDataFile_a506afaa3e498c06d841cfd2166724add}} 
+\index{Data\+File@{Data\+File}!Data\+File@{Data\+File}}
+\index{Data\+File@{Data\+File}!Data\+File@{Data\+File}}
+\subsubsection{\texorpdfstring{Data\+File()}{DataFile()}}
+{\footnotesize\ttfamily Data\+File\+::\+Data\+File (\begin{DoxyParamCaption}\item[{std\+::string}]{filename,  }\item[{bool}]{create\+New }\end{DoxyParamCaption})}
+
+contructs datafile class and creates new file. 
+\begin{DoxyParams}{Parameters}
+{\em create\+New} & true\+: old file is overwritten. ~\newline
+ false\+: dataset dimensions of existing file are read in, fails if file does not exist. \\
+\hline
+\end{DoxyParams}
+
+
+\subsection{Member Function Documentation}
+\mbox{\Hypertarget{classDataFile_a51739c09c99007a2cd3faa960efd45ed}\label{classDataFile_a51739c09c99007a2cd3faa960efd45ed}} 
+\index{Data\+File@{Data\+File}!add\+Data@{add\+Data}}
+\index{add\+Data@{add\+Data}!Data\+File@{Data\+File}}
+\subsubsection{\texorpdfstring{add\+Data()}{addData()}}
+{\footnotesize\ttfamily template$<$typename Data $>$ \\
+void Data\+File\+::add\+Data (\begin{DoxyParamCaption}\item[{std\+::string}]{dataset\+Name,  }\item[{Data}]{data }\end{DoxyParamCaption})}
+
+extends existing dataset by one slice in dimension 0. 
+\begin{DoxyParams}{Parameters}
+{\em dataset\+Name} & dataset must be created beforehand \\
+\hline
+{\em data} & c-\/array !!! currently O\+N\+LY D\+O\+U\+B\+LE array supported !! i.\+e. ints will raise no error, but produce incorrect data! \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classDataFile_a6da2338acc382d3538d53f5747e46b21}\label{classDataFile_a6da2338acc382d3538d53f5747e46b21}} 
+\index{Data\+File@{Data\+File}!create\+Attribute@{create\+Attribute}}
+\index{create\+Attribute@{create\+Attribute}!Data\+File@{Data\+File}}
+\subsubsection{\texorpdfstring{create\+Attribute()}{createAttribute()}}
+{\footnotesize\ttfamily void Data\+File\+::create\+Attribute (\begin{DoxyParamCaption}\item[{std\+::string}]{attr\+Name,  }\item[{double}]{val }\end{DoxyParamCaption})}
+
+-- not tested -- 
+
+\subsection{Field Documentation}
+\mbox{\Hypertarget{classDataFile_afec13483acd0763fbe2b635c5bf459f9}\label{classDataFile_afec13483acd0763fbe2b635c5bf459f9}} 
+\index{Data\+File@{Data\+File}!chunk\+\_\+dims@{chunk\+\_\+dims}}
+\index{chunk\+\_\+dims@{chunk\+\_\+dims}!Data\+File@{Data\+File}}
+\subsubsection{\texorpdfstring{chunk\+\_\+dims}{chunk\_dims}}
+{\footnotesize\ttfamily std\+::vector$<$ hsize\+\_\+t $\ast$ $>$ Data\+File\+::chunk\+\_\+dims\hspace{0.3cm}{\ttfamily [private]}}
+
+see hdf5 c++ examples \mbox{\Hypertarget{classDataFile_affee6a54566b327d75def5fb21a9351b}\label{classDataFile_affee6a54566b327d75def5fb21a9351b}} 
+\index{Data\+File@{Data\+File}!dims@{dims}}
+\index{dims@{dims}!Data\+File@{Data\+File}}
+\subsubsection{\texorpdfstring{dims}{dims}}
+{\footnotesize\ttfamily std\+::vector$<$ hsize\+\_\+t $>$ Data\+File\+::dims\hspace{0.3cm}{\ttfamily [private]}}
+
+see hdf5 c++ examples \mbox{\Hypertarget{classDataFile_a93dc46888578ba19d25940638904c678}\label{classDataFile_a93dc46888578ba19d25940638904c678}} 
+\index{Data\+File@{Data\+File}!dimsf@{dimsf}}
+\index{dimsf@{dimsf}!Data\+File@{Data\+File}}
+\subsubsection{\texorpdfstring{dimsf}{dimsf}}
+{\footnotesize\ttfamily std\+::vector$<$ hsize\+\_\+t $\ast$ $>$ Data\+File\+::dimsf\hspace{0.3cm}{\ttfamily [private]}}
+
+see hdf5 c++ examples \mbox{\Hypertarget{classDataFile_ab08fca1e2ac3355f2279faf37054ddfc}\label{classDataFile_ab08fca1e2ac3355f2279faf37054ddfc}} 
+\index{Data\+File@{Data\+File}!index\+Map@{index\+Map}}
+\index{index\+Map@{index\+Map}!Data\+File@{Data\+File}}
+\subsubsection{\texorpdfstring{index\+Map}{indexMap}}
+{\footnotesize\ttfamily std\+::map$<$ std\+::string, int $>$ Data\+File\+::index\+Map\hspace{0.3cm}{\ttfamily [static]}, {\ttfamily [private]}}
+
+maps datset names to index to find properties, e.\+g. dims ~\newline
+ has to be static to be accessible by C A\+PI in lambda function in constructor \hyperlink{classDataFile_a506afaa3e498c06d841cfd2166724add}{Data\+File()} \mbox{\Hypertarget{classDataFile_a60c9e3ae1cf557b5a396754c203a08c7}\label{classDataFile_a60c9e3ae1cf557b5a396754c203a08c7}} 
+\index{Data\+File@{Data\+File}!maxdimsf@{maxdimsf}}
+\index{maxdimsf@{maxdimsf}!Data\+File@{Data\+File}}
+\subsubsection{\texorpdfstring{maxdimsf}{maxdimsf}}
+{\footnotesize\ttfamily std\+::vector$<$ hsize\+\_\+t $\ast$ $>$ Data\+File\+::maxdimsf\hspace{0.3cm}{\ttfamily [private]}}
+
+see hdf5 c++ examples \mbox{\Hypertarget{classDataFile_a6574c6c8e7e7a161b1a97f5ab669e2a6}\label{classDataFile_a6574c6c8e7e7a161b1a97f5ab669e2a6}} 
+\index{Data\+File@{Data\+File}!offset@{offset}}
+\index{offset@{offset}!Data\+File@{Data\+File}}
+\subsubsection{\texorpdfstring{offset}{offset}}
+{\footnotesize\ttfamily std\+::vector$<$ hsize\+\_\+t $\ast$ $>$ Data\+File\+::offset\hspace{0.3cm}{\ttfamily [private]}}
+
+see hdf5 c++ examples \mbox{\Hypertarget{classDataFile_ace2d4ef0b734ca4f1945b60f3acc9912}\label{classDataFile_ace2d4ef0b734ca4f1945b60f3acc9912}} 
+\index{Data\+File@{Data\+File}!size@{size}}
+\index{size@{size}!Data\+File@{Data\+File}}
+\subsubsection{\texorpdfstring{size}{size}}
+{\footnotesize\ttfamily std\+::vector$<$ hsize\+\_\+t $\ast$ $>$ Data\+File\+::size\hspace{0.3cm}{\ttfamily [private]}}
+
+see hdf5 c++ examples 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/home/marlon/\+Documents/\+Uni/master\+Chemie/\+M\+C\+Network/src/datafile.\+h\item 
+/home/marlon/\+Documents/\+Uni/master\+Chemie/\+M\+C\+Network/src/datafile.\+cpp\end{DoxyCompactItemize}

@@ -1,0 +1,102 @@
+\hypertarget{classFiniteElementeRect}{}\section{Finite\+Elemente\+Rect Class Reference}
+\label{classFiniteElementeRect}\index{Finite\+Elemente\+Rect@{Finite\+Elemente\+Rect}}
+
+
+Inheritance diagram for Finite\+Elemente\+Rect\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=184pt]{classFiniteElementeRect__inherit__graph}
+\end{center}
+\end{figure}
+
+
+Collaboration diagram for Finite\+Elemente\+Rect\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=184pt]{classFiniteElementeRect__coll__graph}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classFiniteElementeRect_a5731bd88a8d13f73635015294042ab46}\label{classFiniteElementeRect_a5731bd88a8d13f73635015294042ab46}} 
+{\bfseries Finite\+Elemente\+Rect} (double const \&len, double const \&width, int const \&max\+Number\+Of\+Elments, bool save\+Solution=false)
+\item 
+void \hyperlink{classFiniteElementeRect_a1b0c2fd8cc32d3bc9a23931f86b09406}{set\+Electrode} (double const \&voltage, double begin, double end, int edge)
+\item 
+double \hyperlink{classFiniteElementeRect_acbfa1b0263e192b4b7da51a486b623cf}{get\+Potential} (double const \&x, double const \&y)
+\end{DoxyCompactItemize}
+\subsection*{Private Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classFiniteElementeRect_a29ed0ced33fee536bcc8456e57094865}\label{classFiniteElementeRect_a29ed0ced33fee536bcc8456e57094865}} 
+void {\bfseries init\+Mesh} (int const \&max\+Number\+Of\+Elements)
+\end{DoxyCompactItemize}
+\subsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classFiniteElementeRect_a6beb13ebf0746380af8182e73ea1e929}\label{classFiniteElementeRect_a6beb13ebf0746380af8182e73ea1e929}} 
+double const {\bfseries len} = 0
+\item 
+\mbox{\Hypertarget{classFiniteElementeRect_a88234e0caad5bdc5864fd210f4293719}\label{classFiniteElementeRect_a88234e0caad5bdc5864fd210f4293719}} 
+double const {\bfseries width} = 0
+\item 
+\mbox{\Hypertarget{classFiniteElementeRect_a5bc6d292f48b09aaee773f03f7284f9e}\label{classFiniteElementeRect_a5bc6d292f48b09aaee773f03f7284f9e}} 
+int {\bfseries number\+VerticesX}
+\item 
+\mbox{\Hypertarget{classFiniteElementeRect_a0609adb0d65d9aad1a9d566056838be3}\label{classFiniteElementeRect_a0609adb0d65d9aad1a9d566056838be3}} 
+int {\bfseries number\+VerticesY}
+\item 
+\mbox{\Hypertarget{classFiniteElementeRect_a00313900e5e6bc821ddb74cff3349210}\label{classFiniteElementeRect_a00313900e5e6bc821ddb74cff3349210}} 
+int $\ast$$\ast$ {\bfseries vertex\+Index\+Map}
+\end{DoxyCompactItemize}
+\subsection*{Additional Inherited Members}
+
+
+\subsection{Member Function Documentation}
+\mbox{\Hypertarget{classFiniteElementeRect_acbfa1b0263e192b4b7da51a486b623cf}\label{classFiniteElementeRect_acbfa1b0263e192b4b7da51a486b623cf}} 
+\index{Finite\+Elemente\+Rect@{Finite\+Elemente\+Rect}!get\+Potential@{get\+Potential}}
+\index{get\+Potential@{get\+Potential}!Finite\+Elemente\+Rect@{Finite\+Elemente\+Rect}}
+\subsubsection{\texorpdfstring{get\+Potential()}{getPotential()}}
+{\footnotesize\ttfamily double Finite\+Elemente\+Rect\+::get\+Potential (\begin{DoxyParamCaption}\item[{double const \&}]{x,  }\item[{double const \&}]{y }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [virtual]}}
+
+Get Potential using nearest neighbour interpolation 
+\begin{DoxyParams}{Parameters}
+{\em x} & in length units \\
+\hline
+{\em y} & in length units \\
+\hline
+\end{DoxyParams}
+
+
+Reimplemented from \hyperlink{classFiniteElementeBase_aee384092436f2288ba1ceaf0f279afed}{Finite\+Elemente\+Base}.
+
+\mbox{\Hypertarget{classFiniteElementeRect_a1b0c2fd8cc32d3bc9a23931f86b09406}\label{classFiniteElementeRect_a1b0c2fd8cc32d3bc9a23931f86b09406}} 
+\index{Finite\+Elemente\+Rect@{Finite\+Elemente\+Rect}!set\+Electrode@{set\+Electrode}}
+\index{set\+Electrode@{set\+Electrode}!Finite\+Elemente\+Rect@{Finite\+Elemente\+Rect}}
+\subsubsection{\texorpdfstring{set\+Electrode()}{setElectrode()}}
+{\footnotesize\ttfamily void Finite\+Elemente\+Rect\+::set\+Electrode (\begin{DoxyParamCaption}\item[{double const \&}]{voltage,  }\item[{double}]{begin,  }\item[{double}]{end,  }\item[{int}]{edge }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [virtual]}}
+
+Set electrode position and voltage (boundary condition of laplace equation), cartesian version. 
+\begin{DoxyParams}{Parameters}
+{\em voltage} & in volts \\
+\hline
+{\em begin} & in length units \\
+\hline
+{\em end} & in length units \\
+\hline
+{\em edge} & see \hyperlink{structElectrodeParameters_a2f4cf737b66dcd4c7b74a836c9153918}{Electrode\+Parameters\+::edge} \\
+\hline
+\end{DoxyParams}
+
+
+Reimplemented from \hyperlink{classFiniteElementeBase_abd7e36541ce728ab710166ab50fad93f}{Finite\+Elemente\+Base}.
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/home/marlon/\+Documents/\+Uni/master\+Chemie/\+M\+C\+Network/lib/finite\+Elemente/finite\+Elemente.\+h\item 
+/home/marlon/\+Documents/\+Uni/master\+Chemie/\+M\+C\+Network/lib/finite\+Elemente/finite\+Elemente.\+cpp\end{DoxyCompactItemize}

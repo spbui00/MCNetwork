@@ -1,0 +1,94 @@
+\hypertarget{classFiniteElementeCircle}{}\section{Finite\+Elemente\+Circle Class Reference}
+\label{classFiniteElementeCircle}\index{Finite\+Elemente\+Circle@{Finite\+Elemente\+Circle}}
+
+
+Inheritance diagram for Finite\+Elemente\+Circle\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=187pt]{classFiniteElementeCircle__inherit__graph}
+\end{center}
+\end{figure}
+
+
+Collaboration diagram for Finite\+Elemente\+Circle\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=187pt]{classFiniteElementeCircle__coll__graph}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classFiniteElementeCircle_aef00567cba0a679abd3dee1c26b91c8b}\label{classFiniteElementeCircle_aef00567cba0a679abd3dee1c26b91c8b}} 
+{\bfseries Finite\+Elemente\+Circle} (double const \&radius, int const \&max\+Number\+Of\+Elments, bool save\+Solution=false)
+\item 
+void \hyperlink{classFiniteElementeCircle_aa3b2b0e50ab5ba53431bdc80674ead26}{set\+Electrode} (double const \&voltage, double begin, double end)
+\item 
+double \hyperlink{classFiniteElementeCircle_a832520dcd5db9bd2845ad3c781749a69}{get\+Potential} (double const \&x, double const \&y)
+\end{DoxyCompactItemize}
+\subsection*{Private Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classFiniteElementeCircle_a479d6d3986a14d7011c3fa68a954d13b}\label{classFiniteElementeCircle_a479d6d3986a14d7011c3fa68a954d13b}} 
+void {\bfseries init\+Mesh} (int const \&max\+Number\+Of\+Elements)
+\end{DoxyCompactItemize}
+\subsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classFiniteElementeCircle_a9a16f2a7c9383994e39932eaff07e9a0}\label{classFiniteElementeCircle_a9a16f2a7c9383994e39932eaff07e9a0}} 
+double const {\bfseries radius} = 0
+\item 
+\mbox{\Hypertarget{classFiniteElementeCircle_ac7e96d30db2e6f97c43cde584d42cb76}\label{classFiniteElementeCircle_ac7e96d30db2e6f97c43cde584d42cb76}} 
+double {\bfseries deltaR}
+\item 
+\mbox{\Hypertarget{classFiniteElementeCircle_a2541895ba79ed701ee3b860f6a252e1e}\label{classFiniteElementeCircle_a2541895ba79ed701ee3b860f6a252e1e}} 
+int {\bfseries layers}
+\end{DoxyCompactItemize}
+\subsection*{Additional Inherited Members}
+
+
+\subsection{Member Function Documentation}
+\mbox{\Hypertarget{classFiniteElementeCircle_a832520dcd5db9bd2845ad3c781749a69}\label{classFiniteElementeCircle_a832520dcd5db9bd2845ad3c781749a69}} 
+\index{Finite\+Elemente\+Circle@{Finite\+Elemente\+Circle}!get\+Potential@{get\+Potential}}
+\index{get\+Potential@{get\+Potential}!Finite\+Elemente\+Circle@{Finite\+Elemente\+Circle}}
+\subsubsection{\texorpdfstring{get\+Potential()}{getPotential()}}
+{\footnotesize\ttfamily double Finite\+Elemente\+Circle\+::get\+Potential (\begin{DoxyParamCaption}\item[{double const \&}]{x,  }\item[{double const \&}]{y }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [virtual]}}
+
+Get Potential using nearest neighbour interpolation 
+\begin{DoxyParams}{Parameters}
+{\em x} & in length units \\
+\hline
+{\em y} & in length units \\
+\hline
+\end{DoxyParams}
+
+
+Reimplemented from \hyperlink{classFiniteElementeBase_aee384092436f2288ba1ceaf0f279afed}{Finite\+Elemente\+Base}.
+
+\mbox{\Hypertarget{classFiniteElementeCircle_aa3b2b0e50ab5ba53431bdc80674ead26}\label{classFiniteElementeCircle_aa3b2b0e50ab5ba53431bdc80674ead26}} 
+\index{Finite\+Elemente\+Circle@{Finite\+Elemente\+Circle}!set\+Electrode@{set\+Electrode}}
+\index{set\+Electrode@{set\+Electrode}!Finite\+Elemente\+Circle@{Finite\+Elemente\+Circle}}
+\subsubsection{\texorpdfstring{set\+Electrode()}{setElectrode()}}
+{\footnotesize\ttfamily void Finite\+Elemente\+Circle\+::set\+Electrode (\begin{DoxyParamCaption}\item[{double const \&}]{voltage,  }\item[{double}]{begin,  }\item[{double}]{end }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [virtual]}}
+
+Set electrode position and voltage (boundary condition of laplace equation), polar version. 
+\begin{DoxyParams}{Parameters}
+{\em voltage} & in volts \\
+\hline
+{\em begin} & in radiant \\
+\hline
+{\em end} & in radiant \\
+\hline
+\end{DoxyParams}
+
+
+Reimplemented from \hyperlink{classFiniteElementeBase_aff6763fa857bc57a629ef1c973fa5a49}{Finite\+Elemente\+Base}.
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/home/marlon/\+Documents/\+Uni/master\+Chemie/\+M\+C\+Network/lib/finite\+Elemente/finite\+Elemente.\+h\item 
+/home/marlon/\+Documents/\+Uni/master\+Chemie/\+M\+C\+Network/lib/finite\+Elemente/finite\+Elemente.\+cpp\end{DoxyCompactItemize}

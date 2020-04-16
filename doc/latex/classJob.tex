@@ -1,0 +1,83 @@
+\hypertarget{classJob}{}\section{Job Class Reference}
+\label{classJob}\index{Job@{Job}}
+
+
+{\ttfamily \#include $<$jobhandling.\+h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classJob_ac7bd0c01cf61901df90b062f9a32cf02}\label{classJob_ac7bd0c01cf61901df90b062f9a32cf02}} 
+{\bfseries Job} (int ID)
+\end{DoxyCompactItemize}
+\subsection*{Data Fields}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classJob_a57ddffae23fca72e95103d4bf43c2809}\label{classJob_a57ddffae23fca72e95103d4bf43c2809}} 
+int {\bfseries ID}
+\item 
+\mbox{\Hypertarget{classJob_ad0d1483df629cd0a619bb7fd6cc48a96}\label{classJob_ad0d1483df629cd0a619bb7fd6cc48a96}} 
+std\+::unique\+\_\+ptr$<$ std\+::mutex $>$ {\bfseries job\+Mutex}
+\item 
+mfem\+::\+Grid\+Function \hyperlink{classJob_ad2b87bb3cea36a711bf7aace2d0cb338}{potential}
+\item 
+std\+::vector$<$ bool $>$ \hyperlink{classJob_a0c4579b73aec5c6755f271d78a488ae6}{equil\+Occupation}
+\item 
+\mbox{\Hypertarget{classJob_a0de73890acdd2d418ba26eceffbb160c}\label{classJob_a0de73890acdd2d418ba26eceffbb160c}} 
+int {\bfseries equil\+Steps}
+\item 
+\mbox{\Hypertarget{classJob_a566a266e422eff68dfdae3e815d30dce}\label{classJob_a566a266e422eff68dfdae3e815d30dce}} 
+int {\bfseries total\+Steps}
+\item 
+\mbox{\Hypertarget{classJob_ace6400f6ae321b8043b055128709644d}\label{classJob_ace6400f6ae321b8043b055128709644d}} 
+int {\bfseries steps\+Per\+Task}
+\item 
+\mbox{\Hypertarget{classJob_a52154a755a4faa7b3804ca3c3b32e8bb}\label{classJob_a52154a755a4faa7b3804ca3c3b32e8bb}} 
+int {\bfseries tasks\+To\+Go}
+\item 
+int \hyperlink{classJob_ae1cfd5a6e867f3664c8f183427a4775a}{thread\+Number} = 0
+\item 
+\mbox{\Hypertarget{classJob_af6d86a485ae26abfcdbe130fcd4ede85}\label{classJob_af6d86a485ae26abfcdbe130fcd4ede85}} 
+std\+::vector$<$ double $>$ {\bfseries voltages}
+\item 
+\mbox{\Hypertarget{classJob_a1bb677c94a543ba9c4f4733d8ac4f948}\label{classJob_a1bb677c94a543ba9c4f4733d8ac4f948}} 
+double {\bfseries result\+Current} = 0
+\item 
+\mbox{\Hypertarget{classJob_a823bcf86102a4ae9f1c431734547bc62}\label{classJob_a823bcf86102a4ae9f1c431734547bc62}} 
+double {\bfseries result\+Current\+Uncert} = 0
+\end{DoxyCompactItemize}
+\subsection*{Static Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classJob_a6db936569b3ad8309a69c8024adb4e09}\label{classJob_a6db936569b3ad8309a69c8024adb4e09}} 
+static const int {\bfseries tasks\+Per\+Job} = 100
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+one job consits of one set of fixed voltages (incl. input voltages). steps to run are split up in tasks\+Per\+Job packs. each task can be handeled by single thread. 
+
+\subsection{Field Documentation}
+\mbox{\Hypertarget{classJob_a0c4579b73aec5c6755f271d78a488ae6}\label{classJob_a0c4579b73aec5c6755f271d78a488ae6}} 
+\index{Job@{Job}!equil\+Occupation@{equil\+Occupation}}
+\index{equil\+Occupation@{equil\+Occupation}!Job@{Job}}
+\subsubsection{\texorpdfstring{equil\+Occupation}{equilOccupation}}
+{\footnotesize\ttfamily std\+::vector$<$bool$>$ Job\+::equil\+Occupation}
+
+equilibrium occupation of system. calculated only once by first thread and saved to pass it to other threads that might join work on this job \mbox{\Hypertarget{classJob_ad2b87bb3cea36a711bf7aace2d0cb338}\label{classJob_ad2b87bb3cea36a711bf7aace2d0cb338}} 
+\index{Job@{Job}!potential@{potential}}
+\index{potential@{potential}!Job@{Job}}
+\subsubsection{\texorpdfstring{potential}{potential}}
+{\footnotesize\ttfamily mfem\+::\+Grid\+Function Job\+::potential}
+
+solution of laplace eq. calculated only once by first thread and saved to pass it to other threads that might join work on this job \mbox{\Hypertarget{classJob_ae1cfd5a6e867f3664c8f183427a4775a}\label{classJob_ae1cfd5a6e867f3664c8f183427a4775a}} 
+\index{Job@{Job}!thread\+Number@{thread\+Number}}
+\index{thread\+Number@{thread\+Number}!Job@{Job}}
+\subsubsection{\texorpdfstring{thread\+Number}{threadNumber}}
+{\footnotesize\ttfamily int Job\+::thread\+Number = 0}
+
+number of threads that are currently working on this job 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/home/marlon/\+Documents/\+Uni/master\+Chemie/\+M\+C\+Network/src/system/jobhandling.\+h\end{DoxyCompactItemize}

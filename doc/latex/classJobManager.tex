@@ -1,0 +1,79 @@
+\hypertarget{classJobManager}{}\section{Job\+Manager Class Reference}
+\label{classJobManager}\index{Job\+Manager@{Job\+Manager}}
+
+
+{\ttfamily \#include $<$jobhandling.\+h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classJobManager_aa6b79c585bb341aec9f8ad384929c4d7}\label{classJobManager_aa6b79c585bb341aec9f8ad384929c4d7}} 
+{\bfseries Job\+Manager} (std\+::shared\+\_\+ptr$<$ \hyperlink{classParameterStorage}{Parameter\+Storage} $>$)
+\item 
+std\+::pair$<$ std\+::vector$<$ double $>$, std\+::vector$<$ double $>$ $>$ const \hyperlink{classJobManager_af1a851cbf0d447aa2248a2d89b544e9d}{run\+Control\+Voltages\+Setup} (std\+::vector$<$ double $>$ const \&voltages)
+\end{DoxyCompactItemize}
+\subsection*{Static Private Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static void \hyperlink{classJobManager_a478365d6287e01484a64105dcd81520e}{handle\+Job\+List} (std\+::vector$<$ \hyperlink{classJob}{Job} $>$ \&jobs, \hyperlink{classSystem}{System} $\ast$const system, std\+::mutex \&search\+Mutex)
+\end{DoxyCompactItemize}
+\subsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classJobManager_af8fb3e539eda8e070bdf903b6b334ef4}\label{classJobManager_af8fb3e539eda8e070bdf903b6b334ef4}} 
+int {\bfseries voltage\+Scan\+Points}
+\item 
+\mbox{\Hypertarget{classJobManager_ac5920380c45cbf6ba669af6c36889955}\label{classJobManager_ac5920380c45cbf6ba669af6c36889955}} 
+int {\bfseries electrode\+Number}
+\item 
+\mbox{\Hypertarget{classJobManager_a9b463168e9fb04ac4452081a5c481c56}\label{classJobManager_a9b463168e9fb04ac4452081a5c481c56}} 
+std\+::shared\+\_\+ptr$<$ \hyperlink{classParameterStorage}{Parameter\+Storage} $>$ {\bfseries parameter\+Storage}
+\item 
+\mbox{\Hypertarget{classJobManager_a0d5c04f0837027d5601e6468ec4fcab5}\label{classJobManager_a0d5c04f0837027d5601e6468ec4fcab5}} 
+std\+::vector$<$ \hyperlink{classSystem}{System} $\ast$$>$ {\bfseries systems}
+\item 
+\mbox{\Hypertarget{classJobManager_adeb38892b4b5728b24368f3362442d45}\label{classJobManager_adeb38892b4b5728b24368f3362442d45}} 
+std\+::vector$<$ \hyperlink{classJob}{Job} $>$ {\bfseries jobs}
+\item 
+std\+::mutex \hyperlink{classJobManager_af64a4f6d4843c3d5ca12c801c25666ac}{job\+Search\+Mutex}
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+handler for parallelization. 
+
+\subsection{Member Function Documentation}
+\mbox{\Hypertarget{classJobManager_a478365d6287e01484a64105dcd81520e}\label{classJobManager_a478365d6287e01484a64105dcd81520e}} 
+\index{Job\+Manager@{Job\+Manager}!handle\+Job\+List@{handle\+Job\+List}}
+\index{handle\+Job\+List@{handle\+Job\+List}!Job\+Manager@{Job\+Manager}}
+\subsubsection{\texorpdfstring{handle\+Job\+List()}{handleJobList()}}
+{\footnotesize\ttfamily void Job\+Manager\+::handle\+Job\+List (\begin{DoxyParamCaption}\item[{std\+::vector$<$ \hyperlink{classJob}{Job} $>$ \&}]{jobs,  }\item[{\hyperlink{classSystem}{System} $\ast$const}]{system,  }\item[{std\+::mutex \&}]{search\+Mutex }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}, {\ttfamily [private]}}
+
+method passed to parallel threads.
+\begin{DoxyEnumerate}
+\item search jobs vector for job to work on
+\item if first thread in job -\/$>$ solve laplace eq, run equil steps
+\item run tasks
+\item if last thread -\/$>$ finish job
+\item repeat with 1. until all jobs done 
+\end{DoxyEnumerate}\mbox{\Hypertarget{classJobManager_af1a851cbf0d447aa2248a2d89b544e9d}\label{classJobManager_af1a851cbf0d447aa2248a2d89b544e9d}} 
+\index{Job\+Manager@{Job\+Manager}!run\+Control\+Voltages\+Setup@{run\+Control\+Voltages\+Setup}}
+\index{run\+Control\+Voltages\+Setup@{run\+Control\+Voltages\+Setup}!Job\+Manager@{Job\+Manager}}
+\subsubsection{\texorpdfstring{run\+Control\+Voltages\+Setup()}{runControlVoltagesSetup()}}
+{\footnotesize\ttfamily std\+::pair$<$ std\+::vector$<$ double $>$, std\+::vector$<$ double $>$ $>$ const Job\+Manager\+::run\+Control\+Voltages\+Setup (\begin{DoxyParamCaption}\item[{std\+::vector$<$ double $>$ const \&}]{voltages }\end{DoxyParamCaption})}
+
+returns curr, curr\+Uncert 
+
+\subsection{Field Documentation}
+\mbox{\Hypertarget{classJobManager_af64a4f6d4843c3d5ca12c801c25666ac}\label{classJobManager_af64a4f6d4843c3d5ca12c801c25666ac}} 
+\index{Job\+Manager@{Job\+Manager}!job\+Search\+Mutex@{job\+Search\+Mutex}}
+\index{job\+Search\+Mutex@{job\+Search\+Mutex}!Job\+Manager@{Job\+Manager}}
+\subsubsection{\texorpdfstring{job\+Search\+Mutex}{jobSearchMutex}}
+{\footnotesize\ttfamily std\+::mutex Job\+Manager\+::job\+Search\+Mutex\hspace{0.3cm}{\ttfamily [private]}}
+
+its only allowed to one thread at a time to search for new work! 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/home/marlon/\+Documents/\+Uni/master\+Chemie/\+M\+C\+Network/src/system/jobhandling.\+h\item 
+/home/marlon/\+Documents/\+Uni/master\+Chemie/\+M\+C\+Network/src/system/jobhandling.\+cpp\end{DoxyCompactItemize}

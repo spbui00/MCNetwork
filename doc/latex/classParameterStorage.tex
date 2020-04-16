@@ -1,0 +1,85 @@
+\hypertarget{classParameterStorage}{}\section{Parameter\+Storage Class Reference}
+\label{classParameterStorage}\index{Parameter\+Storage@{Parameter\+Storage}}
+
+
+{\ttfamily \#include $<$parameterstorage.\+h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classParameterStorage_a024e6d70a1b33d29e64f72657fb15ba8}{Parameter\+Storage} (std\+::string filename)
+\end{DoxyCompactItemize}
+\subsection*{Data Fields}
+\begin{DoxyCompactItemize}
+\item 
+std\+::string \hyperlink{classParameterStorage_ab870128f261ec92df497b10f85cdc9e0}{gate}
+\item 
+std\+::string \hyperlink{classParameterStorage_a67fb9f2ff387b416e39c62db6ec85473}{geometry}
+\item 
+std\+::map$<$ std\+::string, double $>$ \hyperlink{classParameterStorage_a3ae6709dcacaf500c8f57808a52d9be2}{parameters}
+\item 
+std\+::vector$<$ \hyperlink{structElectrodeParameters}{Electrode\+Parameters} $>$ \hyperlink{classParameterStorage_aec3f7cac18829cd67387d9a568547dbf}{electrodes}
+\item 
+\mbox{\Hypertarget{classParameterStorage_a03c07ba0b5172196924d855b07f021c5}\label{classParameterStorage_a03c07ba0b5172196924d855b07f021c5}} 
+std\+::string {\bfseries working\+Direcotry} =\char`\"{}./\char`\"{}
+\item 
+\mbox{\Hypertarget{classParameterStorage_a387b9c88ad5b8a77a8f75ac409ab53a2}\label{classParameterStorage_a387b9c88ad5b8a77a8f75ac409ab53a2}} 
+bool {\bfseries make\+New\+Device} = false
+\item 
+std\+::vector$<$ double $>$ \hyperlink{classParameterStorage_a139852057ae4212e7365da8f48a8ff1f}{input\+Voltages}
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+class used to read and store parameters from input file. one instance is created in main.\+cpp and passed to all other classes as shared pointer length parameters are stored in units of internal length scale R 
+
+\subsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{classParameterStorage_a024e6d70a1b33d29e64f72657fb15ba8}\label{classParameterStorage_a024e6d70a1b33d29e64f72657fb15ba8}} 
+\index{Parameter\+Storage@{Parameter\+Storage}!Parameter\+Storage@{Parameter\+Storage}}
+\index{Parameter\+Storage@{Parameter\+Storage}!Parameter\+Storage@{Parameter\+Storage}}
+\subsubsection{\texorpdfstring{Parameter\+Storage()}{ParameterStorage()}}
+{\footnotesize\ttfamily Parameter\+Storage\+::\+Parameter\+Storage (\begin{DoxyParamCaption}\item[{std\+::string}]{filename }\end{DoxyParamCaption})}
+
+
+\begin{DoxyItemize}
+\item reads input file \char`\"{}filename\char`\"{} and creates parameter map
+\item converts all length to internal length scale \char`\"{}\+R\char`\"{} 
+\end{DoxyItemize}
+
+\subsection{Field Documentation}
+\mbox{\Hypertarget{classParameterStorage_aec3f7cac18829cd67387d9a568547dbf}\label{classParameterStorage_aec3f7cac18829cd67387d9a568547dbf}} 
+\index{Parameter\+Storage@{Parameter\+Storage}!electrodes@{electrodes}}
+\index{electrodes@{electrodes}!Parameter\+Storage@{Parameter\+Storage}}
+\subsubsection{\texorpdfstring{electrodes}{electrodes}}
+{\footnotesize\ttfamily std\+::vector$<$\hyperlink{structElectrodeParameters}{Electrode\+Parameters}$>$ Parameter\+Storage\+::electrodes}
+
+voltages are only set in start routine and not used/updated during optimization! \mbox{\Hypertarget{classParameterStorage_ab870128f261ec92df497b10f85cdc9e0}\label{classParameterStorage_ab870128f261ec92df497b10f85cdc9e0}} 
+\index{Parameter\+Storage@{Parameter\+Storage}!gate@{gate}}
+\index{gate@{gate}!Parameter\+Storage@{Parameter\+Storage}}
+\subsubsection{\texorpdfstring{gate}{gate}}
+{\footnotesize\ttfamily std\+::string Parameter\+Storage\+::gate}
+
+A\+ND, OR, X\+OR ... \mbox{\Hypertarget{classParameterStorage_a67fb9f2ff387b416e39c62db6ec85473}\label{classParameterStorage_a67fb9f2ff387b416e39c62db6ec85473}} 
+\index{Parameter\+Storage@{Parameter\+Storage}!geometry@{geometry}}
+\index{geometry@{geometry}!Parameter\+Storage@{Parameter\+Storage}}
+\subsubsection{\texorpdfstring{geometry}{geometry}}
+{\footnotesize\ttfamily std\+::string Parameter\+Storage\+::geometry}
+
+\char`\"{}circle\char`\"{}/\char`\"{}rect\char`\"{} \mbox{\Hypertarget{classParameterStorage_a139852057ae4212e7365da8f48a8ff1f}\label{classParameterStorage_a139852057ae4212e7365da8f48a8ff1f}} 
+\index{Parameter\+Storage@{Parameter\+Storage}!input\+Voltages@{input\+Voltages}}
+\index{input\+Voltages@{input\+Voltages}!Parameter\+Storage@{Parameter\+Storage}}
+\subsubsection{\texorpdfstring{input\+Voltages}{inputVoltages}}
+{\footnotesize\ttfamily std\+::vector$<$double$>$ Parameter\+Storage\+::input\+Voltages}
+
+input voltage points to scan \mbox{\Hypertarget{classParameterStorage_a3ae6709dcacaf500c8f57808a52d9be2}\label{classParameterStorage_a3ae6709dcacaf500c8f57808a52d9be2}} 
+\index{Parameter\+Storage@{Parameter\+Storage}!parameters@{parameters}}
+\index{parameters@{parameters}!Parameter\+Storage@{Parameter\+Storage}}
+\subsubsection{\texorpdfstring{parameters}{parameters}}
+{\footnotesize\ttfamily std\+::map$<$std\+::string,double$>$ Parameter\+Storage\+::parameters}
+
+general parameter map, used 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/home/marlon/\+Documents/\+Uni/master\+Chemie/\+M\+C\+Network/src/parameterstorage.\+h\item 
+/home/marlon/\+Documents/\+Uni/master\+Chemie/\+M\+C\+Network/src/parameterstorage.\+cpp\end{DoxyCompactItemize}
