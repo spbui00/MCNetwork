@@ -841,7 +841,7 @@ void System::updateOccupationAndPotential(std::vector<bool> const & newOccupatio
 
 
 /*!
-    set all energies to 0
+    set all energies back to coulomb interaction only
  */
 void System::resetPotential(){
     DEBUG_FUNC_START

@@ -109,8 +109,8 @@ if mode == "MC":
 
     ax.plot(np.maximum.accumulate(optEnergy),color="darkorange",label="best")
 
-    ax.plot(np.arange(optEnergy.shape[0])[notAccepted[:,0]],optEnergy[notAccepted],".",ms=1,color="darkred",label="not accepted")
-    ax.plot(np.arange(optEnergy.shape[0])[accepted[:,0]],optEnergy[accepted],".",ms=1,color="darkgreen",label="accepted")
+    ax.plot(np.arange(optEnergy.shape[0])[notAccepted[:,0]],optEnergy[notAccepted], ".", ms=1, color="darkred"  , label="not accepted", zorder = 10)
+    ax.plot(np.arange(optEnergy.shape[0])[accepted   [:,0]],optEnergy[accepted]   , ".", ms=1, color="darkgreen", label="accepted"    , zorder = 10)
         
     # ax.set_xlim(-0.15,0.65)
     ax.set_ylim(0.15,1.05)
@@ -134,8 +134,8 @@ if mode == "MC":
 
     ax.plot(np.maximum.accumulate(optEnergy),color="darkorange",label="best")
 
-    ax.plot(np.arange(optEnergy.shape[0])[notAccepted[:,0]],optEnergy[notAccepted],".",ms=1,color="darkred",label="not accepted")
-    ax.plot(np.arange(optEnergy.shape[0])[accepted[:,0]],optEnergy[accepted],".",ms=1,color="darkgreen",label="accepted")
+    ax.plot(np.arange(optEnergy.shape[0])[notAccepted[:,0]],optEnergy[notAccepted], ".", ms=1, color="darkred"  , label="not accepted", zorder = 10)
+    ax.plot(np.arange(optEnergy.shape[0])[accepted   [:,0]],optEnergy[accepted]   , ".", ms=1, color="darkgreen", label="accepted"    , zorder = 10)
            
 
     ax2=ax.twinx()
@@ -274,8 +274,8 @@ if mode == "basinHop":
 
     ax.plot(np.maximum.accumulate(optEnergy),color="darkorange",label="best")
 
-    ax.plot(np.arange(optEnergy.shape[0])[notAccepted[:,0]],optEnergy[notAccepted],".",ms=1,color="darkred",label="not accepted")
-    ax.plot(np.arange(optEnergy.shape[0])[accepted[:,0]],optEnergy[accepted],".",ms=1,color="darkgreen",label="accepted")
+    ax.plot(np.arange(optEnergy.shape[0])[notAccepted[:,0]],optEnergy[notAccepted], ".", ms=1, color="darkred"  , label="not accepted", zorder = 10)
+    ax.plot(np.arange(optEnergy.shape[0])[accepted   [:,0]],optEnergy[accepted]   , ".", ms=1, color="darkgreen", label="accepted"    , zorder = 10)
     
     
     
@@ -323,8 +323,8 @@ if mode == "basinHop":
     ax.plot(np.maximum.accumulate(optEnergy),color="darkorange",label="best")
 
 
-    ax.plot(np.arange(optEnergy.shape[0])[notAccepted[:,0]],optEnergy[notAccepted],".",ms=1,color="darkred",label="not accepted")
-    ax.plot(np.arange(optEnergy.shape[0])[accepted[:,0]],optEnergy[accepted],".",ms=1,color="darkgreen",label="accepted")
+    ax.plot(np.arange(optEnergy.shape[0])[notAccepted[:,0]],optEnergy[notAccepted], ".", ms=1, color="darkred"  , label="not accepted", zorder = 10)
+    ax.plot(np.arange(optEnergy.shape[0])[accepted   [:,0]],optEnergy[accepted]   , ".", ms=1, color="darkgreen", label="accepted"    , zorder = 10)
     
     
     if basinChanges.shape[1] > 0:
