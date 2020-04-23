@@ -39,7 +39,7 @@ if (NOT (${HDF5_FOUND} OR ${MFEM_FOUND}))
 
 endif (NOT (${HDF5_FOUND} OR ${MFEM_FOUND}))
 
-include_directories(${HDF5_INCLUDE_DIRS})
+#include_directories(${HDF5_INCLUDE_DIRS})
 
 
 add_executable(MCnetwork ${MCnetwork_SRC} ${sources} ${BAGHEERA_SRC})
