@@ -104,7 +104,7 @@ for distance in [25,50,100,200,500,1000]:
         
         
 
-
+    ax.plot([0.4,1],[0.4,1],"k-", lw = 1)
 
 
     ax.set_xlim(0.4,1)
@@ -127,6 +127,9 @@ for distance in [25,50,100,200,500,1000]:
     uncert =  StdMean(data, axis = 0)
     ax.plot(xRange,mean,"k-")
     ax.fill_between(xRange,mean-uncert, mean+uncert, facecolor = "grey")
+
+    ax.plot([0.4,1],[0.4,1],"k-", lw = 1)
+
 
     ax.set_xlim(0.4,1)
     ax.set_ylim(0.4,1)
