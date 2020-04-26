@@ -132,6 +132,28 @@ print("newMean:",np.sum(totProb[indices]*fitness[indices])/np.sum(totProb[indice
 
 
 
+fitnessBins = 50
+fitness_counts    , fitness_bins     = np.histogram(fitness.flatten(), weights = totProb.flatten(), bins = fitnessBins, density = True)
+realFitness_counts, realFitness_bins = np.histogram(controlFitness, bins = fitnessBins, density = True)
+
+
+fig, ax=plt.subplots(1,1,figsize=(4.980614173228346,3.2))
+
+ax.hist(fitness_bins[:-1]    , fitness_bins    , weights=fitness_counts    , color = color(0,2), histtype = "step", label = r"estimated")
+ax.hist(realFitness_bins[:-1], realFitness_bins, weights=realFitness_counts, color = color(1,2), histtype = "step", label = r"real")
+
+# ax.set_xlim(0.4,1)
+# ax.set_ylim(0.4,1)
+
+ax.set_xlabel(r"$\mathcal{F}$")
+ax.set_ylabel(r"$P(\mathcal{F})$")
+
+ax.legend()
+plt.savefig(join(pathToSimFolder,f"fitnessDistr_XOR.png"),bbox_inches="tight",dpi=300)    
+# plt.show()
+plt.close(fig)
+
+
 
 
 fig, ax=plt.subplots(1,1,figsize=(4.980614173228346,3.2))
@@ -236,7 +258,7 @@ diffs = np.zeros((bins,bins,bins,2,2,2,2))
 
 diffs[:,:,:,0,0,0,1] = D0
 diffs[:,:,:,0,0,1,0] = D0 + D1
-diffs[:,:,:,0,0,1,1] = 4/3*D1 - 1/3*D0 - Dd
+diffs[:,:,:,0,0,1,1] = 1/3*D1 + 2/3*D0 - Dd
 diffs[:,:,:,0,1,1,0] = D1
 diffs[:,:,:,0,1,1,1] = 1/3*D1 - 1/3*D0 - Dd
 diffs[:,:,:,1,0,1,1] =-2/3*D1 - 1/3*D0 - Dd
@@ -286,6 +308,34 @@ print("prob:",np.sum(totProb[indices]))
 print("newMean:",np.sum(totProb[indices]*fitness[indices])/np.sum(totProb[indices]))
 
 
+
+min_ = np.min(currents, axis = (1,2))
+max_ = np.max(currents, axis = (1,2))
+controlFitnessAND = 1 - 0.25 * ((currents[:,0,0]-min_)/(max_-min_) + (currents[:,1,0]-min_)/(max_-min_) + (currents[:,0,1]-min_)/(max_-min_) + 1 - (currents[:,1,1]-min_)/(max_-min_)   )
+
+
+
+fitnessBins = 50
+fitness_counts    , fitness_bins     = np.histogram(fitness.flatten(), weights = totProb.flatten(), bins = fitnessBins, density = True)
+realFitness_counts, realFitness_bins = np.histogram(controlFitnessAND, bins = fitnessBins, density = True)
+
+
+fig, ax=plt.subplots(1,1,figsize=(4.980614173228346,3.2))
+
+ax.hist(fitness_bins[:-1]    , fitness_bins    , weights=fitness_counts    , color = color(0,2), histtype = "step", label = r"estimated")
+ax.hist(realFitness_bins[:-1], realFitness_bins, weights=realFitness_counts, color = color(1,2), histtype = "step", label = r"real")
+
+# ax.set_xlim(0.4,1)
+# ax.set_ylim(0.4,1)
+
+ax.set_xlabel(r"$\mathcal{F}$")
+ax.set_ylabel(r"$P(\mathcal{F})$")
+
+ax.legend()
+
+plt.savefig(join(pathToSimFolder,f"fitnessDistr_AND.png"),bbox_inches="tight",dpi=300)    
+# plt.show()
+plt.close(fig)
 
 
 
