@@ -20,34 +20,34 @@ currents       = np.load(join(pathToSimFolder,"currents.npy"      ))
 currentsUncert = np.load(join(pathToSimFolder,"currentsUncert.npy"))
 N = currents.shape[0]
 
-minFitness = 0.9
+minFitness = 0.8
 relUncertThres = 10000
-bins = 100
+bins = 50
 
 
 print("################ XOR ################")
 
 
 
-D_11_00 = currents[:,1,1]-currents[:,0,0]
 D_10_01 = currents[:,1,0]-currents[:,0,1]
+D_11_00 = currents[:,1,1]-currents[:,0,0]
 D_DIFF  = (currents[:,1,1]+currents[:,0,0]-currents[:,0,1]-currents[:,1,0])/2
 
 #relative uncerttainty
 
-print("meanUncert D_11_00: ",np.mean(np.sqrt(currentsUncert[:,1,1]**2 + currentsUncert[:,0,0]**2)))
 print("meanUncert D_10_01: ",np.mean(np.sqrt(currentsUncert[:,1,0]**2 + currentsUncert[:,0,1]**2)))
+print("meanUncert D_11_00: ",np.mean(np.sqrt(currentsUncert[:,1,1]**2 + currentsUncert[:,0,0]**2)))
 print("meanUncert D_DIFF: ",np.mean(0.5 * np.sqrt(currentsUncert[:,1,1]**2 + currentsUncert[:,0,0]**2 + currentsUncert[:,0,1]**2 + currentsUncert[:,1,0]**2)))
 
-u_D_11_00 = np.sqrt(currentsUncert[:,1,1]**2 + currentsUncert[:,0,0]**2)                                                               / D_11_00
 u_D_10_01 = np.sqrt(currentsUncert[:,1,0]**2 + currentsUncert[:,0,1]**2)                                                               / D_10_01
+u_D_11_00 = np.sqrt(currentsUncert[:,1,1]**2 + currentsUncert[:,0,0]**2)                                                               / D_11_00
 u_D_DIFF  = 0.5 * np.sqrt(currentsUncert[:,1,1]**2 + currentsUncert[:,0,0]**2 + currentsUncert[:,0,1]**2 + currentsUncert[:,1,0]**2)   / D_DIFF
 
 
 valid = np.where(np.logical_and(np.logical_and(u_D_11_00 < relUncertThres, u_D_10_01 < relUncertThres), u_D_DIFF < relUncertThres) )
 
-D_11_00 = D_11_00[valid]
 D_10_01 = D_10_01[valid]
+D_11_00 = D_11_00[valid]
 D_DIFF  = D_DIFF [valid]
 
 n=D_11_00.shape[0]
@@ -65,8 +65,8 @@ print(f"D_10_01 vs D_DIFF: r = {r}, T(r) = {r * np.sqrt(n-2)/np.sqrt(1-r**2)}")
 
 
 
-D0_counts, D0_bins = np.histogram(D_11_00, bins = bins, density = True)
-D1_counts, D1_bins = np.histogram(D_10_01, bins = bins, density = True)
+D0_counts, D0_bins = np.histogram(D_10_01, bins = bins, density = True)
+D1_counts, D1_bins = np.histogram(D_11_00, bins = bins, density = True)
 Dd_counts, Dd_bins = np.histogram(D_DIFF , bins = bins, density = True)
 
 
@@ -144,8 +144,8 @@ im = ax.imshow(fitness[:,:,2]     , cmap = "gnuplot", extent = [ D1_bins[0], D1_
 # ax.set_xlim(0.4,1)
 # ax.set_ylim(0.4,1)
 
-ax.set_xlabel(r"D1")
-ax.set_ylabel(r"D0")
+ax.set_xlabel(r"$\scriptsize \Delta_{2}^\textrm{X}$")
+ax.set_ylabel(r"$\scriptsize \Delta_{1}^\textrm{X}$")
 
 plt.colorbar(im)
 plt.savefig(join(pathToSimFolder,f"mapXOR.png"),bbox_inches="tight",dpi=300)    
@@ -158,12 +158,20 @@ plt.close(fig)
 
 fig, ax=plt.subplots(1,1,figsize=(4.980614173228346,3.2))
 
-ax.hist(D0_bins[:-1], D0_bins, weights=D0_counts, color = color(0,3), histtype = "step", label = "D\_11\_00")
-ax.hist(D1_bins[:-1], D1_bins, weights=D1_counts, color = color(1,3), histtype = "step", label = "D\_10\_01")
-ax.hist(Dd_bins[:-1], Dd_bins, weights=Dd_counts, color = color(2,3), histtype = "step", label = "D\_DIFF")
+ax.hist(D0_bins[:-1], D0_bins, weights=D0_counts, color = color(0,3), histtype = "step", label = r"$\scriptsize \Delta_{1}^\textrm{X}$")
+ax.hist(D1_bins[:-1], D1_bins, weights=D1_counts, color = color(1,3), histtype = "step", label = r"$\scriptsize \Delta_{2}^\textrm{X}$")
+ax.hist(Dd_bins[:-1], Dd_bins, weights=Dd_counts, color = color(2,3), histtype = "step", label = r"$\scriptsize \Delta_{3}^\textrm{X}$")
 
 
+np.save(join(pathToSimFolder,"XOR_D0_bins.npy"  ),D0_bins)
+np.save(join(pathToSimFolder,"XOR_D0_counts.npy"),D0_counts)
+np.save(join(pathToSimFolder,"XOR_D1_bins.npy"  ),D1_bins)
+np.save(join(pathToSimFolder,"XOR_D1_counts.npy"),D1_counts)
+np.save(join(pathToSimFolder,"XOR_Dd_bins.npy"  ),Dd_bins)
+np.save(join(pathToSimFolder,"XOR_Dd_counts.npy"),Dd_counts)
 
+ax.set_xlabel(r"$\Delta_{i}$")
+ax.set_ylabel(r"$P(\Delta_{i})$")
 
 ax.legend()
 
@@ -285,14 +293,14 @@ fig, ax=plt.subplots(1,1,figsize=(4.980614173228346,3.2))
 
 
 # im = ax.imshow(np.mean(fitness, axis = 2), cmap = "gnuplot", extent = [ D1_bins[0], D1_bins[-1], D0_bins[-1], D0_bins[0]])
-im = ax.imshow(fitness[:,:,99]     , cmap = "gnuplot", extent = [ D1_bins[0], D1_bins[-1], D0_bins[-1], D0_bins[0]])
+im = ax.imshow(fitness[:,:,49]     , cmap = "gnuplot", extent = [ D1_bins[0], D1_bins[-1], D0_bins[-1], D0_bins[0]])
 # im = ax.imshow(D1[:,:,5]     , cmap = "gnuplot", extent = [ D1_bins[0], D1_bins[-1], D0_bins[-1], D0_bins[0]])
 
 # ax.set_xlim(0.4,1)
 # ax.set_ylim(0.4,1)
 
-ax.set_xlabel(r"D1")
-ax.set_ylabel(r"D0")
+ax.set_xlabel(r"$\scriptsize \Delta_{2}^\textrm{A}$")
+ax.set_ylabel(r"$\scriptsize \Delta_{1}^\textrm{A}$")
 
 plt.colorbar(im)
 plt.savefig(join(pathToSimFolder,f"mapAND.png"),bbox_inches="tight",dpi=300)    
@@ -305,11 +313,20 @@ plt.close(fig)
 
 fig, ax=plt.subplots(1,1,figsize=(4.980614173228346,3.2))
 
-ax.hist(D0_bins[:-1], D0_bins, weights=D0_counts, color = color(0,3), histtype = "step", label = "D\_00\_01")
-ax.hist(D1_bins[:-1], D1_bins, weights=D1_counts, color = color(1,3), histtype = "step", label = "D\_01\_10")
-ax.hist(Dd_bins[:-1], Dd_bins, weights=Dd_counts, color = color(2,3), histtype = "step", label = "D\_DIFF")
+ax.hist(D0_bins[:-1], D0_bins, weights=D0_counts, color = color(0,3), histtype = "step", label = r"$\scriptsize \Delta_{1}^\textrm{A}$")
+ax.hist(D1_bins[:-1], D1_bins, weights=D1_counts, color = color(1,3), histtype = "step", label = r"$\scriptsize \Delta_{2}^\textrm{A}$")
+ax.hist(Dd_bins[:-1], Dd_bins, weights=Dd_counts, color = color(2,3), histtype = "step", label = r"$\scriptsize \Delta_{3}^\textrm{A}$")
+
+np.save(join(pathToSimFolder,"AND_D0_bins.npy"  ),D0_bins)
+np.save(join(pathToSimFolder,"AND_D0_counts.npy"),D0_counts)
+np.save(join(pathToSimFolder,"AND_D1_bins.npy"  ),D1_bins)
+np.save(join(pathToSimFolder,"AND_D1_counts.npy"),D1_counts)
+np.save(join(pathToSimFolder,"AND_Dd_bins.npy"  ),Dd_bins)
+np.save(join(pathToSimFolder,"AND_Dd_counts.npy"),Dd_counts)
 
 
+ax.set_xlabel(r"$\Delta_{i}$")
+ax.set_ylabel(r"$P(\Delta_{i})$")
 
 
 ax.legend()

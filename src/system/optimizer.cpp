@@ -82,6 +82,8 @@ void Optimizer::continueSimulation(){
 
         // search for last accepted point in datafile
         std::vector<double> accepted = * dataFile->readFullDataset("accepted"); 
+        iteration = accepted.size();
+
         int lastAccepted=0;
         for (size_t i = accepted.size()-1; i >=0 ; i--){
             if (accepted[i] == 1){
