@@ -26,11 +26,8 @@ def readParameters(pathToSimFolder):
             splitted=line.split(" ")
             # print(splitted)
             if splitted[0]=="electrode":
-                try:
-                    geom = parameters["geometry"]
-                except KeyError:
-                    parameters["geometry"] = "rect"
-                    geom = "rect" #to support old files where geometry wasnt defined yet   
+                try:             geom = parameters["geometry"]
+                except KeyError: geom = "rect"
                 if geom == "rect":
                     electrodes.append([float(splitted[1]),float(splitted[2]),float(splitted[3])])
                 elif geom == "circle":
@@ -93,8 +90,7 @@ def logical(a,b,gate):
     
     
 from matplotlib.ticker import FuncFormatter
-            
-            
+
 def to_percent(y, position):
     # Ignore the passed in position. This has the effect of scaling the default
     # tick locations.
@@ -105,45 +101,5 @@ def to_percent(y, position):
         return s + r'$\%$'
     else:
         return s + '%'
-
+    
 percentFormatter = FuncFormatter(to_percent)
-
-
-def WAM(values,uncert,axis=None,includeStatUncert = True):
-    meanUncert= 1/np.sqrt(np.sum(1/uncert**2,axis=axis))
-    mean = meanUncert**2 * np.sum(values/uncert**2,axis=axis)
-    if includeStatUncert:
-        meanUncert = np.sqrt(meanUncert**2+StdMean(values, axis = axis)**2)
-    return mean, meanUncert
-
-
-def StdMean(data,axis=None,ddof=1,t_verteilung=True):
-    """ gibt standardunsicherheit des mittelwertes einer liste unter beruecksichtigung der studentschen t verteilung aus, basiert auf np.std
-    """
-    t_faktor=[0,1.84,1.32,1.20,1.14,1.11,1.09,1.08,1.07,1.06,1.05,1.05,1.04,1.04,1.04]
-    if axis == None        :
-        if type(data) == list:
-            N = len(data)
-        else:
-            N = np.prod(data.shape)
-    elif type(axis) == int :
-        N = data.shape[axis]
-    else :
-        N = 1
-        for a in axis: N *= data.shape[a]
-            
-    if t_verteilung:
-        if N <15:
-            t_fak=t_faktor[N]
-        elif N<25:
-            t_fak=1.03
-        elif N<35:
-            t_fak=1.02
-        elif N<100:
-            t_fak=1.01
-        else:
-            t_fak=1
-    else:
-        t_fak=1
-    return np.std(data, axis = axis, ddof = ddof) / np.sqrt(N) * t_fak
-

@@ -30,7 +30,7 @@ samples = currents.shape[0]
 print("samples: ", samples)
 
 # minFitness = 0.8
-bins = 50
+bins = 200
 # fitnessBins = 100
 
 
@@ -155,8 +155,8 @@ for i in range(len(permutations)):
 
 ########################### fitness plots ###########################
 
-# gates = ["AND","NAND","OR","NOR","XOR","XNOR"]
-gates = ["XOR"]
+gates = ["AND","NAND","OR","NOR","XOR","XNOR"]
+# gates = ["XOR"]
 for gate in gates:
     fitness        = getFitness(gate, I_normed)
     controlFitness = getFitness(gate,normedCurrents)

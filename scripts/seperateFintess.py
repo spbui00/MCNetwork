@@ -43,11 +43,11 @@ N = D.shape[0]
 C = np.cov(D)
 _ , M = np.linalg.eig(C)
 
-# M = np.array([[1,-1,0],[0,0,-1],[0.5,0.5,-0.5]]).T #<<<<<-------- define transformation matrix here and ignore PCA
+M = np.array([[1,-1,0],[0,0,-1],[0.5,0.5,-0.5]]).T #<<<<<-------- define transformation matrix here and ignore PCA
 
-print("transformation matrix\n:",M)
+print("transformation matrix:\n",M)
 Delta = M.T@D
-
+print("corrcoef matrix:\n",np.corrcoef(Delta))
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -58,6 +58,9 @@ for i in range(N):
     Delta_bins  .append(Delta_bins_  )
     Delta_counts.append(Delta_counts_)
 
+
+    np.save(join(pathToSimFolder,f"Delta{i}_bins.npy"  ),Delta_bins_)
+    np.save(join(pathToSimFolder,f"Delta{i}_counts.npy"),Delta_counts_)
 
 Delta_mesh    = np.array( np.meshgrid(*[(Delta_bins[i][1:]+Delta_bins[i][:-1])/2 for i in range(N)], indexing = "ij") )
 probabilities = np.array( np.meshgrid(*[(Delta_bins[i][1:]-Delta_bins[i][:-1]) * Delta_counts[i] for i in range(N)], indexing = "ij") )
@@ -113,7 +116,7 @@ fig, ax=plt.subplots(1,1,figsize=(4.980614173228346,3.2))
 
 
 for i in range(N):
-    ax.hist(Delta_bins[i][:-1], Delta_bins[i], weights=Delta_counts[i], color = color(i,N), histtype = "step", label = r"$\scriptsize \Delta_{{ {i} }}$")
+    ax.hist(Delta_bins[i][:-1], Delta_bins[i], weights=Delta_counts[i], color = color(i,N), histtype = "step", label = rf"$\scriptsize \Delta_{{ {i+1} }}$")
 
 ax.set_xlabel(r"$\Delta_{i}$")
 ax.set_ylabel(r"$P(\Delta_{i})$")
@@ -131,6 +134,47 @@ for gate in gates:
     estimatedFitness = getFitness(gate,I_normed)
     realFitness      = getFitness(gate,normedCurrents)
     hitIndices = np.where(estimatedFitness>minFitness)
+    hitIndices = np.where(estimatedFitness>minFitness)
+    print(f"{gate}: {np.sum(totProbab[hitIndices]):%}    {np.sum(realFitness>minFitness)/samples:%}")
+
+
+    fitness_counts    , fitness_bins     = np.histogram(estimatedFitness.flatten(), weights = totProbab.flatten(), bins = fitnessBins, density = True)
+    realFitness_counts, realFitness_bins = np.histogram(realFitness, bins = fitnessBins, density = True)
+
+    fig, ax=plt.subplots(1,1,figsize=(4.980614173228346,3.2))
+
+    ax.hist(fitness_bins[:-1]    , fitness_bins    , weights=fitness_counts    , color = color(0,2), histtype = "step", label = r"estimated")
+    ax.hist(realFitness_bins[:-1], realFitness_bins, weights=realFitness_counts, color = color(1,2), histtype = "step", label = r"real")
+
+    # ax.set_xlim(0.4,1)
+    # ax.set_ylim(0,1)
+
+    ax.set_xlabel(r"$f$")
+    ax.set_ylabel(r"$P(f)$")
+
+    ax.legend(loc="best")
+    
+    plt.savefig(join(pathToSimFolder,f"fitnessDistr_{gate}_pca.png"),bbox_inches="tight",dpi=300)    
+    # plt.show()
+    plt.close(fig)
+    
+    
+    
+    
+    
+    fig, ax=plt.subplots(1,1,figsize=(4.980614173228346,3.2))
+
+    ax.hist(fitness_bins[:-1]    , fitness_bins    , weights=fitness_counts    , color = color(0,2), histtype = "step", label = r"estimated")
+    ax.hist(realFitness_bins[:-1], realFitness_bins, weights=realFitness_counts, color = color(1,2), histtype = "step", label = r"real")
+
+    # ax.set_xlim(0.4,1)
+    ax.set_ylim(max(ax.get_ylim()[0],1e-3),ax.get_ylim()[1])
+
+    ax.set_xlabel(r"$f$")
+    ax.set_ylabel(r"$P(f)$")
+
+    ax.legend(loc="best")
+    
     print(f"{gate}: {np.sum(totProbab[hitIndices]):%}    {np.sum(realFitness>minFitness)/samples:%}")
 
 
@@ -187,6 +231,9 @@ for gate in gates:
     ax.plot(f, [np.sum(totProbab[np.where(estimatedFitness>fi)]) for fi in f], color = color(0,2), label = r"estimated")
     ax.plot(f, [np.sum(realFitness>fi)/samples                   for fi in f], color = color(1,2), label = r"real")
 
+    np.save(join(pathToSimFolder,f"{gate}_estimated_integrated_raw_fitness.npy"),[np.sum(totProbab[np.where(estimatedFitness>fi)]) for fi in f])
+    np.save(join(pathToSimFolder,f"{gate}_real_integrated_raw_fitness.npy"),[np.sum(realFitness>fi)/samples for fi in f])
+
     # ax.set_xlim(0.4,1)
     ax.set_ylim(2e-4,None)
 
@@ -207,34 +254,34 @@ for gate in gates:
 ############################### raw fitness vs corrected fitness ###############################
 
 
-# rawFitness       = np.load(join(pathToSimFolder,"fitness.npy"))
-# correctedFitness = rawFitness -  2 * np.load(join(pathToSimFolder,"fitnessUncert.npy"))
+rawFitness       = np.load(join(pathToSimFolder,"fitness.npy"))
+correctedFitness = rawFitness -  2 * np.load(join(pathToSimFolder,"fitnessUncert.npy"))
 
-# print(f"prob: {np.sum(correctedFitness>minFitness):%}")
-
-
-# rawFitness_counts, rawFitness_bins             = np.histogram(rawFitness      ,range =(0,1), bins = fitnessBins, density = True)
-# correctedFitness_counts, correctedFitness_bins = np.histogram(correctedFitness,range =(0,1), bins = fitnessBins, density = True)
+print(f"corrected fitness prob: {np.sum(correctedFitness>minFitness)/samples:%}")
 
 
-# fig, ax=plt.subplots(1,1,figsize=(4.980614173228346,3.2))
+rawFitness_counts, rawFitness_bins             = np.histogram(rawFitness      ,range =(0,1), bins = fitnessBins, density = True)
+correctedFitness_counts, correctedFitness_bins = np.histogram(correctedFitness,range =(0,1), bins = fitnessBins, density = True)
 
-# ax.hist(rawFitness_bins[:-1]      , rawFitness_bins      , weights=rawFitness_counts      , color = color(0,2), histtype = "step", label = r"raw")
-# ax.hist(correctedFitness_bins[:-1], correctedFitness_bins, weights=correctedFitness_counts, color = color(1,2), histtype = "step", label = r"corrected")
 
-# ax.set_xlim(0,1)
-# # ax.set_ylim(max(ax.get_ylim()[0],1e-3),ax.get_ylim()[1])
+fig, ax=plt.subplots(1,1,figsize=(4.980614173228346,3.2))
 
-# ax.set_xlabel(r"$f$")
-# ax.set_ylabel(r"$P(f)$")
+ax.hist(rawFitness_bins[:-1]      , rawFitness_bins      , weights=rawFitness_counts      , color = color(0,2), histtype = "step", label = r"raw")
+ax.hist(correctedFitness_bins[:-1], correctedFitness_bins, weights=correctedFitness_counts, color = color(1,2), histtype = "step", label = r"corrected")
 
-# ax.legend(loc="best")
+ax.set_xlim(0,1)
+# ax.set_ylim(max(ax.get_ylim()[0],1e-3),ax.get_ylim()[1])
 
-# ax.set_yscale('log')
+ax.set_xlabel(r"$f$")
+ax.set_ylabel(r"$P(f)$")
 
-# plt.savefig(join(pathToSimFolder,f"rawFitnes_vs_correctedFitness.png"),bbox_inches="tight",dpi=300)    
-# # plt.show()
-# plt.close(fig)
+ax.legend(loc="best")
+
+ax.set_yscale('log')
+
+plt.savefig(join(pathToSimFolder,f"rawFitnes_vs_correctedFitness.png"),bbox_inches="tight",dpi=300)    
+# plt.show()
+plt.close(fig)
 
 
 
