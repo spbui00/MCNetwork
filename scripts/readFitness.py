@@ -64,7 +64,7 @@ if voltageScanPoints==2:
 
 
     ax.set_xlabel("gate input")
-    ax.set_ylabel(r"$I^{\textrm{out}}$")
+    ax.set_ylabel(r"$I^{\textrm{out}} [e \nu_0]$")
 
     plt.savefig(join(pathToSimFolder,"fitness_1D.png"),bbox_inches="tight",dpi=300)    
     # plt.show()
@@ -155,7 +155,7 @@ if voltageScanPoints!=2:
     plt.savefig(join(pathToSimFolder,"fitness_1D.png"),bbox_inches="tight",dpi=300)
 
     ax.set_xlabel("gate input")
-    ax.set_ylabel(r"$I^{\textrm{out}}$")
+    ax.set_ylabel(r"$I^{\textrm{out}} [e \nu_0]$")
     # plt.show()
     plt.close(fig)
 
