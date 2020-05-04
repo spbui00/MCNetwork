@@ -85,7 +85,7 @@ void Optimizer::continueSimulation(){
         iteration = accepted.size();
 
         int lastAccepted=0;
-        for (size_t i = accepted.size()-1; i >=0 ; i--){
+        for (int i = accepted.size()-1; i >=0 ; i--){
             if (accepted[i] == 1){
                 lastAccepted=i;
                 break;
@@ -113,7 +113,49 @@ void Optimizer::continueSimulation(){
         optimizationMode = "genetic";
         std::cout<< "continue genetic optimization"<<std::endl;
 
-        throw std::logic_error("continuing genetic optimization - not implemented yet");
+        while (voltageEnergySets.size()< 25){
+            voltageEnergySets.push_back(std::pair<std::vector<double>,double>(std::vector<double>(electrodeNumber),0));
+        }
+
+        std::vector<double> generations = * dataFile->readFullDataset("generation");
+        double lastGeneration = generations.back();
+        size_t generationSize = 0, lastGenerationStartIdx = 0;
+
+        for (int i = generations.size()-1; i >=0 ; i--){
+            if (lastGeneration == generations[i]){
+                generationSize++;
+                if (generationSize == 25){
+                    lastGenerationStartIdx = i;
+                    iteration = lastGeneration;  //iteration used as buffer for generation here 
+                    std::cout<< "last full generation found! gen: "<<lastGeneration<<" at index "<< lastGenerationStartIdx <<std::endl;
+                    break;
+                }
+            }
+            else{
+                //deleting incomplete generation
+                dataFile->shrinkDataset("fitness"            , generationSize);
+                dataFile->shrinkDataset("fitnessUncert"      , generationSize);
+                dataFile->shrinkDataset("generation"         , generationSize);
+                dataFile->shrinkDataset("optEnergy"          , generationSize);
+                dataFile->shrinkDataset("outputCurrent"      , generationSize);
+                dataFile->shrinkDataset("outputCurrentUncert", generationSize);
+                dataFile->shrinkDataset("voltages"           , generationSize);
+
+                generationSize = 1;
+                lastGeneration = generations[i];
+            }
+        }
+
+        if (generationSize != 25){
+            throw std::logic_error("no full generation found -> can not continue");
+        }
+
+
+        //read top 5
+        for (size_t k = 0; k < 25; k++){
+            voltageEnergySets[k].first = * dataFile->readDatasetSlice("voltages" ,lastGenerationStartIdx + k); 
+            voltageEnergySets[k].second = (* dataFile->readDatasetSlice("optEnergy" ,lastGenerationStartIdx + k))[0]; 
+        }
 
     }
     else if (dataFile->checkDataSetExists("basinAccepted")){
@@ -426,53 +468,73 @@ void Optimizer::optimizeGenetic(size_t startMode /* = 0 */){
 
     double bestFitness       = 0;
     double bestFitnessUncert = 0;
-
-
-    //setup genome
-    for(int k=0; k < 25; k++){
-        for(int i=0; i < controlElectrodeNumber; i++){
-            voltageEnergySets[k].first[controlElectrodeIndices[i]]=enhance::random_double(parameterStorage->parameters.at("controlVoltageMin"),parameterStorage->parameters.at("controlVoltageMax"));
-        }
-
-    }
-
-    //run first generation
     double generation=1;
-    std::cout<<"------------------------------ run geneartion "<<generation<< " ------------------------------"<<std::endl;
-    for(int k=0; k < 25; k++){
-        std::cout<<"genome: "<<k<<" voltages:";
-        for(int i=0; i < controlElectrodeNumber; i++){
-            std::cout<<" "<<controlElectrodeIndices[i]<<": "<<voltageEnergySets[0].first[controlElectrodeIndices[i]];
+
+
+
+
+    if      (startMode == 0 or startMode == 1){ //new run
+        //setup genome
+        for(int k=0; k < 25; k++){
+            for(int i=0; i < controlElectrodeNumber; i++){
+                voltageEnergySets[k].first[controlElectrodeIndices[i]]=enhance::random_double(parameterStorage->parameters.at("controlVoltageMin"),parameterStorage->parameters.at("controlVoltageMax"));
+            }
         }
-        std::cout<<std::endl;
 
-        auto startTime = std::chrono::steady_clock::now();
+        //run first generation
+        std::cout<<"------------------------------ run geneartion "<<generation<< " ------------------------------"<<std::endl;
+        for(int k=0; k < 25; k++){
+            std::cout<<"genome: "<<k<<" voltages:";
+            for(int i=0; i < controlElectrodeNumber; i++){
+                std::cout<<" "<<controlElectrodeIndices[i]<<": "<<voltageEnergySets[k].first[controlElectrodeIndices[i]];
+            }
+            std::cout<<std::endl;
 
-        std::pair<std::vector<double>,std::vector<double>> result = jobManager.runControlVoltagesSetup(voltageEnergySets[k].first);
-        outputCurrents       = result.first;
-        outputCurrentUncerts = result.second;
+            auto startTime = std::chrono::steady_clock::now();
 
-        calcOptimizationEnergy();
-        voltageEnergySets[k].second=optEnergy;
-        saveResults(k);
-        dataFile->addData("generation",& generation);
-        
+            std::pair<std::vector<double>,std::vector<double>> result = jobManager.runControlVoltagesSetup(voltageEnergySets[k].first);
+            outputCurrents       = result.first;
+            outputCurrentUncerts = result.second;
+
+            calcOptimizationEnergy();
+            voltageEnergySets[k].second=optEnergy;
+            saveResults(k);
+            dataFile->addData("generation",& generation);
+            
 
 
-        std::cout<<"optEnergy: "<<voltageEnergySets[k].second    <<" fitness: ("<<fitness    <<" +- "<<fitnessUncert    <<") normedDiff: "<<normedDiff<<std::endl;
-        auto endTime = std::chrono::steady_clock::now();
-        std::cout << "time per VoltageSetup = " << std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count()/1000.0 << " s" << std::endl;
+            std::cout<<"optEnergy: "<<voltageEnergySets[k].second    <<" fitness: ("<<fitness    <<" +- "<<fitnessUncert    <<") normedDiff: "<<normedDiff<<std::endl;
+            auto endTime = std::chrono::steady_clock::now();
+            std::cout << "time per VoltageSetup = " << std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count()/1000.0 << " s" << std::endl;
+        }
+
+        std::cout<<"generation "<<generation<< " done! sorted results: "<<std::endl;
+        std::sort(voltageEnergySets.begin(),voltageEnergySets.end(),genomeComparator);
+        for(int k=0; k < 25; k++){
+            std::cout<<"genome: "<<k+1<<" optEnergy: "<<voltageEnergySets[k].second<<" voltages: ";
+            for(int i=0; i < controlElectrodeNumber; i++){
+                std::cout<<" "<<controlElectrodeIndices[i]<<": "<<voltageEnergySets[k].first[controlElectrodeIndices[i]];
+            }
+            std::cout<<std::endl;
+        }
+    }
+    else if (startMode == 2) { //start set before (continue mode)
+        generation = iteration;
+        std::cout<<"last generation "<<generation<< " was "<<std::endl;
+        std::sort(voltageEnergySets.begin(),voltageEnergySets.end(),genomeComparator);
+        for(int k=0; k < 25; k++){
+            std::cout<<"genome: "<<k+1<<" optEnergy: "<<voltageEnergySets[k].second<<" voltages: ";
+            for(int i=0; i < controlElectrodeNumber; i++){
+                std::cout<<" "<<controlElectrodeIndices[i]<<": "<<voltageEnergySets[k].first[controlElectrodeIndices[i]];
+            }
+            std::cout<<std::endl;
+        }
+
     }
 
-    std::cout<<"generation "<<generation<< " done! sorted results: "<<std::endl;
-    std::sort(voltageEnergySets.begin(),voltageEnergySets.end(),genomeComparator);
-    for(int k=0; k < 25; k++){
-        std::cout<<"genome: "<<k+1<<" optEnergy: "<<voltageEnergySets[k].second<<" voltages: ";
-        for(int i=0; i < controlElectrodeNumber; i++){
-            std::cout<<" "<<controlElectrodeIndices[i]<<": "<<voltageEnergySets[k].first[controlElectrodeIndices[i]];
-        }
-        std::cout<<std::endl;
-    }
+
+
+
 
     int increaseNumber = 0;
     while(true){
@@ -498,7 +560,7 @@ void Optimizer::optimizeGenetic(size_t startMode /* = 0 */){
                     voltageEnergySets[k].first[controlElectrodeIndices[i]]=voltageEnergySets[k-10].first[controlElectrodeIndices[i]];
                 }
                 else{
-                    voltageEnergySets[k].first[controlElectrodeIndices[i]]=voltageEnergySets[k-9].first[controlElectrodeIndices[i]];
+                    voltageEnergySets[k].first[controlElectrodeIndices[i]]=voltageEnergySets[k-9].first[controlElectrodeIndices[i]]; ///<<<< bug here: if k=14, k=5 is taken, but voltageEnergySets[5] was overwritten before
                 }
             }
             voltageEnergySets[k].second=0;
@@ -540,7 +602,7 @@ void Optimizer::optimizeGenetic(size_t startMode /* = 0 */){
                 voltageEnergySets[k].second=0;
             }
         }
-        // voltageEnergySets[k].second=0 for all changed voltageEnergySetss
+        // voltageEnergySets[k].second=0 for all changed voltageEnergySetss (can be used to not run unchanged points (top5) second time, but not implemented yet, bc currents are unknown)
 
         // ------------ run generation ------
         std::cout<<"------------------------------ run geneartion "<<generation<< " ------------------------------"<<std::endl;

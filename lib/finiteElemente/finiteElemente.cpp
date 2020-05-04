@@ -115,7 +115,6 @@ FiniteElementeRect::FiniteElementeRect(double const & len, double const & width,
                                                                          FiniteElementeBase(saveSolution),
                                                                          len(len),
                                                                          width(width){
-    saveSolution = saveSolution;
     initMesh(maxNumberOfElments);
 
     // 5. --> see see mfem ex1.cpp in mfem lib

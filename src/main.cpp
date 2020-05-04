@@ -39,12 +39,14 @@ TODO:
       - add log file
       - support INT data format in datafile
       - split up optimizer in child classes
+      - make one central hdf5 file to combine SWAPTRACKER and TiMETRACKER
    PHYSICAL:
    ANALYSIS:
 OPT:
-   - store only output electrode current
-   - improve hash algorithm
+   - count only output electrode current
+   - improve hash algorithm for storing mode
    - in optimzer: store only control voltages
+   - in genetic algorithm: do not run unchanged genomes again
 */
 
 namespace po = boost::program_options;

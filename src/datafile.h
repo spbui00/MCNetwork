@@ -28,10 +28,13 @@ public:
     void createAttribute(std::string, double);
 
     template<typename Data>
-    void addData(std::string datasetName,Data data);
+    void addData(std::string datasetName, Data data);
+    void shrinkDataset(std::string datasetName, int dataPointsToDelete);
 
     std::unique_ptr<std::vector<double>> readFullDataset (std::string datasetName);
     std::unique_ptr<std::vector<double>> readDatasetSlice(std::string datasetName, int index);
+
+
 
     bool checkDataSetExists(std::string datasetName);
 
