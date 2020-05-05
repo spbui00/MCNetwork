@@ -44,9 +44,6 @@ std::pair<std::vector<double>,std::vector<double>> const JobManager::runControlV
             jobs[i*voltageScanPoints + j].voltages[parameterStorage->parameters.at("outputElectrode")] = 0;
             jobs[i*voltageScanPoints + j].voltages[parameterStorage->parameters.at("inputElectrode1")] = parameterStorage->inputVoltages[i];
             jobs[i*voltageScanPoints + j].voltages[parameterStorage->parameters.at("inputElectrode2")] = parameterStorage->inputVoltages[j];            
-            #ifdef TIMETRACKER
-                jobs[i*voltageScanPoints + j].timeFile.open(std::string("timeFile")+std::to_string(i*voltageScanPoints + j)+std::string(".txt"), std::ios::out);
-            #endif
         }
     }
     
@@ -167,11 +164,6 @@ void JobManager::handleJobList(std::vector<Job> & jobs,
 
                     system->run(bestJob->stepsPerTask);
 
-                    #ifdef TIMETRACKER
-                        bestJob->jobMutex->lock();
-                        bestJob->timeFile<<system->time<<std::endl; // timeTracker
-                        bestJob->jobMutex->unlock();
-                    #endif
         
                     // int charge=200;
                     // for (auto b: system->getOccupation()) if(b) charge--;

@@ -48,6 +48,10 @@ ParameterStorage::ParameterStorage(std::string filename)
             if(!(iss>>geometry)) throw std::invalid_argument( "cant read geometry: " + line);
             if(geometry != "rect" and geometry != "circle") throw std::invalid_argument( "invalid value for geometry: '" + line + "' valid: rect, circle");
         }
+        else if (name == "isolateElectrode"){
+            if(!(iss>>val)) throw std::invalid_argument( "cant read isolateElectrode: " + line);
+            isolatedElectrodes.push_back(val);
+        }
         else{
             if(!(iss>>val)) throw std::invalid_argument( "can't read line: " + line);
             parameters[name]=val;    

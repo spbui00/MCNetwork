@@ -11,9 +11,6 @@
 #include <vector>
 #include <map>
 
-//(un)comment to (en/dis)able time tracker, e.g. after each task writing out the system time to txt file 
-// #define TIMETRACKER
-
 /*!
     one job consits of one set of fixed voltages (incl. input voltages). steps to run are split up in tasksPerJob packs. each task can be handeled by single thread.
  */
@@ -33,10 +30,6 @@ class Job
         double resultCurrent = 0, resultCurrentUncert = 0;
 
         Job(int ID): ID(ID) {jobMutex = std::make_unique<std::mutex>();};
-
-        #ifdef TIMETRACKER
-            std::ofstream timeFile;
-        #endif
 };
 
 /*!

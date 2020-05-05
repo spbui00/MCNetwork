@@ -10,6 +10,7 @@
 #include "../lib/finiteElemente/finiteElemente.h"
 
 #include <boost/multi_array.hpp>
+#include "datafile.h"
 
 #include <thread> 
 #include <shared_mutex>
@@ -17,10 +18,6 @@
 
 #include <chrono>
 #include <ctime>
-
-
-//(un)comment to (en/dis)able swap tracker, e.g. writing out each swap (both swapping indices) to txt file. use in multiprocessing mode is not tested and not recommended.
-// #define SWAPTRACKER
 
 
 /*!
@@ -87,7 +84,7 @@ private:
     std::shared_ptr< std::unordered_map<std::vector<bool>,double>>  knownRatesSum; /*!< map of rate sums for binary search, to store known states. only used in storing mode. */
 
     std::shared_ptr<ParameterStorage> parameterStorage;
-    
+    std::shared_ptr<DataFile>         additionalDatafile; /*!< save data in verbose mode*/
 
     void updateAfterSwap();
 
@@ -98,11 +95,6 @@ private:
 
     bool storeKnownStates = true; /*!<set false after memory limit is reached */
 
-
-    #ifdef SWAPTRACKER
-        std::ofstream swapTrackFile;
-        int fileNumber=1;
-    #endif
 
     void setOccupation(std::vector<bool> const & newOccupation);
 

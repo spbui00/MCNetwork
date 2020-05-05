@@ -74,6 +74,7 @@ int main(int argc, char *argv[]){
       ("run"        , "just run control voltages defined in in.txt")
       ("rSV"        , "random start voltages (only in combination with opt)")
       ("dir"        , po::value<std::string>(),"define working dir. has to contain 'in.txt'")
+      ("verbose"    , "additionally outputs occupation, swapps and time to 'additionalData.hdf5'")
       ("help"       , "produce help message");
 
    po::variables_map vm;
@@ -99,7 +100,16 @@ int main(int argc, char *argv[]){
    std::shared_ptr<ParameterStorage> parameterStorage(new ParameterStorage(inputFileName));//all input parameters are stored in the shared pointer "inputfile". all classes get the pointer 
    parameterStorage->workingDirecotry=workingDirecotry;
    parameterStorage->makeNewDevice = vm.count("mnd");
+   parameterStorage->verbose       = vm.count("verbose");
    int startMode                   = vm.count("rSV");
+
+
+   if (parameterStorage->verbose){
+      if (parameterStorage->parameters.at("threads") > 1) throw std::logic_error("verbose mode is only supported in single processor mode");
+      parameterStorage->parameters["additionalFileNumber"] = 0;
+   }
+
+
 
    std::string optimizationMode;
    if (vm.count("optMC")){

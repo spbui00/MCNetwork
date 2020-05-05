@@ -31,9 +31,11 @@ public:
     std::string geometry; /*!< "circle"/"rect" */
     std::map<std::string,double> parameters; /*!< general parameter map, used */
     std::vector<ElectrodeParameters> electrodes; /*!< voltages are only set in start routine and not used/updated during optimization!*/
+    std::vector<int> isolatedElectrodes; /*!< these electrodes cant participate in hopping events, hopping partners are empty*/
     std::string workingDirecotry ="./";
     
     bool makeNewDevice = false;
+    bool verbose       = false;
     std::vector<double> inputVoltages; /*!< input voltage points to scan */
 
 

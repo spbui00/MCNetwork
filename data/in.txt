@@ -21,8 +21,8 @@ minDist 0 #nm #minimal distance between acceptors (normally not used)
 electrodeWidth 60 #nm #used for boundary condition in laplace equation
 
 #cuts
-minHoppingDist 4  #nm #cut on minimal distance for hop
-maxHoppingDist 50 #nm #cut on maximal distance for hop
+minHoppingDist 3  #nm #cut on minimal distance for hop
+maxHoppingDist 60 #nm #cut on maximal distance for hop
 maxInteractionDist 500 #nm #cut coulomb interaction range (not used)
 
 #geometry parameters
@@ -70,6 +70,8 @@ inputElectrode1 3 #index of input electrode 1
 inputElectrode2 5 #index of input electrode 2
 outputElectrode 0 #index of output electrode 
 
+#isolateElectrode 3 #denies any hopps to electrode 3. laplace eq is still affected
+#isolateElectrode 1
 
 controlVoltageMin -1  #possible interval for control voltages
 controlVoltageMax 1 #possible interval for control voltages

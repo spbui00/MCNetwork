@@ -447,31 +447,36 @@ void System::getReadyForRun(){
     // set hoppingPartners and use same loop to calc baseRates
     int lowDistblocked = 0;
     for(int i=0;i<hoppingSiteNumber;i++){
-        hoppingPartnersAcceptors.push_back(std::vector<int>());
-        for(int j=0;j<acceptorNumber;j++){
-            if (i != j and distances[i*hoppingSiteNumber+j] < parameterStorage->parameters.at("maxHoppingDist") and distances[i*hoppingSiteNumber+j] >  parameterStorage->parameters.at("minHoppingDist")){
-                hoppingPartnersAcceptors[i].push_back(j);
-                baseRates[i*hoppingSiteNumber+j] = enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
-                // std::cout<<"i "<<i<<" j: "<<j<<" rate: "<<baseRates[i*hoppingSiteNumber+j]<<std::endl;
-            }
-            //only for printing
-            else if (i != j and distances[i*hoppingSiteNumber+j] < parameterStorage->parameters.at("minHoppingDist")){
-                lowDistblocked++;
-            }
-        }
+        hoppingPartnersAcceptors .push_back(std::vector<int>());
         hoppingPartnersElectrodes.push_back(std::vector<int>());
-        for(int j=acceptorNumber;j<hoppingSiteNumber;j++){
-            if (i != j and distances[i*hoppingSiteNumber+j] < parameterStorage->parameters.at("maxHoppingDist") and distances[i*hoppingSiteNumber+j] >  parameterStorage->parameters.at("minHoppingDist")){
-                hoppingPartnersElectrodes[i].push_back(j);
-                baseRates[i*hoppingSiteNumber+j] = enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
-                // std::cout<<"i "<<i<<" j: "<<j<<" rate: "<<baseRates[i*hoppingSiteNumber+j]<<std::endl;
+        if (not std::count(parameterStorage->isolatedElectrodes.begin(), parameterStorage->isolatedElectrodes.end(), i-acceptorNumber)){ // check whether electrode is isolated
+            for(int j=0;j<acceptorNumber;j++){
+                if (i != j and distances[i*hoppingSiteNumber+j] < parameterStorage->parameters.at("maxHoppingDist") and distances[i*hoppingSiteNumber+j] >  parameterStorage->parameters.at("minHoppingDist")){
+                    hoppingPartnersAcceptors[i].push_back(j);
+                    baseRates[i*hoppingSiteNumber+j] = enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
+                    // std::cout<<"i "<<i<<" j: "<<j<<" rate: "<<baseRates[i*hoppingSiteNumber+j]<<std::endl;
+                }
+                //only for printing
+                else if (i != j and distances[i*hoppingSiteNumber+j] < parameterStorage->parameters.at("minHoppingDist")){
+                    lowDistblocked++;
+                }
             }
-            //only for printing
-            else if (i != j and distances[i*hoppingSiteNumber+j] < parameterStorage->parameters.at("minHoppingDist")){
-                lowDistblocked++;
+            for(int j=acceptorNumber;j<hoppingSiteNumber;j++){
+                if (not std::count(parameterStorage->isolatedElectrodes.begin(), parameterStorage->isolatedElectrodes.end(), j-acceptorNumber)){ // check whether electrode is isolated
+                    if (i != j and distances[i*hoppingSiteNumber+j] < parameterStorage->parameters.at("maxHoppingDist") and distances[i*hoppingSiteNumber+j] >  parameterStorage->parameters.at("minHoppingDist")){
+                        hoppingPartnersElectrodes[i].push_back(j);
+                        baseRates[i*hoppingSiteNumber+j] = enhance::mediumFastExp(-2*distances[i*hoppingSiteNumber+j]/locLenA);
+                        // std::cout<<"i "<<i<<" j: "<<j<<" rate: "<<baseRates[i*hoppingSiteNumber+j]<<std::endl;
+                    }
+                    //only for printing
+                    else if (i != j and distances[i*hoppingSiteNumber+j] < parameterStorage->parameters.at("minHoppingDist")){
+                        lowDistblocked++;
+                    }
+                }
             }
         }
     }
+
     if (lowDistblocked > 0){
         std::cout<<"hopping connections blocked due to small distance: "<<lowDistblocked/2<<std::endl;
     }
@@ -738,12 +743,15 @@ void System::updatePotential(std::vector<double> const & voltages){
 
     setNewPotential();
 
-    #ifdef SWAPTRACKER
-        //creates new file each time a new potential is apllied
-        swapTrackFile.close(); // swapTracker
-        swapTrackFile.open(std::string("swapTrackFile")+std::to_string(fileNumber)+std::string(".txt"), std::ios::out); // swapTracker
-        fileNumber++; // swapTracker
-    #endif
+
+
+    if (parameterStorage->verbose){
+        parameterStorage->parameters["additionalFileNumber"] ++;
+        additionalDatafile = std::make_shared<DataFile>(parameterStorage->workingDirecotry + std::string("additionalData")+std::to_string(std::lround(parameterStorage->parameters["additionalFileNumber"]))+std::string(".hdf5"), true);
+        additionalDatafile->createDataset("time",       {1});
+        additionalDatafile->createDataset("lastSwapp",  {2});
+        additionalDatafile->createDataset("occupation", {acceptorNumber});
+    }
 
     DEBUG_FUNC_END
 }
@@ -762,12 +770,13 @@ void System::updatePotential(mfem::GridFunction const & potential){
 
     setNewPotential();
 
-    #ifdef SWAPTRACKER
-        //creates new file each time a new potential is apllied
-        swapTrackFile.close(); // swapTracker
-        swapTrackFile.open(std::string("swapTrackFile")+std::to_string(fileNumber)+std::string(".txt"), std::ios::out); // swapTracker
-        fileNumber++; // swapTracker
-    #endif
+    if (parameterStorage->verbose){
+        parameterStorage->parameters["additionalFileNumber"] ++;
+        additionalDatafile = std::make_shared<DataFile>(parameterStorage->workingDirecotry + std::string("additionalData")+std::to_string(std::lround(parameterStorage->parameters["additionalFileNumber"]))+std::string(".hdf5"), true);
+        additionalDatafile->createDataset("time",       {1});
+        additionalDatafile->createDataset("lastSwapp",  {2});
+        additionalDatafile->createDataset("occupation", {acceptorNumber});
+    }
 
     DEBUG_FUNC_END
 }
@@ -829,12 +838,13 @@ void System::updateOccupationAndPotential(std::vector<bool> const & newOccupatio
         }
     }
 
-    #ifdef SWAPTRACKER
-        //creates new file each time a new potential is apllied
-        swapTrackFile.close(); // swapTracker
-        swapTrackFile.open(std::string("swapTrackFile")+std::to_string(fileNumber)+std::string(".txt"), std::ios::out); // swapTracker
-        fileNumber++; // swapTracker
-    #endif
+    if (parameterStorage->verbose){
+        parameterStorage->parameters["additionalFileNumber"] ++;
+        additionalDatafile = std::make_shared<DataFile>(parameterStorage->workingDirecotry + std::string("additionalData")+std::to_string(std::lround(parameterStorage->parameters["additionalFileNumber"]))+std::string(".hdf5"), true);
+        additionalDatafile->createDataset("time",       {1});
+        additionalDatafile->createDataset("lastSwapp",  {2});
+        additionalDatafile->createDataset("occupation", {acceptorNumber});
+    }
 
     DEBUG_FUNC_END
 }
@@ -1055,11 +1065,28 @@ void System::updateAfterSwap(){
     currentCounter[lastSwapped1]--;
     currentCounter[lastSwapped2]++;
 
+
+    
+
+
     #ifdef SWAPTRACKER
     swapTrackFile<<lastSwapped1<<";"<<lastSwapped2<<std::endl; // swapTracker
     #endif
+    if (parameterStorage->verbose){ //super bad implementation... needs improvement. file is opened/closed way to often. somehow work around buffers
+        additionalDatafile->addData("time"            , & time );
+        double swapIdxBuffer[2];
+        swapIdxBuffer[0] = lastSwapped1;
+        swapIdxBuffer[1] = lastSwapped2;
+        additionalDatafile->addData("lastSwapp" , swapIdxBuffer);
 
-    // std::cout<<lastSwapped1<<" -> "<<lastSwapped2<<std::endl; // swapTracker
+        double occupationBuffer[acceptorNumber];
+        for (size_t i = 0; i < acceptorNumber; i++){
+            occupationBuffer[i] =  occupation[i];
+        }
+        
+        additionalDatafile->addData("occupation", occupationBuffer);
+       
+    }
 
 
     if (lastSwapped1 < acceptorNumber){ //last swapped1 = acceptor, else electrode
