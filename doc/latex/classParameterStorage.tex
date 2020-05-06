@@ -20,11 +20,16 @@ std\+::map$<$ std\+::string, double $>$ \hyperlink{classParameterStorage_a3ae670
 \item 
 std\+::vector$<$ \hyperlink{structElectrodeParameters}{Electrode\+Parameters} $>$ \hyperlink{classParameterStorage_aec3f7cac18829cd67387d9a568547dbf}{electrodes}
 \item 
+std\+::vector$<$ int $>$ \hyperlink{classParameterStorage_a7560bf11dfebc665f00a251b2140039b}{isolated\+Electrodes}
+\item 
 \mbox{\Hypertarget{classParameterStorage_a03c07ba0b5172196924d855b07f021c5}\label{classParameterStorage_a03c07ba0b5172196924d855b07f021c5}} 
 std\+::string {\bfseries working\+Direcotry} =\char`\"{}./\char`\"{}
 \item 
 \mbox{\Hypertarget{classParameterStorage_a387b9c88ad5b8a77a8f75ac409ab53a2}\label{classParameterStorage_a387b9c88ad5b8a77a8f75ac409ab53a2}} 
 bool {\bfseries make\+New\+Device} = false
+\item 
+\mbox{\Hypertarget{classParameterStorage_aa6cd44d0c09c0f0f5df753b556308ef3}\label{classParameterStorage_aa6cd44d0c09c0f0f5df753b556308ef3}} 
+bool {\bfseries verbose} = false
 \item 
 std\+::vector$<$ double $>$ \hyperlink{classParameterStorage_a139852057ae4212e7365da8f48a8ff1f}{input\+Voltages}
 \end{DoxyCompactItemize}
@@ -71,7 +76,13 @@ A\+ND, OR, X\+OR ... \mbox{\Hypertarget{classParameterStorage_a67fb9f2ff387b416e
 \subsubsection{\texorpdfstring{input\+Voltages}{inputVoltages}}
 {\footnotesize\ttfamily std\+::vector$<$double$>$ Parameter\+Storage\+::input\+Voltages}
 
-input voltage points to scan \mbox{\Hypertarget{classParameterStorage_a3ae6709dcacaf500c8f57808a52d9be2}\label{classParameterStorage_a3ae6709dcacaf500c8f57808a52d9be2}} 
+input voltage points to scan \mbox{\Hypertarget{classParameterStorage_a7560bf11dfebc665f00a251b2140039b}\label{classParameterStorage_a7560bf11dfebc665f00a251b2140039b}} 
+\index{Parameter\+Storage@{Parameter\+Storage}!isolated\+Electrodes@{isolated\+Electrodes}}
+\index{isolated\+Electrodes@{isolated\+Electrodes}!Parameter\+Storage@{Parameter\+Storage}}
+\subsubsection{\texorpdfstring{isolated\+Electrodes}{isolatedElectrodes}}
+{\footnotesize\ttfamily std\+::vector$<$int$>$ Parameter\+Storage\+::isolated\+Electrodes}
+
+these electrodes cant participate in hopping events, hopping partners are empty \mbox{\Hypertarget{classParameterStorage_a3ae6709dcacaf500c8f57808a52d9be2}\label{classParameterStorage_a3ae6709dcacaf500c8f57808a52d9be2}} 
 \index{Parameter\+Storage@{Parameter\+Storage}!parameters@{parameters}}
 \index{parameters@{parameters}!Parameter\+Storage@{Parameter\+Storage}}
 \subsubsection{\texorpdfstring{parameters}{parameters}}

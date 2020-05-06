@@ -136,6 +136,8 @@ std\+::shared\+\_\+ptr$<$ std\+::unordered\+\_\+map$<$ std\+::vector$<$ bool $>$
 \mbox{\Hypertarget{classSystem_a990aa61d9baff5dd50f6188c79609092}\label{classSystem_a990aa61d9baff5dd50f6188c79609092}} 
 std\+::shared\+\_\+ptr$<$ \hyperlink{classParameterStorage}{Parameter\+Storage} $>$ {\bfseries parameter\+Storage}
 \item 
+std\+::shared\+\_\+ptr$<$ \hyperlink{classDataFile}{Data\+File} $>$ \hyperlink{classSystem_a93078f871a37d1a87c188802f7f78f24}{additional\+Datafile}
+\item 
 bool \hyperlink{classSystem_a0d59e20f6ebffb9b2b6e31f7e85d1756}{ready\+For\+Run} =false
 \item 
 bool \hyperlink{classSystem_afe51eb9409a63748242e0a987c98caf0}{storing\+Mode}
@@ -229,7 +231,7 @@ set \hyperlink{classSystem_aa9e002a5f2f169e37c545b76ee67e724}{System\+::time} = 
 \subsubsection{\texorpdfstring{reset\+Potential()}{resetPotential()}}
 {\footnotesize\ttfamily void System\+::reset\+Potential (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
 
-set all energies to 0 \mbox{\Hypertarget{classSystem_ab8fd982f98b67cb94f9cb0085b440751}\label{classSystem_ab8fd982f98b67cb94f9cb0085b440751}} 
+set all energies back to coulomb interaction only \mbox{\Hypertarget{classSystem_ab8fd982f98b67cb94f9cb0085b440751}\label{classSystem_ab8fd982f98b67cb94f9cb0085b440751}} 
 \index{System@{System}!reset\+Stored\+States@{reset\+Stored\+States}}
 \index{reset\+Stored\+States@{reset\+Stored\+States}!System@{System}}
 \subsubsection{\texorpdfstring{reset\+Stored\+States()}{resetStoredStates()}}
@@ -302,7 +304,13 @@ see \hyperlink{classSystem_a1f50240f4eecb60f8302307e6df814af}{System\+::update\+
 \subsubsection{\texorpdfstring{acceptor\+Number}{acceptorNumber}}
 {\footnotesize\ttfamily int System\+::acceptor\+Number\hspace{0.3cm}{\ttfamily [private]}}
 
-acceptors = dopants \mbox{\Hypertarget{classSystem_a046174e3f233b5c31249aaec257c83ff}\label{classSystem_a046174e3f233b5c31249aaec257c83ff}} 
+acceptors = dopants \mbox{\Hypertarget{classSystem_a93078f871a37d1a87c188802f7f78f24}\label{classSystem_a93078f871a37d1a87c188802f7f78f24}} 
+\index{System@{System}!additional\+Datafile@{additional\+Datafile}}
+\index{additional\+Datafile@{additional\+Datafile}!System@{System}}
+\subsubsection{\texorpdfstring{additional\+Datafile}{additionalDatafile}}
+{\footnotesize\ttfamily std\+::shared\+\_\+ptr$<$\hyperlink{classDataFile}{Data\+File}$>$ System\+::additional\+Datafile\hspace{0.3cm}{\ttfamily [private]}}
+
+save data in verbose mode \mbox{\Hypertarget{classSystem_a046174e3f233b5c31249aaec257c83ff}\label{classSystem_a046174e3f233b5c31249aaec257c83ff}} 
 \index{System@{System}!base\+Rates@{base\+Rates}}
 \index{base\+Rates@{base\+Rates}!System@{System}}
 \subsubsection{\texorpdfstring{base\+Rates}{baseRates}}

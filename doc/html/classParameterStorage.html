@@ -83,12 +83,17 @@ Data Fields</h2></td></tr>
 <tr class="separator:a3ae6709dcacaf500c8f57808a52d9be2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aec3f7cac18829cd67387d9a568547dbf"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="structElectrodeParameters.html">ElectrodeParameters</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classParameterStorage.html#aec3f7cac18829cd67387d9a568547dbf">electrodes</a></td></tr>
 <tr class="separator:aec3f7cac18829cd67387d9a568547dbf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7560bf11dfebc665f00a251b2140039b"><td class="memItemLeft" align="right" valign="top">std::vector&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classParameterStorage.html#a7560bf11dfebc665f00a251b2140039b">isolatedElectrodes</a></td></tr>
+<tr class="separator:a7560bf11dfebc665f00a251b2140039b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a03c07ba0b5172196924d855b07f021c5"><td class="memItemLeft" align="right" valign="top"><a id="a03c07ba0b5172196924d855b07f021c5"></a>
 std::string&#160;</td><td class="memItemRight" valign="bottom"><b>workingDirecotry</b> =&quot;./&quot;</td></tr>
 <tr class="separator:a03c07ba0b5172196924d855b07f021c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a387b9c88ad5b8a77a8f75ac409ab53a2"><td class="memItemLeft" align="right" valign="top"><a id="a387b9c88ad5b8a77a8f75ac409ab53a2"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>makeNewDevice</b> = false</td></tr>
 <tr class="separator:a387b9c88ad5b8a77a8f75ac409ab53a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa6cd44d0c09c0f0f5df753b556308ef3"><td class="memItemLeft" align="right" valign="top"><a id="aa6cd44d0c09c0f0f5df753b556308ef3"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>verbose</b> = false</td></tr>
+<tr class="separator:aa6cd44d0c09c0f0f5df753b556308ef3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a139852057ae4212e7365da8f48a8ff1f"><td class="memItemLeft" align="right" valign="top">std::vector&lt; double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classParameterStorage.html#a139852057ae4212e7365da8f48a8ff1f">inputVoltages</a></td></tr>
 <tr class="separator:a139852057ae4212e7365da8f48a8ff1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
@@ -175,6 +180,21 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>makeNewDevice</b> = f
       </table>
 </div><div class="memdoc">
 <p>input voltage points to scan </p>
+
+</div>
+</div>
+<a id="a7560bf11dfebc665f00a251b2140039b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7560bf11dfebc665f00a251b2140039b">&#9670;&nbsp;</a></span>isolatedElectrodes</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt;int&gt; ParameterStorage::isolatedElectrodes</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>these electrodes cant participate in hopping events, hopping partners are empty </p>
 
 </div>
 </div>

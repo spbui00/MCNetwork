@@ -16,6 +16,8 @@ void \hyperlink{classDataFile_a6da2338acc382d3538d53f5747e46b21}{create\+Attribu
 \item 
 {\footnotesize template$<$typename Data $>$ }\\void \hyperlink{classDataFile_a51739c09c99007a2cd3faa960efd45ed}{add\+Data} (std\+::string dataset\+Name, Data data)
 \item 
+void \hyperlink{classDataFile_add6a93dae24197b5dcd9e6824f77856c}{shrink\+Dataset} (std\+::string dataset\+Name, int data\+Points\+To\+Delete)
+\item 
 \mbox{\Hypertarget{classDataFile_a07469209523bf5bb9b4997588f7fc822}\label{classDataFile_a07469209523bf5bb9b4997588f7fc822}} 
 std\+::unique\+\_\+ptr$<$ std\+::vector$<$ double $>$ $>$ {\bfseries read\+Full\+Dataset} (std\+::string dataset\+Name)
 \item 
@@ -92,7 +94,13 @@ extends existing dataset by one slice in dimension 0.
 \subsubsection{\texorpdfstring{create\+Attribute()}{createAttribute()}}
 {\footnotesize\ttfamily void Data\+File\+::create\+Attribute (\begin{DoxyParamCaption}\item[{std\+::string}]{attr\+Name,  }\item[{double}]{val }\end{DoxyParamCaption})}
 
--- not tested -- 
+-- not tested -- \mbox{\Hypertarget{classDataFile_add6a93dae24197b5dcd9e6824f77856c}\label{classDataFile_add6a93dae24197b5dcd9e6824f77856c}} 
+\index{Data\+File@{Data\+File}!shrink\+Dataset@{shrink\+Dataset}}
+\index{shrink\+Dataset@{shrink\+Dataset}!Data\+File@{Data\+File}}
+\subsubsection{\texorpdfstring{shrink\+Dataset()}{shrinkDataset()}}
+{\footnotesize\ttfamily void Data\+File\+::shrink\+Dataset (\begin{DoxyParamCaption}\item[{std\+::string}]{dataset\+Name,  }\item[{int}]{data\+Points\+To\+Delete }\end{DoxyParamCaption})}
+
+delete last entries in dataset 
 
 \subsection{Field Documentation}
 \mbox{\Hypertarget{classDataFile_afec13483acd0763fbe2b635c5bf459f9}\label{classDataFile_afec13483acd0763fbe2b635c5bf459f9}} 

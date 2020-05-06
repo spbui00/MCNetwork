@@ -81,6 +81,8 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>createDataset</b> (st
 <tr class="memitem:a51739c09c99007a2cd3faa960efd45ed"><td class="memTemplParams" colspan="2">template&lt;typename Data &gt; </td></tr>
 <tr class="memitem:a51739c09c99007a2cd3faa960efd45ed"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classDataFile.html#a51739c09c99007a2cd3faa960efd45ed">addData</a> (std::string datasetName, Data data)</td></tr>
 <tr class="separator:a51739c09c99007a2cd3faa960efd45ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:add6a93dae24197b5dcd9e6824f77856c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classDataFile.html#add6a93dae24197b5dcd9e6824f77856c">shrinkDataset</a> (std::string datasetName, int dataPointsToDelete)</td></tr>
+<tr class="separator:add6a93dae24197b5dcd9e6824f77856c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a07469209523bf5bb9b4997588f7fc822"><td class="memItemLeft" align="right" valign="top"><a id="a07469209523bf5bb9b4997588f7fc822"></a>
 std::unique_ptr&lt; std::vector&lt; double &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>readFullDataset</b> (std::string datasetName)</td></tr>
 <tr class="separator:a07469209523bf5bb9b4997588f7fc822"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -219,6 +221,35 @@ template&lt;typename Data &gt; </div>
       </table>
 </div><div class="memdoc">
 <p>&ndash; not tested &ndash; </p>
+
+</div>
+</div>
+<a id="add6a93dae24197b5dcd9e6824f77856c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#add6a93dae24197b5dcd9e6824f77856c">&#9670;&nbsp;</a></span>shrinkDataset()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void DataFile::shrinkDataset </td>
+          <td>(</td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname"><em>datasetName</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>dataPointsToDelete</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>delete last entries in dataset </p>
 
 </div>
 </div>
