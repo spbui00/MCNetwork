@@ -41,7 +41,7 @@ std::pair<std::vector<double>,std::vector<double>> const JobManager::runControlV
             jobs[i*voltageScanPoints + j].stepsPerTask = parameterStorage->parameters.at("calcCurrentSteps")/jobs[i*voltageScanPoints + j].tasksPerJob;
             jobs[i*voltageScanPoints + j].tasksToGo    = jobs[i*voltageScanPoints + j].tasksPerJob;
             jobs[i*voltageScanPoints + j].voltages     = voltages;
-            jobs[i*voltageScanPoints + j].voltages[parameterStorage->parameters.at("outputElectrode")] = 0;
+            jobs[i*voltageScanPoints + j].voltages[parameterStorage->parameters.at("outputElectrode")] = parameterStorage->electrodes[parameterStorage->parameters.at("outputElectrode")].voltage;
             jobs[i*voltageScanPoints + j].voltages[parameterStorage->parameters.at("inputElectrode1")] = parameterStorage->inputVoltages[i];
             jobs[i*voltageScanPoints + j].voltages[parameterStorage->parameters.at("inputElectrode2")] = parameterStorage->inputVoltages[j];            
         }

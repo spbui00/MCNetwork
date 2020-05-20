@@ -41,12 +41,17 @@ N = D.shape[0]
 
 
 C = np.cov(D)
-_ , M = np.linalg.eig(C)
+M = np.linalg.eig(C)[1].T
 
-M = np.array([[1,-1,0],[0,0,-1],[0.5,0.5,-0.5]]).T #<<<<<-------- define transformation matrix here and ignore PCA
+# M = np.array([[1,-1,0],[0,0,-1],[0.5,0.5,-0.5]]) #<<<<<-------- define transformation matrix here and ignore PCA
+
+###print new coordinates
+for i in range(3):
+    print(f"D{i+1} = {M[i,0]+M[i,1]+M[i,2]:5.2f} I_00 +  {-M[i,0]:5.2f} I_01 +  {-M[i,1]:5.2f} I_10 +  {-M[i,2]:5.2f} I_11")
+
 
 print("transformation matrix:\n",M)
-Delta = M.T@D
+Delta = M@D
 print("corrcoef matrix:\n",np.corrcoef(Delta))
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -67,7 +72,7 @@ probabilities = np.array( np.meshgrid(*[(Delta_bins[i][1:]-Delta_bins[i][:-1]) *
 totProbab = np.prod(probabilities, axis = 0)
 
 
-D_mesh = np.einsum("ji...,i...->j...",np.linalg.inv(M.T), Delta_mesh)
+D_mesh = np.einsum("ji...,i...->j...",np.linalg.inv(M), Delta_mesh)
 
 diffs = np.zeros((bins,bins,bins,2,2,2,2))
 
@@ -122,6 +127,7 @@ ax.set_xlabel(r"$\Delta_{i}$")
 ax.set_ylabel(r"$P(\Delta_{i})$")
 
 ax.legend()
+ax.set_xlim(-0.02,0.065)
 
 plt.savefig(join(pathToSimFolder,f"deltaDistr.png"),bbox_inches="tight",dpi=300)    
 # plt.show()

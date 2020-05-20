@@ -112,6 +112,8 @@ def getFitness(gate, normed_currents):
 ################################################ 2D distr ################################################
 
 
+axlims = [[-0.01,0.07],[-0.015,0.015],[-0.01,0.01]]
+
 permutations = [(0,1),(0,2),(1,2)]
 
 counts2D = []
@@ -140,6 +142,11 @@ for i in range(len(permutations)):
     ax1.set_xlabel(rf"$\scriptsize \Delta_{{ {permutations[i][1]+1} }}$")
     ax1.set_ylabel(rf"$\scriptsize \Delta_{{ {permutations[i][0]+1} }}$")
     ax2.set_xlabel(rf"$\scriptsize \Delta_{{ {permutations[i][1]+1} }}$")
+
+
+    ax1.set_xlim(axlims[permutations[i][1]])
+    ax2.set_xlim(axlims[permutations[i][1]])
+    ax1.set_ylim(axlims[permutations[i][0]])
 
     # fig.subplots_adjust(right=0.82)
     # cbar_ax = fig.add_axes([0.86, 0.15, 0.04, 0.7])
@@ -180,8 +187,10 @@ for gate in gates:
         ax1.set_ylabel(rf"$\scriptsize \Delta_{{ {permutations[i][0]+1} }}$")
         ax2.set_xlabel(rf"$\scriptsize \Delta_{{ {permutations[i][1]+1} }}$")
 
-
-
+        ax1.set_xlim(axlims[permutations[i][1]])
+        ax2.set_xlim(axlims[permutations[i][1]])
+        ax1.set_ylim(axlims[permutations[i][0]])
+        
         fig.subplots_adjust(right=0.82)
         cbar_ax = fig.add_axes([0.86, 0.15, 0.04, 0.7])
         fig.colorbar(im1, cax=cbar_ax)

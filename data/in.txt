@@ -2,8 +2,8 @@
 gate XOR 
 threads 4 
 finiteElementsResolution 1e5 #(min 1e5)
-equilSteps 1e4 #equilibration steps (should be around 1e4)
-calcCurrentSteps 1e5  #steps to run KMC simulation
+equilSteps 1e3 #equilibration steps (should be around 1e4)
+calcCurrentSteps 1e4  #steps to run KMC simulation
 storingMode 0 # if 1: store states (rates + ocupation) until memoryLimit is reached. might increase performance in the case of limit number of states occuring 
 memoryLimit 800 #in MB (should be around 100mb under real limit), real memory consumption is memoryLimit*threads
 
@@ -55,7 +55,7 @@ radius 150 #nm
 #positions given in degrees 
 
 #       pos voltage 
-electrode 0 0
+electrode 0 0.6
 electrode 45 0
 electrode 90 0
 electrode 135 0.4
