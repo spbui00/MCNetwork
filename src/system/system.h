@@ -6,8 +6,8 @@
 #include <fstream>
 
 #include "parameterstorage.h"
-#include "../lib/enhance.hpp"
-#include "../lib/finiteElemente/finiteElemente.h"
+#include "enhance.hpp"
+#include "finiteElemente.h"
 
 #include <boost/multi_array.hpp>
 #include "datafile.h"

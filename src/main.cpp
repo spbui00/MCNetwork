@@ -1,4 +1,4 @@
-#include "../lib/enhance.hpp"
+#include "enhance.hpp"
 
 #include "system/optimizer.h"
 
