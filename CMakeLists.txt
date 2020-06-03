@@ -16,22 +16,16 @@ find_package(Boost COMPONENTS program_options REQUIRED)
 find_package (HDF5 COMPONENTS CXX REQUIRED)
 find_package (MFEM REQUIRED)
 
-set(ENHANCE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/lib/enhance)
-set(FINITE_ELEMENTE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/lib/finiteElemente)
-
-add_library(enhance STATIC lib/enhance/enhance.cpp)
-add_library(finiteElemente STATIC lib/finiteElemente/finiteElemente.cpp)
-
-target_include_directories(finiteElemente PUBLIC ${MFEM_INCLUDE_DIRS})
-target_link_libraries(finiteElemente mfem)
-
 file(GLOB MCnetwork_SRC
   src/*.cpp
   src/*/*.cpp
 )
 
+add_subdirectory(lib/)
+
 add_executable(MCnetwork ${MCnetwork_SRC})
-target_include_directories(MCnetwork PRIVATE ${HDF5_INCLUDE_DIRS} ${ENHANCE_INCLUDE_DIRECTORIES} ${FINITE_ELEMENTE_INCLUDE_DIRECTORIES})
+target_include_directories(MCnetwork PRIVATE ${HDF5_INCLUDE_DIRS} 
+    ${ENHANCE_INCLUDE_DIRECTORIES} ${FINITE_ELEMENTE_INCLUDE_DIRECTORIES})
 target_link_libraries(MCnetwork Threads::Threads)
 target_link_libraries(MCnetwork enhance)
 target_link_libraries(MCnetwork finiteElemente)
