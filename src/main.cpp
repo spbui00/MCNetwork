@@ -4,32 +4,31 @@
 
 #include "debug.h"
 
-#include <random>
-#include <iostream>
 #include <boost/program_options.hpp>
+#include <iostream>
+#include <random>
 
 /*! \mainpage MCNetwork
  *
  * \section install_sec Installation
  *
  * \subsection step1 Step 1: Dependencies
- * mfem (serial version): https://mfem.org/building/ \n 
- * boost \n 
- * 
+ * mfem (serial version): https://mfem.org/building/ \n
+ * boost \n
+ *
  * \subsection step2 Step 2: Install
- * 
- * git clone https://github.com/MarlonBecker/MCNetwork \n 
- * mkdir build \n 
- * cd build \n 
- * cmake .. \n 
- * make \n 
- * 
+ *
+ * git clone https://github.com/MarlonBecker/MCNetwork \n
+ * mkdir build \n
+ * cd build \n
+ * cmake .. \n
+ * make \n
+ *
  * \subsection step3 Step 3: Run Example
- * 
- * cd data \n 
- * ../build/MCnetwork --mnd --optMC --rSV \n 
+ *
+ * cd data \n
+ * ../build/MCnetwork --mnd --optMC --rSV \n
  */
-
 
 /*
 TODO:
@@ -51,88 +50,80 @@ OPT:
 
 namespace po = boost::program_options;
 
+int main(int argc, char* argv[])
+{
+    DEBUG_FUNC_START
 
-int main(int argc, char *argv[]){
-   DEBUG_FUNC_START
+    enhance::seed = std::random_device {}();
+#ifndef NDEBUG
+    enhance::seed = 123456749;
+#endif
+    enhance::rand_engine.seed(enhance::seed);
 
-   enhance::seed = std::random_device{}();
-   #ifndef NDEBUG
-      enhance::seed = 123456749;
-   #endif
-   enhance::rand_engine.seed(enhance::seed);
+    po::options_description desc("Allowed options");
+    desc.add_options()("continue",
+        "continues last optimization. optimization mode will be "
+        "detected, no further options needed")("mnd",
+        "make new device")(
+        "optMC", "optimize control voltages using Monte Carlo search")(
+        "optGen", "optimize control voltages using genetic algorithm")(
+        "optBasinHop", "optimize control voltages using basin hopping")(
+        "run", "just run control voltages defined in in.txt")(
+        "rSV", "random start voltages (only in combination with opt)")(
+        "dir", po::value<std::string>(),
+        "define working dir. has to contain 'in.txt'")(
+        "verbose", "additionally outputs occupation, swapps and time to "
+                   "'additionalData.hdf5'")("help", "produce help message");
 
+    po::variables_map vm;
+    po::store(po::parse_command_line(argc, argv, desc), vm);
 
+    if (vm.count("help")) {
+        std::cout << desc << "\n";
+        return 1;
+    }
 
+    std::string workingDirecotry;
+    if (vm.count("dir")) {
+        workingDirecotry = vm["dir"].as<std::string>();
+    } else {
+        workingDirecotry = "./";
+    }
+    std::cout << "running in dir: " << workingDirecotry << std::endl;
 
-   po::options_description desc("Allowed options");
-   desc.add_options()
-      ("continue"   , "continues last optimization. optimization mode will be detected, no further options needed")
-      ("mnd"        , "make new device")
-      ("optMC"      , "optimize control voltages using Monte Carlo search")
-      ("optGen"     , "optimize control voltages using genetic algorithm")
-      ("optBasinHop", "optimize control voltages using basin hopping")
-      ("run"        , "just run control voltages defined in in.txt")
-      ("rSV"        , "random start voltages (only in combination with opt)")
-      ("dir"        , po::value<std::string>(),"define working dir. has to contain 'in.txt'")
-      ("verbose"    , "additionally outputs occupation, swapps and time to 'additionalData.hdf5'")
-      ("help"       , "produce help message");
+    std::string inputFileName = workingDirecotry + "in.txt";
+    std::shared_ptr<ParameterStorage> parameterStorage(new ParameterStorage(
+        inputFileName)); // all input parameters are stored in the shared pointer
+    // "inputfile". all classes get the pointer
+    parameterStorage->workingDirecotry = workingDirecotry;
+    parameterStorage->makeNewDevice = vm.count("mnd");
+    parameterStorage->verbose = vm.count("verbose");
+    int startMode = vm.count("rSV");
 
-   po::variables_map vm;
-   po::store(po::parse_command_line(argc, argv, desc), vm);
+    if (parameterStorage->verbose) {
+        if (parameterStorage->parameters.at("threads") > 1)
+            throw std::logic_error(
+                "verbose mode is only supported in single processor mode");
+        parameterStorage->parameters["additionalFileNumber"] = 0;
+    }
 
+    std::string optimizationMode;
+    if (vm.count("optMC")) {
+        optimizationMode = "MC";
+    } else if (vm.count("optGen")) {
+        optimizationMode = "genetic";
+    } else if (vm.count("optBasinHop")) {
+        optimizationMode = "basinHop";
+    } else if (vm.count("run")) {
+        optimizationMode = "singleRun";
+    }
+    if (vm.count("continue")) {
+        optimizationMode = "continue";
+    }
 
-   if (vm.count("help"))
-   {
-      std::cout << desc << "\n";
-      return 1;
-   }
+    Optimizer optimizer(parameterStorage);
+    optimizer.run(optimizationMode, startMode);
 
-   std::string workingDirecotry; 
-   if (vm.count("dir")){
-      workingDirecotry= vm["dir"].as<std::string>();
-   }
-   else{
-      workingDirecotry ="./";
-   }
-   std::cout<<"running in dir: "<<workingDirecotry<<std::endl;
-
-   std::string inputFileName=workingDirecotry + "in.txt";
-   std::shared_ptr<ParameterStorage> parameterStorage(new ParameterStorage(inputFileName));//all input parameters are stored in the shared pointer "inputfile". all classes get the pointer 
-   parameterStorage->workingDirecotry=workingDirecotry;
-   parameterStorage->makeNewDevice = vm.count("mnd");
-   parameterStorage->verbose       = vm.count("verbose");
-   int startMode                   = vm.count("rSV");
-
-
-   if (parameterStorage->verbose){
-      if (parameterStorage->parameters.at("threads") > 1) throw std::logic_error("verbose mode is only supported in single processor mode");
-      parameterStorage->parameters["additionalFileNumber"] = 0;
-   }
-
-
-
-   std::string optimizationMode;
-   if (vm.count("optMC")){
-      optimizationMode = "MC";
-   }
-   else if (vm.count("optGen")){
-      optimizationMode = "genetic";
-   }
-   else if (vm.count("optBasinHop")){
-      optimizationMode = "basinHop";
-   }
-   else if (vm.count("run")){
-      optimizationMode = "singleRun";
-   }
-   if (vm.count("continue")){
-      optimizationMode = "continue";
-   }
-
-   Optimizer optimizer(parameterStorage);
-   optimizer.run(optimizationMode, startMode);
-
-      
-
-   DEBUG_FUNC_END
-   return 0;
+    DEBUG_FUNC_END
+    return 0;
 }
