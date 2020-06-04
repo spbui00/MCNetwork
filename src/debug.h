@@ -2,7 +2,7 @@
 
 
 #ifndef NDEBUG
-    #include "../lib/enhance.hpp"
+    #include "enhance.hpp"
     #include <string>
     #include <iostream>
     #include <set>
