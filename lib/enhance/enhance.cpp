@@ -8,7 +8,7 @@ namespace enhance
 
     std::string multipliplyString(std::string in, int n){
         std::string out="";
-        for(int i;i<n;i++){
+        for(int i = 0;i<n;i++){
             out+=in;
         }
         return out;
