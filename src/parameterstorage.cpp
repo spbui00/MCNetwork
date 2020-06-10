@@ -60,6 +60,9 @@ ParameterStorage::ParameterStorage(std::string filename)
             // std::cout<<name<<parameters[name]<<std::endl;
         }
     }
+    if (parameters.count("randomEnergyStdDev") == 0) {
+        parameters["randomEnergyStdDev"] = 0;
+    }
 
     parameters["kT"] = parameters.at("k") * parameters.at("T");
     parameters["hoppingSiteNumber"] = parameters.at("acceptorNumber") + electrodes.size();
@@ -84,16 +87,17 @@ ParameterStorage::ParameterStorage(std::string filename)
         parameters["radius"] = parameters.at("radius") / parameters.at("R");
     }
 
-    parameters["I0"] = parameters.at("e") / (4 * M_PI * parameters.at("eps0") * parameters.at("R") * 1e-12 * parameters.at("eps"));
+    double I0_joules = parameters.at("e") * parameters.at("e") / (4 * M_PI * parameters.at("eps0") * parameters.at("R") * 1e-9 * parameters.at("eps"));
+    double I0_ev = I0_joules / parameters.at("e");
+
+    // convert energies in dimensions of kT
+    parameters["I0"] = I0_joules / parameters.at("kT");
+
     std::cout << "R = " << parameters.at("R")
               << " nm, a/R = " << parameters.at("a")
               << ", eps = " << parameters.at("eps")
-              << " corresponds to I0 = " << parameters.at("I0") << " meV == "
-              << parameters.at("I0") * 0.001 * parameters.at("e") / parameters.at("kT")
-              << "kT" << std::endl;
-
-    // convert energies in dimensions of kT
-    parameters["I0"] = parameters.at("I0") * 0.001 * parameters.at("e") / parameters.at("kT"); // I0 given in meV
+              << " corresponds to I0 = " << I0_ev * 1e-3 << " meV == "
+              << parameters.at("I0") << "kT" << std::endl;
 
     if (parameters.at("voltageScanPoints") != 1) {
         parameters["voltageScanResoultion"] = (parameters.at("voltageScanMax") - parameters.at("voltageScanMin")) / (parameters.at("voltageScanPoints") - 1);

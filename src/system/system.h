@@ -59,6 +59,7 @@ private:
     double* rates; /*!<  2D-array: transition rates  */
     double* baseRates; /*!<  2D-array: constant distance dependend part of transition rates (exp(-2r/a)) */
     std::vector<bool> occupation; /*!<  1D-array: occupation of hopping sites */
+    std::vector<double> randomEnergies; /*!<  normally distributed site energies caused by various real-world effects */
 
     std::vector<std::vector<int>> interactionPartners; /*!< indices of coulomb interacting partners. needed bc of cut on coulomb interaction by "maxInteractionDist". sorted by hoppingSite index*/
     std::vector<std::vector<int>> hoppingPartnersAcceptors; /*!< indices of possible hopping partner (acceptors).  needed bc of cut on hoppingPartners by "minHoppingDist" and "maxHoppingDist". sorted by hoppingSite index. example: hoppingPartnersAcceptors[hoppingSiteIndex] <- vector of indices of acceptors where hole form hoppingSiteIndex can hop to. */

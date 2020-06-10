@@ -44,6 +44,7 @@ System::System(System const& oldSys)
     , hoppingPartnersAcceptors(oldSys.hoppingPartnersAcceptors)
     , hoppingPartnersElectrodes(oldSys.hoppingPartnersElectrodes)
     , knownRatesSum(oldSys.knownRatesSum)
+    , randomEnergies(oldSys.randomEnergies)
 {
     DEBUG_FUNC_START
 
@@ -466,8 +467,8 @@ void System::getReadyForRun()
             pairEnergies[j * acceptorNumber + i] = -parameterStorage->parameters.at("I0") / distances[j * hoppingSiteNumber + i];
             // std::cout<<"pair e "<<pairEnergies[i*acceptorNumber+j]<<std::endl;
         }
-        pairEnergies[i * (acceptorNumber + 1)] = 0; //[i*(hoppingSiteNumber+1)] = [i,i]
-        distances[i * (hoppingSiteNumber + 1)] = 0;
+        pairEnergies[i * acceptorNumber + i] = 0; //[i*(hoppingSiteNumber+1)] = [i,i]
+        distances[i * acceptorNumber + i] = 0;
     }
     // acc->el
     for (int i = 0; i < acceptorNumber; i++) {
@@ -554,6 +555,19 @@ void System::getReadyForRun()
 
     // set start occupation of acceptors
     std::vector<bool> occupationBuffer(acceptorNumber);
+
+    std::default_random_engine generator;
+    double stdDev = parameterStorage->parameters.at("randomEnergyStdDev");
+    bool randomEnergyEnabled = stdDev != 0.0;
+    std::vector<double> randomEnergies(acceptorNumber, 0.0);
+    if (randomEnergyEnabled) {
+        std::normal_distribution<double> normal_distribution(0, stdDev);
+        for (int i = 0; i < acceptorNumber; i++) {
+            randomEnergies[i] = normal_distribution(generator);
+        }
+    } 
+    this->randomEnergies = randomEnergies;
+
     std::vector<int> indicesUnoccupied {};
 
     for (int i = 0; i < acceptorNumber; i++) {
@@ -592,16 +606,22 @@ void System::setOccupation(std::vector<bool> const& newOccupation)
     // set acceptor energies
     // donor interaction
     for (int i = 0; i < acceptorNumber; i++) {
-        energies[i] = finEle->getPotential(acceptorPositionsX[i], acceptorPositionsY[i]) * parameterStorage->parameters.at("e") / parameterStorage->parameters.at("kT");
+        auto energy = finEle->getPotential(acceptorPositionsX[i], acceptorPositionsY[i]) * parameterStorage->parameters.at("e") / parameterStorage->parameters.at("kT");
         for (int j = 0; j < parameterStorage->parameters.at("donorNumber"); j++) {
-            energies[i] += parameterStorage->parameters.at("I0") * 1 / std::sqrt(std::pow(acceptorPositionsX[i] - donorPositionsX[j], 2) + std::pow(acceptorPositionsY[i] - donorPositionsY[j], 2));
+            energy += parameterStorage->parameters.at("I0") * 1 / std::sqrt(std::pow(acceptorPositionsX[i] - donorPositionsX[j], 2) + std::pow(acceptorPositionsY[i] - donorPositionsY[j], 2));
         }
+        energies[i] = energy;
     }
+
+    for (int i = 0; i < acceptorNumber; i++) {
+        energies[i] += randomEnergies[i];
+    }
+
     // set coulomb part (with start occupation)
     for (int i = 0; i < acceptorNumber; i++) { // coulomb interaction only with acceptors and..
         if (not occupation[i]) { //.. only if they are unoccupied
-            for (int j : interactionPartners[i]) { // self interaction is ignored, bc
-                // pairEnergies[i][i]=0
+            for (int j : interactionPartners[i]) { 
+                // self interaction is ignored, bc pairEnergies[i][i]=0
                 energies[j] += pairEnergies[i * acceptorNumber + j];
             }
         }
@@ -808,6 +828,7 @@ void System::updatePotential(std::vector<double> const& voltages)
         additionalDatafile->createDataset("time", { 1 });
         additionalDatafile->createDataset("lastSwapp", { 2 });
         additionalDatafile->createDataset("occupation", { acceptorNumber });
+        additionalDatafile->createDataset("energies", { acceptorNumber });
     }
 
     DEBUG_FUNC_END
@@ -835,6 +856,7 @@ void System::updatePotential(mfem::GridFunction const& potential)
         additionalDatafile->createDataset("time", { 1 });
         additionalDatafile->createDataset("lastSwapp", { 2 });
         additionalDatafile->createDataset("occupation", { acceptorNumber });
+        additionalDatafile->createDataset("energies", { acceptorNumber });
     }
 
     DEBUG_FUNC_END
@@ -863,6 +885,10 @@ void System::updateOccupationAndPotential(
         for (int j = 0; j < parameterStorage->parameters.at("donorNumber"); j++) {
             energies[i] += parameterStorage->parameters.at("I0") * 1 / std::sqrt(std::pow(acceptorPositionsX[i] - donorPositionsX[j], 2) + std::pow(acceptorPositionsY[i] - donorPositionsY[j], 2));
         }
+    }
+
+    for (int i = 0; i < acceptorNumber; i++) {
+        energies[i] += randomEnergies[i];
     }
     // set coulomb part (with start occupation)
     for (int i = 0; i < acceptorNumber;
@@ -915,6 +941,7 @@ void System::updateOccupationAndPotential(
         additionalDatafile->createDataset("time", { 1 });
         additionalDatafile->createDataset("lastSwapp", { 2 });
         additionalDatafile->createDataset("occupation", { acceptorNumber });
+        additionalDatafile->createDataset("energies", { acceptorNumber });
     }
 
     DEBUG_FUNC_END
@@ -1163,6 +1190,7 @@ void System::updateAfterSwap()
         }
 
         additionalDatafile->addData("occupation", occupationBuffer);
+        additionalDatafile->addData("energies", energies);
     }
 
     if (lastSwapped1 < acceptorNumber) { // last swapped1 = acceptor, else electrode
