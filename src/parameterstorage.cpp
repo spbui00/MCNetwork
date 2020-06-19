@@ -53,6 +53,12 @@ ParameterStorage::ParameterStorage(std::string filename)
             if (!(iss >> val))
                 throw std::invalid_argument("cant read isolateElectrode: " + line);
             isolatedElectrodes.push_back(val);
+        } else if (name == "inputElectrode") {
+            int index;
+            if (!(iss >> index)) {
+                throw std::invalid_argument("cant read inputElectrode: " + line);
+            }
+            inputElectrodes.push_back(index);
         } else {
             if (!(iss >> val))
                 throw std::invalid_argument("can't read line: " + line);

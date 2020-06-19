@@ -33,28 +33,27 @@ JobManager::runControlVoltagesSetup(std::vector<double> const& voltages)
     DEBUG_FUNC_START
 
     // make Jobs
-    for (size_t i = 0; i < voltageScanPoints; i++) {
-        for (size_t j = 0; j < voltageScanPoints; j++) {
-            jobs.push_back(Job(i * voltageScanPoints + j));
-            jobs[i * voltageScanPoints + j].equilSteps = parameterStorage->parameters.at("equilSteps");
-            jobs[i * voltageScanPoints + j].totalSteps = parameterStorage->parameters.at("calcCurrentSteps");
-            jobs[i * voltageScanPoints + j].stepsPerTask = parameterStorage->parameters.at("calcCurrentSteps") / jobs[i * voltageScanPoints + j].tasksPerJob;
-            jobs[i * voltageScanPoints + j].tasksToGo = jobs[i * voltageScanPoints + j].tasksPerJob;
-            jobs[i * voltageScanPoints + j].voltages = voltages;
-            jobs[i * voltageScanPoints + j]
-                .voltages[parameterStorage->parameters.at("outputElectrode")]
-                = parameterStorage
-                      ->electrodes[parameterStorage->parameters.at("outputElectrode")]
-                      .voltage;
-            jobs[i * voltageScanPoints + j]
-                .voltages[parameterStorage->parameters.at("inputElectrode1")]
-                = parameterStorage->inputVoltages[i];
-            jobs[i * voltageScanPoints + j]
-                .voltages[parameterStorage->parameters.at("inputElectrode2")]
-                = parameterStorage->inputVoltages[j];
+    const std::vector<int>& inputElectrodes = parameterStorage->inputElectrodes;
+    int nInputElectrodes = inputElectrodes.size();
+    int nJobs = std::pow(voltageScanPoints, nInputElectrodes);
+    for (int i = 0; i < nJobs; i++) {
+        Job job{i};
+        job.equilSteps = parameterStorage->parameters.at("equilSteps");
+        job.totalSteps = parameterStorage->parameters.at("calcCurrentSteps");
+        job.stepsPerTask = parameterStorage->parameters.at("calcCurrentSteps") / job.tasksPerJob;
+        job.tasksToGo = job.tasksPerJob;
+        job.voltages = voltages;
+        job.voltages[parameterStorage->parameters.at("outputElectrode")]
+            = parameterStorage
+            ->electrodes[parameterStorage->parameters.at("outputElectrode")]
+            .voltage;
+        
+        for (int j = 0; j < nInputElectrodes; j++) {
+            job.voltages[inputElectrodes[j]] = parameterStorage->inputVoltages[i/std::pow(voltageScanPoints, j)];
         }
-    }
 
+        jobs.push_back(std::move(job));
+    }
     // start jobs
     if (parameterStorage->parameters.at("threads") > 1) {
         std::vector<std::thread> threads;
@@ -70,10 +69,10 @@ JobManager::runControlVoltagesSetup(std::vector<double> const& voltages)
         handleJobList(jobs, systems[0], jobSearchMutex);
     }
 
-    std::vector<double> currents(voltageScanPoints * voltageScanPoints);
-    std::vector<double> currentUncert(voltageScanPoints * voltageScanPoints);
+    std::vector<double> currents(nJobs);
+    std::vector<double> currentUncert(nJobs);
 
-    for (size_t k = 0; k < voltageScanPoints * voltageScanPoints; k++) {
+    for (size_t k = 0; k < nJobs; k++) {
         currents[k] = jobs[k].resultCurrent;
         currentUncert[k] = jobs[k].resultCurrentUncert;
     }

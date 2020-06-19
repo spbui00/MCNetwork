@@ -30,6 +30,9 @@ public:
     std::map<std::string, double> parameters; /*!< general parameter map, used */
     std::vector<ElectrodeParameters> electrodes; /*!< voltages are only set in start routine and not used/updated during optimization!*/
     std::vector<int> isolatedElectrodes; /*!< these electrodes cant participate in hopping events, hopping partners are empty*/
+    std::vector<int> inputElectrodes;
+    int outputElectrode;
+
     std::string workingDirecotry = "./";
 
     bool makeNewDevice = false;

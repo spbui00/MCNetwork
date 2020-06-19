@@ -11,8 +11,10 @@ Optimizer::Optimizer(std::shared_ptr<ParameterStorage> parameterStorage)
 
     voltageScanPoints = parameterStorage->parameters.at("voltageScanPoints");
 
+    const auto& inpElec = parameterStorage->inputElectrodes;
     for (int i = 0; i < electrodeNumber; i++) {
-        if ((i != parameterStorage->parameters.at("outputElectrode")) & (i != parameterStorage->parameters.at("inputElectrode1")) & (i != parameterStorage->parameters.at("inputElectrode2"))) {
+        bool isInputElectrode = std::find(inpElec.begin(), inpElec.end(), i) != parameterStorage->inputElectrodes.cend();
+        if ((i != parameterStorage->parameters.at("outputElectrode")) && !isInputElectrode) {
             controlElectrodeIndices.push_back(i);
         }
     }
@@ -44,10 +46,11 @@ void Optimizer::run(std::string optimizationMode, int startMode)
         dataFile = std::make_shared<DataFile>(
             parameterStorage->workingDirecotry + "data.hdf5", true);
 
+        std::vector<int> voltageScanDimensions(parameterStorage->inputElectrodes.size(), voltageScanPoints);
         dataFile->createDataset("outputCurrent",
-            { voltageScanPoints, voltageScanPoints });
+            voltageScanDimensions);
         dataFile->createDataset("outputCurrentUncert",
-            { voltageScanPoints, voltageScanPoints });
+            voltageScanDimensions);
         dataFile->createDataset("voltages", { electrodeNumber });
         dataFile->createDataset("fitness", { 1 });
         dataFile->createDataset("fitnessUncert", { 1 });
@@ -1023,8 +1026,10 @@ void Optimizer::searchForRandomStart()
     std::cout << "------ searching for start point ------" << std::endl;
 
     std::vector<int> controlElectrodeIndices;
+    const auto& inpElec = parameterStorage->inputElectrodes;
     for (int i = 0; i < electrodeNumber; i++) {
-        if ((i != parameterStorage->parameters.at("outputElectrode")) & (i != parameterStorage->parameters.at("inputElectrode1")) & (i != parameterStorage->parameters.at("inputElectrode2"))) {
+        bool isInputElectrode = std::find(inpElec.begin(), inpElec.end(), i) != parameterStorage->inputElectrodes.cend();
+        if ((i != parameterStorage->parameters.at("outputElectrode")) && !isInputElectrode) {
             controlElectrodeIndices.push_back(i);
         }
     }
