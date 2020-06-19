@@ -99,11 +99,20 @@ ParameterStorage::ParameterStorage(std::string filename)
     // convert energies in dimensions of kT
     parameters["I0"] = I0_joules / parameters.at("kT");
 
+    double randomEnergyStdDevEv = parameters["randomEnergyStdDev"];
+    double randomEnergyStdDevJoules = randomEnergyStdDevEv * parameters.at("e");
+
+    // convert to dimensions of kT
+    parameters["randomEnergyStdDev"] = randomEnergyStdDevJoules / parameters.at("kT");
+
     std::cout << "R = " << parameters.at("R")
               << " nm, a/R = " << parameters.at("a")
               << ", eps = " << parameters.at("eps")
-              << " corresponds to I0 = " << I0_ev * 1e-3 << " meV == "
-              << parameters.at("I0") << "kT" << std::endl;
+              << " corresponds to I0 = " << I0_ev * 1e3 << " meV == "
+              << parameters.at("I0") << "kT"
+              << ", gaussian disorder stddev = " << randomEnergyStdDevEv * 1e3
+              << " meV == " << parameters.at("randomEnergyStdDev") << " kT"
+              << std::endl;
 
     if (parameters.at("voltageScanPoints") != 1) {
         parameters["voltageScanResoultion"] = (parameters.at("voltageScanMax") - parameters.at("voltageScanMin")) / (parameters.at("voltageScanPoints") - 1);
