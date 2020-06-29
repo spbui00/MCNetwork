@@ -49,7 +49,7 @@ JobManager::runControlVoltagesSetup(std::vector<double> const& voltages)
             .voltage;
         
         for (int j = 0; j < nInputElectrodes; j++) {
-            job.voltages[inputElectrodes[j]] = parameterStorage->inputVoltages[i/std::pow(voltageScanPoints, j)];
+            job.voltages[inputElectrodes[j]] = parameterStorage->inputVoltages[i/static_cast<int>(std::pow(voltageScanPoints, j)) % voltageScanPoints];
         }
 
         jobs.push_back(std::move(job));
