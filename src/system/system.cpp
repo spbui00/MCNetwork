@@ -468,7 +468,7 @@ void System::getReadyForRun()
             // std::cout<<"pair e "<<pairEnergies[i*acceptorNumber+j]<<std::endl;
         }
         pairEnergies[i * acceptorNumber + i] = 0; //[i*(hoppingSiteNumber+1)] = [i,i]
-        distances[i * acceptorNumber + i] = 0;
+        distances[i * hoppingSiteNumber + i] = 0;
     }
     // acc->el
     for (int i = 0; i < acceptorNumber; i++) {
