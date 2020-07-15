@@ -145,6 +145,7 @@ void System::initilizeMatrices()
     acceptorPositionsY = new double[acceptorNumber];
     electrodePositionsX = new double[electrodeNumber];
     electrodePositionsY = new double[electrodeNumber];
+    randomEnergies = std::vector<double>(acceptorNumber);
 
     // set rates to 0. only needed for creation of partRatesSumList in storing
     // mode
@@ -278,17 +279,31 @@ void System::createRandomNewDevice()
             }
         }
     }
+    double stdDev = parameterStorage->parameters.at("randomEnergyStdDev");
+    bool randomEnergyEnabled = stdDev != 0.0;
+    std::vector<double> randomEnergies(acceptorNumber, 0.0);
+    if (randomEnergyEnabled) {
+        std::default_random_engine generator;
+        generator.seed(enhance::seed);
+        std::normal_distribution<double> normal_distribution(0, stdDev);
+        for (int i = 0; i < acceptorNumber; i++) {
+            randomEnergies[i] = normal_distribution(generator);
+        }
+    } 
+    this->randomEnergies = randomEnergies;
 
     // save device
     std::string deviceFileName = parameterStorage->workingDirecotry + "device.txt";
     std::ofstream deviceFile;
     deviceFile.open(deviceFileName, std::ios::trunc);
     deviceFile << parameterStorage->geometry << std::endl;
-    deviceFile << "acceptors: posX, posY" << std::endl;
+    deviceFile << "acceptors: posX, posY, randomEnergy" << std::endl;
     for (int i = 0; i < acceptorNumber; i++) {
         deviceFile << acceptorPositionsX[i] * parameterStorage->parameters["R"]
                    << " "
                    << acceptorPositionsY[i] * parameterStorage->parameters["R"]
+                   << " "
+                   << randomEnergies[i]
                    << std::endl;
     }
     deviceFile << std::endl;
@@ -316,7 +331,7 @@ void System::loadDevice()
     std::string deviceFileName = parameterStorage->workingDirecotry + "device.txt";
     std::ifstream deviceFile(deviceFileName);
     std::string line;
-    double posXBuffer, posYBuffer;
+    double posXBuffer, posYBuffer, randomEnergyBuffer;
 
     // check correct geometry
     std::getline(deviceFile, line);
@@ -331,7 +346,7 @@ void System::loadDevice()
     for (int i = 0; i < acceptorNumber; i++) {
         std::getline(deviceFile, line);
         std::istringstream iss(line);
-        if (!(iss >> posXBuffer >> posYBuffer)) {
+        if (!(iss >> posXBuffer >> posYBuffer >> randomEnergyBuffer)) {
             if (line == "")
                 throw std::invalid_argument(
                     "incorrect number of acceptors in device file");
@@ -341,6 +356,7 @@ void System::loadDevice()
         }
         acceptorPositionsX[i] = posXBuffer / parameterStorage->parameters["R"];
         acceptorPositionsY[i] = posYBuffer / parameterStorage->parameters["R"];
+        randomEnergies[i] = randomEnergyBuffer;
     }
 
     // trash 1 line
@@ -555,18 +571,6 @@ void System::getReadyForRun()
 
     // set start occupation of acceptors
     std::vector<bool> occupationBuffer(acceptorNumber);
-
-    std::default_random_engine generator;
-    double stdDev = parameterStorage->parameters.at("randomEnergyStdDev");
-    bool randomEnergyEnabled = stdDev != 0.0;
-    std::vector<double> randomEnergies(acceptorNumber, 0.0);
-    if (randomEnergyEnabled) {
-        std::normal_distribution<double> normal_distribution(0, stdDev);
-        for (int i = 0; i < acceptorNumber; i++) {
-            randomEnergies[i] = normal_distribution(generator);
-        }
-    } 
-    this->randomEnergies = randomEnergies;
 
     std::vector<int> indicesUnoccupied {};
 
