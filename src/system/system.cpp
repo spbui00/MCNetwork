@@ -292,6 +292,8 @@ void System::createRandomNewDevice()
     } 
     this->randomEnergies = randomEnergies;
 
+    double e = parameterStorage->parameters["e"];
+    double kT = parameterStorage->parameters["kT"];
     // save device
     std::string deviceFileName = parameterStorage->workingDirecotry + "device.txt";
     std::ofstream deviceFile;
@@ -303,7 +305,7 @@ void System::createRandomNewDevice()
                    << " "
                    << acceptorPositionsY[i] * parameterStorage->parameters["R"]
                    << " "
-                   << randomEnergies[i]
+                   << randomEnergies[i] / e * kT
                    << std::endl;
     }
     deviceFile << std::endl;
@@ -342,6 +344,8 @@ void System::loadDevice()
     // trash second line
     std::getline(deviceFile, line);
 
+    double e = parameterStorage->parameters["e"];
+    double kT = parameterStorage->parameters["kT"];
     // load acceptors
     for (int i = 0; i < acceptorNumber; i++) {
         std::getline(deviceFile, line);
@@ -356,7 +360,7 @@ void System::loadDevice()
         }
         acceptorPositionsX[i] = posXBuffer / parameterStorage->parameters["R"];
         acceptorPositionsY[i] = posYBuffer / parameterStorage->parameters["R"];
-        randomEnergies[i] = randomEnergyBuffer;
+        randomEnergies[i] = randomEnergyBuffer * e / kT;
     }
 
     // trash 1 line
