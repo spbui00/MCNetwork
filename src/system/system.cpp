@@ -106,7 +106,8 @@ System::System(System const& oldSys)
     } else if (parameterStorage->geometry == "circle") {
         auto circle = std::make_unique<FiniteElementeCircle>(
             parameterStorage->parameters.at("radius"),
-            parameterStorage->parameters.at("finiteElementsResolution"));
+            parameterStorage->parameters.at("finiteElementsResolution"),
+            true);
         // set electrodes
         for (int i = 0; i < electrodeNumber; i++) {
             circle->setElectrode(
