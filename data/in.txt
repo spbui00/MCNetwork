@@ -7,10 +7,6 @@ calcCurrentSteps 1e4  #steps to run KMC simulation
 storingMode 0 # if 1: store states (rates + ocupation) until memoryLimit is reached. might increase performance in the case of limit number of states occuring 
 memoryLimit 800 #in MB (should be around 100mb under real limit), real memory consumption is memoryLimit*threads
 
-
-
-
-
 #physical parameters
 T 77 #temperature
 acceptorNumber 200 
@@ -19,6 +15,8 @@ eps 10 #relative permitivity (scales coulomb interaction) eps=4.5 --> I0= 15meV
 a 20 #nm #localization length
 minDist 0 #nm #minimal distance between acceptors (normally not used)
 electrodeWidth 60 #nm #used for boundary condition in laplace equation
+
+randomEnergyStdDev 0.1 # Energy disorder in eV
 
 #cuts
 minHoppingDist 3  #nm #cut on minimal distance for hop
@@ -66,8 +64,8 @@ electrode 315 1
 
 
 
-inputElectrode1 3 #index of input electrode 1
-inputElectrode2 5 #index of input electrode 2
+inputElectrode 3 #index of input electrode 1
+inputElectrode 5 #index of input electrode 2
 outputElectrode 0 #index of output electrode 
 
 #isolateElectrode 3 #denies any hopps to electrode 3. laplace eq is still affected
