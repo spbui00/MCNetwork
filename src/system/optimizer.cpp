@@ -589,7 +589,7 @@ void Optimizer::optimizeGenetic(size_t startMode /* = 0 */) {
         }
 
         // run first generation
-        std::cout << "------------------------------ run geneartion "
+        std::cout << "------------------------------ run generation "
                   << generation << " ------------------------------"
                   << std::endl;
         for (int k = 0; k < 25; k++) {
@@ -759,7 +759,7 @@ void Optimizer::optimizeGenetic(size_t startMode /* = 0 */) {
         // implemented yet, bc currents are unknown)
 
         // ------------ run generation ------
-        std::cout << "------------------------------ run geneartion "
+        std::cout << "------------------------------ run generation "
                   << generation << " ------------------------------"
                   << std::endl;
         for (int k = 0; k < 25; k++) {
