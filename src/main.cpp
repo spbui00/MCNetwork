@@ -1,12 +1,15 @@
 #include "enhance.hpp"
 
 #include "system/optimizer.h"
+#include "system/system.h"
 
 #include "debug.h"
 
 #include <boost/program_options.hpp>
 #include <iostream>
 #include <random>
+
+using namespace std;
 
 /*! \mainpage MCNetwork
  *
@@ -65,6 +68,7 @@ int main(int argc, char* argv[])
         "continues last optimization. optimization mode will be "
         "detected, no further options needed")("mnd",
         "make new device")(
+        "generateSamples", "generate samples from MC simulation")(
         "optMC", "optimize control voltages using Monte Carlo search")(
         "optGen", "optimize control voltages using genetic algorithm")(
         "optBasinHop", "optimize control voltages using basin hopping")(
@@ -108,7 +112,10 @@ int main(int argc, char* argv[])
     }
 
     std::string optimizationMode;
-    if (vm.count("optMC")) {
+    if (vm.count("generateSamples")) {
+        optimizationMode = "generateSamples";
+    } 
+    else if (vm.count("optMC")) {
         optimizationMode = "MC";
     } else if (vm.count("optGen")) {
         optimizationMode = "genetic";

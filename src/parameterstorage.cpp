@@ -7,13 +7,18 @@ ParameterStorage::ParameterStorage(std::string filename)
 {
     DEBUG_FUNC_START
 
-    std::ifstream infile(filename);
+    std::cout << "reading file: " << filename << std::endl;
+    std::ifstream infile("./in.txt");
+    if (!infile) {
+        std::cerr << "Error opening file: " << filename << std::endl;
+        throw std::runtime_error("Failed to open file");
+    }
     std::string line;
     double val; // buffer for values
-    std::string name; // buffer for strings
+    std::string name; // buffe r for strings
 
+    std::cout << "reading file: " << filename << std::endl;
     while (std::getline(infile, line)) {
-        // std::cout<<line<<std::endl;
         // remove comments
         auto pos = line.find("#");
         if (pos == 0 or line.size() == 0)
@@ -69,7 +74,10 @@ ParameterStorage::ParameterStorage(std::string filename)
     if (parameters.count("randomEnergyStdDev") == 0) {
         parameters["randomEnergyStdDev"] = 0;
     }
-
+    std::cout << "size of parameters: " << parameters.size() << std::endl;
+    for (const auto& param : parameters) {
+        std::cout << "Parameter " << param.first << " = " << param.second << std::endl;
+    }
     parameters["kT"] = parameters.at("k") * parameters.at("T");
     parameters["hoppingSiteNumber"] = parameters.at("acceptorNumber") + electrodes.size();
 

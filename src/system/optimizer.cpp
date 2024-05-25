@@ -1,5 +1,8 @@
 #include "optimizer.h"
 #include "debug.h"
+#include <algorithm>
+
+using namespace std;
 
 Optimizer::Optimizer(std::shared_ptr<ParameterStorage> parameterStorage)
     : parameterStorage(parameterStorage), jobManager(parameterStorage) {
@@ -76,10 +79,118 @@ void Optimizer::run(std::string optimizationMode, int startMode) {
         optimizeGenetic(startMode);
     } else if (this->optimizationMode == "basinHop") {
         optimizeBasinHopping(startMode);
+    } else if (this->optimizationMode == "generateSamples") {
+        generateSamples(startMode);
     }
 
     DEBUG_FUNC_END
 }
+
+/*
+This function is used to generate samples
+*/
+void Optimizer::generateSamples(size_t startMode) {
+    DEBUG_FUNC_START
+
+    // Create a subfolder based on the current timestamp and a random number
+    std::time_t now = std::time(nullptr);
+    std::stringstream foldername;
+    foldername << "./samples/samples_" << std::put_time(std::localtime(&now), "%Y-%m-%d_%H-%M-%S") << "_" << enhance::random_int(0, 99999);
+    std::string folderPath = foldername.str();
+    std::filesystem::create_directories(folderPath);
+
+    // Create info.txt file
+    std::ofstream infoFile(folderPath + "/info.txt");
+    if (!infoFile.is_open()) {
+        std::cerr << "Unable to open info file for writing" << std::endl;
+        return;
+    }
+
+    size_t numSamples = static_cast<size_t>(parameterStorage->parameters.at("numSamples"));
+
+    infoFile << "Number of samples: " << numSamples << std::endl;
+    infoFile << "Number of control electrodes: " << controlElectrodeNumber << std::endl;
+    infoFile << "Acceptor number: " << parameterStorage->parameters.at("acceptorNumber") << std::endl;
+    infoFile << "Donor number: " << parameterStorage->parameters.at("donorNumber") << std::endl;
+    infoFile << "Radius: " << parameterStorage->parameters.at("radius") << std::endl;
+    infoFile << "Electrode width: " << parameterStorage->parameters.at("electrodeWidth") << std::endl;
+    infoFile << "Control voltage min: " << parameterStorage->parameters.at("controlVoltageMin") << std::endl;
+    infoFile << "Control voltage max: " << parameterStorage->parameters.at("controlVoltageMax") << std::endl;
+    infoFile << "Voltage scan points: " << voltageScanPoints << std::endl;
+    infoFile << "Output electrode: " << parameterStorage->parameters.at("outputElectrode") << std::endl;
+
+    // Start timing the sample generation
+    auto startTime = std::chrono::steady_clock::now();
+
+    // Create IO.dat file for currents
+    std::ofstream outFile(folderPath + "/IO.dat");
+    if (!outFile.is_open()) {
+        std::cerr << "Unable to open IO file for writing" << std::endl;
+        return;
+    }
+
+    // Create IO_uncertainties.dat file for uncertainties
+    std::ofstream uncertFile(folderPath + "/IO_uncertainties.dat");
+    if (!uncertFile.is_open()) {
+        std::cerr << "Unable to open IO_uncertainties file for writing" << std::endl;
+        return;
+    }
+
+    // Write headers
+    outFile << "# ";
+    uncertFile << "# ";
+    for (int i = 0; i < controlElectrodeNumber; ++i) {
+        outFile << "Input " << i << ", ";
+        uncertFile << "Input " << i << ", ";
+    }
+    outFile << "Output 0" << std::endl;
+    uncertFile << "Output 0, Uncertainty" << std::endl;
+
+    for (size_t sample = 0; sample < numSamples; ++sample) {
+        
+        if (startMode == 0) { // voltages given in input
+            for (int i = 0; i < controlElectrodeNumber; ++i) {
+                voltageEnergySets[0].first[controlElectrodeIndices[i]] =
+                    parameterStorage->electrodes[controlElectrodeIndices[i]].voltage;
+            }
+        } else { // random voltages
+            for (int i = 0; i < controlElectrodeNumber; ++i) {
+                voltageEnergySets[0].first[controlElectrodeIndices[i]] =
+                    enhance::random_double(
+                        parameterStorage->parameters.at("controlVoltageMin"),
+                        parameterStorage->parameters.at("controlVoltageMax"));
+            }
+        }
+
+        // Run the simulation
+        std::tie(outputCurrents, outputCurrentUncerts, times) =
+            jobManager.runControlVoltagesSetup(voltageEnergySets[0].first);
+        // calcOptimizationEnergy();
+        voltageEnergySets[0].second = optEnergy;
+
+        // Save the results
+        for (int i = 0; i < controlElectrodeNumber; ++i) {
+            outFile << voltageEnergySets[0].first[controlElectrodeIndices[i]] << " ";
+            uncertFile << voltageEnergySets[0].first[controlElectrodeIndices[i]] << " ";
+        }
+        outFile << outputCurrents[0] * 160.2 << std::endl;
+        uncertFile << outputCurrents[0] * 160.2 << " ";
+        uncertFile << outputCurrentUncerts[0] * 160.2 << std::endl;
+
+        std::cout << "Sample " << sample + 1 << "/" << numSamples << " completed." << std::endl;
+    }
+
+    outFile.close();
+    uncertFile.close();
+
+    // End timing the sample generation
+    auto endTime = std::chrono::steady_clock::now();
+    std::chrono::duration<double> elapsedSeconds = endTime - startTime;
+    infoFile << "Time taken to generate samples: " << elapsedSeconds.count() << " seconds" << std::endl;
+    infoFile.close();
+
+    DEBUG_FUNC_END
+} 
 
 /*!
     is called by Optimizer::run in case of "--continue" option set. setup
@@ -117,7 +228,7 @@ void Optimizer::continueSimulation() {
         outputCurrentUncerts =
             *dataFile->readDatasetSlice("outputCurrentUncert", lastAccepted);
 
-        calcOptimizationEnergy();
+        // calcOptimizationEnergy();
         voltageEnergySets[0].second = optEnergy;
 
         std::cout << "last accepted point: optEnergy: "
@@ -444,7 +555,7 @@ void Optimizer::optimizeMC(size_t startMode /*= 0*/) {
         }
         std::tie(outputCurrents, outputCurrentUncerts, times) =
             jobManager.runControlVoltagesSetup(voltageEnergySets[0].first);
-        calcOptimizationEnergy();
+        // calcOptimizationEnergy();
         voltageEnergySets[0].second = optEnergy;
         saveResults(0);
         dataFile->addData("accepted", &accepted);
@@ -491,17 +602,29 @@ void Optimizer::optimizeMC(size_t startMode /*= 0*/) {
         // run
         std::tie(outputCurrents, outputCurrentUncerts, times) =
             jobManager.runControlVoltagesSetup(voltageEnergySets[0].first);
-        calcOptimizationEnergy();
+        // calcOptimizationEnergy();
         voltageEnergySets[0].second = optEnergy;
         saveResults(0);
 
+        std::ofstream outFile("./logs/output_data.txt", std::ios_base::app);
+        if (outFile.is_open()) {
+            outFile << "voltages: ";
+            for (int i = 0; i < controlElectrodeNumber; i++) {
+                outFile << voltageEnergySets[0].first[controlElectrodeIndices[i]] << " ";
+            }
+            outFile << "current: " << outputCurrents[0] << " uncertainty: " << outputCurrentUncerts[0] << std::endl;
+            outFile.close();
+        } else {
+            std::cerr << "Unable to open file for writing" << std::endl;
+        }
+
         std::cout << "iteration " << iteration << std::endl;
-        std::cout << "now:  optEnergy: " << voltageEnergySets[0].second
-                  << " fitness: (" << fitness << " +- " << fitnessUncert
-                  << ") normedDiff: " << normedDiff
-                  << "\nlast: optEnergy: " << voltageEnergySets[1].second
-                  << " fitness: (" << lastFitness << " +- " << lastFitnessUncert
-                  << ") normedDiff: " << lastNormedDiff << std::endl;
+        // std::cout << "now:  optEnergy: " << voltageEnergySets[0].second
+        //           << " fitness: (" << fitness << " +- " << fitnessUncert
+        //           << ") normedDiff: " << normedDiff
+        //           << "\nlast: optEnergy: " << voltageEnergySets[1].second
+        //           << " fitness: (" << lastFitness << " +- " << lastFitnessUncert
+        //           << ") normedDiff: " << lastNormedDiff << std::endl;
         if ((voltageEnergySets[0].second < voltageEnergySets[1].second) &
             (enhance::fastExp(
                  (voltageEnergySets[0].second - voltageEnergySets[1].second) /
@@ -605,7 +728,7 @@ void Optimizer::optimizeGenetic(size_t startMode /* = 0 */) {
             std::tie(outputCurrents, outputCurrentUncerts, times) =
                 jobManager.runControlVoltagesSetup(voltageEnergySets[k].first);
 
-            calcOptimizationEnergy();
+            // calcOptimizationEnergy();
             voltageEnergySets[k].second = optEnergy;
             saveResults(k);
             dataFile->addData("generation", &generation);
@@ -775,7 +898,7 @@ void Optimizer::optimizeGenetic(size_t startMode /* = 0 */) {
             std::tie(outputCurrents, outputCurrentUncerts, times) =
                 jobManager.runControlVoltagesSetup(voltageEnergySets[k].first);
 
-            calcOptimizationEnergy();
+            // calcOptimizationEnergy();
             voltageEnergySets[k].second = optEnergy;
             saveResults(k);
             dataFile->addData("generation", &generation);
@@ -866,7 +989,7 @@ void Optimizer::optimizeBasinHopping(size_t startMode /*= 0*/) {
         }
         std::tie(outputCurrents, outputCurrentUncerts, times) =
             jobManager.runControlVoltagesSetup(voltageEnergySets[0].first);
-        calcOptimizationEnergy();
+        // calcOptimizationEnergy();
         voltageEnergySets[0].second = optEnergy;
         saveResults(0);
         dataFile->addData("basinAccepted", &basinAccepted);
@@ -944,7 +1067,7 @@ void Optimizer::optimizeBasinHopping(size_t startMode /*= 0*/) {
             // run first point in new basin
             std::tie(outputCurrents, outputCurrentUncerts, times) =
                 jobManager.runControlVoltagesSetup(voltageEnergySets[0].first);
-            calcOptimizationEnergy();
+            // calcOptimizationEnergy();
             voltageEnergySets[0].second = optEnergy;
             saveResults(0);
             dataFile->addData("basinAccepted", &basinAccepted);
@@ -988,7 +1111,7 @@ void Optimizer::optimizeBasinHopping(size_t startMode /*= 0*/) {
         // run
         std::tie(outputCurrents, outputCurrentUncerts, times) =
             jobManager.runControlVoltagesSetup(voltageEnergySets[0].first);
-        calcOptimizationEnergy();
+        // calcOptimizationEnergy();
         voltageEnergySets[0].second = optEnergy;
         saveResults(0);
 
@@ -1160,7 +1283,7 @@ void Optimizer::searchForRandomStart() {
         std::tie(outputCurrents, outputCurrentUncerts, times) =
             jobManager.runControlVoltagesSetup(voltageEnergySets[k].first);
 
-        calcOptimizationEnergy();
+        // calcOptimizationEnergy();
         voltageEnergySets[k].second = optEnergy;
         saveResults(k);
         double a = -1;

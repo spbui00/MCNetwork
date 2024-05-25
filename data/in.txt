@@ -1,20 +1,21 @@
 #simulation parameters
 gate XOR 
-threads 4 
+threads 5
 finiteElementsResolution 1e5 #(min 1e5)
 equilSteps 1e3 #equilibration steps (should be around 1e4)
-calcCurrentSteps 1e4  #steps to run KMC simulation
-storingMode 0 # if 1: store states (rates + ocupation) until memoryLimit is reached. might increase performance in the case of limit number of states occuring 
-memoryLimit 800 #in MB (should be around 100mb under real limit), real memory consumption is memoryLimit*threads
+calcCurrentSteps 1e4  #steps to run KMC simulation (1e4)
+storingMode 1 # if 1: store states (rates + ocupation) until memoryLimit is reached. might increase performance in the case of limit number of states occuring 
+memoryLimit 1000 #in MB (should be around 100mb under real limit), real memory consumption is memoryLimit*threads
+numSamples 1000 #number of samples to generate
 
 #physical parameters
 T 77 #temperature
-acceptorNumber 200 
-donorNumber 3
-eps 10 #relative permitivity (scales coulomb interaction) eps=4.5 --> I0= 15meV 
-a 20 #nm #localization length
+acceptorNumber 10
+donorNumber 0
+eps 11.68 #relative permitivity (scales coulomb interaction) eps=4.5 --> I0= 15meV 
+a 5 #nm #localization length
 minDist 0 #nm #minimal distance between acceptors (normally not used)
-electrodeWidth 60 #nm #used for boundary condition in laplace equation
+electrodeWidth 6.708 #nm #used for boundary condition in laplace equation (original 60/150 = 0.4 ratio with radius)
 
 randomEnergyStdDev 0.1 # Energy disorder in eV
 
@@ -27,7 +28,7 @@ maxInteractionDist 500 #nm #cut coulomb interaction range (not used)
 geometry circle #rect/circle. if rect -> lenX, lenY must be defined ; if circle -> radius must be defined
 lenX 300 #nm
 lenY 300 #nm
-radius 150 #nm
+radius 16.77 #nm (original 150)
 
 
 #electrode positions 
@@ -53,19 +54,19 @@ radius 150 #nm
 #positions given in degrees 
 
 #       pos voltage 
-electrode 0 0.6
-electrode 45 0
-electrode 90 0
-electrode 135 0.4
-electrode 180 -0.2
-electrode 225 -1
-electrode 270 0.5
-electrode 315 1
+electrode 0 0.0
+electrode 45 -0.9988459437079305
+electrode 90 0.48230175699542344
+electrode 135 -0.5166275927229129
+electrode 180 -0.9045919612067712
+electrode 225 -0.7028821129126992
+electrode 270 -0.41202338721523424
+electrode 315 0.050241247240580905
 
 
 
-inputElectrode 3 #index of input electrode 1
-inputElectrode 5 #index of input electrode 2
+inputElectrode1 3 #index of input electrode 1
+inputElectrode2 5 #index of input electrode 2
 outputElectrode 0 #index of output electrode 
 
 #isolateElectrode 3 #denies any hopps to electrode 3. laplace eq is still affected

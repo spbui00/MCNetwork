@@ -6,7 +6,7 @@
 #include <unordered_map>
 
 #include "enhance.hpp"
-#include "finiteElemente.h"
+#include "../../lib/finiteElemente/finiteElemente.h"
 #include "parameterstorage.h"
 
 #include "datafile.h"
@@ -85,7 +85,7 @@ private:
 
     bool readyForRun = false; /*!<set by System::getReadyForRun()  */
     bool storingMode; /*!< if set true performance is optimized by storing known states */
-    bool ratesInMemory = false; /*!< save if last step was found in stored states. if true, binary search is done to find swap */
+    bool ratesInMemory = true; /*!< save if last step was found in stored states. if true, binary search is done to find swap */
 
     bool storeKnownStates = true; /*!<set false after memory limit is reached */
 

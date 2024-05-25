@@ -6,6 +6,10 @@ System::System(const std::shared_ptr<ParameterStorage>& parameterStorage)
 {
     DEBUG_FUNC_START
 
+    for (const auto& param : parameterStorage->parameters) {
+        std::cout << "Parameter " << param.first << " has value " << param.second << std::endl;
+    }
+
     acceptorNumber = parameterStorage->parameters.at("acceptorNumber");
     hoppingSiteNumber = parameterStorage->parameters.at("hoppingSiteNumber");
     locLenA = parameterStorage->parameters.at("a");
@@ -1180,8 +1184,17 @@ void System::updateAfterSwap()
     currentCounter[lastSwapped2]++;
 
 #ifdef SWAPTRACKER
-    swapTrackFile << lastSwapped1 << ";" << lastSwapped2
-                  << std::endl; // swapTracker
+    std::ofstream swapTrackFile("swapTrackFile1.txt", std::ios::app);
+    if (!swapTrackFile.is_open()) {
+        std::cerr << "Failed to open swapTrackFile1.txt for writing." << std::endl;
+        return;  // Optionally handle the error more gracefully
+    }
+
+    // Write the swap data
+    swapTrackFile << lastSwapped1 << ";" << lastSwapped2 << std::endl;
+
+    // Close the file
+    swapTrackFile.close();
 #endif
     if (parameterStorage
             ->verbose) { // super bad implementation... needs improvement. file is

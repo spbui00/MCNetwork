@@ -11,7 +11,7 @@ import os
 if len(argv) > 1:
     pathToSimFolder = argv[1]
 else:
-    pathToSimFolder = "data/"
+    pathToSimFolder = "../data/"
 
 parameters, electrodes = readParameters(pathToSimFolder)
 electrodeNumber = len(electrodes)

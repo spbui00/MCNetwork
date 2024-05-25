@@ -27,7 +27,7 @@ with open(join(pathToSimFolder, "device.txt")) as deviceFile:
     line = next(deviceFile)
     line = next(deviceFile)
     for i in range(acceptorPos.shape[0]):
-        acceptorPos[i] = next(deviceFile).split(" ")
+        acceptorPos[i] = [float(x) for x in next(deviceFile).split()[:2]]
     line = next(deviceFile)
     line = next(deviceFile)
     for i in range(donorPos.shape[0]):
@@ -44,7 +44,7 @@ import matplotlib.pylab as plt
 fig, ax = plt.subplots(1, 1, figsize=(4.980614173228346, 3.2))
 
 
-electodePlotWidth = 8
+electodePlotWidth = 0.5
 for i in range(len(electrodes)):
     if i == parameters["outputElectrode"]:
         color = "blue"
