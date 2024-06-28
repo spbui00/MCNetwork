@@ -81,9 +81,88 @@ void Optimizer::run(std::string optimizationMode, int startMode) {
         optimizeBasinHopping(startMode);
     } else if (this->optimizationMode == "generateSamples") {
         generateSamples(startMode);
+    } else if (this->optimizationMode == "generateBooleanSamples") {
+        generateBooleanSamples(startMode);
     }
 
     DEBUG_FUNC_END
+}
+
+void Optimizer::generateBooleanSamples(size_t startMode) {
+    double zero = -1.2;
+    double one = 0.6;
+
+    double binaryValues[][2] = {{zero, zero}, {zero, one}, {one, zero}, {one, one}};
+
+    // Create a subfolder based on the current timestamp
+    std::time_t now = std::time(nullptr);
+    std::stringstream foldername;
+    foldername << "./samples/boolean/" << std::put_time(std::localtime(&now), "%Y-%m-%d_%H-%M-%S");
+    std::string folderPath = foldername.str();
+    std::filesystem::create_directories(folderPath);
+
+    std::ofstream outFile(folderPath + "/IO.dat");
+    if (!outFile.is_open()) {
+        std::cerr << "Unable to open IO file for writing" << std::endl;
+        return;
+    }
+
+    // Write headers
+    outFile << "# ";
+    for (int i = 0; i < controlElectrodeNumber; ++i) {
+        outFile << "Input " << i << ", ";
+    }
+    outFile << "Output 0" << std::endl;
+
+    for (int j = 0; j < 1000; ++j) {
+        for (int k = 0; k < 4; ++k) {
+            if (startMode == 0) { // voltages given in input
+                for (int i = 0; i < controlElectrodeNumber; ++i) {
+                    if (controlElectrodeIndices[i] == 3) {
+                        voltageEnergySets[0].first[controlElectrodeIndices[i]] = binaryValues[k][0];
+                    } else if (controlElectrodeIndices[i] == 5) {
+                        voltageEnergySets[0].first[controlElectrodeIndices[i]] = binaryValues[k][1];
+                    } else {
+                        voltageEnergySets[0].first[controlElectrodeIndices[i]] =
+                            parameterStorage->electrodes[controlElectrodeIndices[i]].voltage;
+                    }
+                }
+            } else { // random voltages
+                for (int i = 0; i < controlElectrodeNumber; ++i) {
+                    if (controlElectrodeIndices[i] == 3) {
+                        voltageEnergySets[0].first[controlElectrodeIndices[i]] = binaryValues[k][0];
+                    } else if (controlElectrodeIndices[i] == 5) {
+                        voltageEnergySets[0].first[controlElectrodeIndices[i]] = binaryValues[k][1];
+                    } else {
+                        voltageEnergySets[0].first[controlElectrodeIndices[i]] =
+                        enhance::random_double(
+                            parameterStorage->parameters.at("controlVoltageMin"),
+                            parameterStorage->parameters.at("controlVoltageMax"));
+                    }
+                }
+            }
+
+            // Run the simulation
+            std::tie(outputCurrents, outputCurrentUncerts, times) =
+                jobManager.runControlVoltagesSetup(voltageEnergySets[0].first);
+            // calcOptimizationEnergy();
+            voltageEnergySets[0].second = optEnergy;
+
+            //print output
+            std::cout << "outputCurrents: " << outputCurrents[0] * 160.2 << std::endl;
+
+            // Save the results
+            for (int i = 0; i < controlElectrodeNumber; ++i) {
+                outFile << voltageEnergySets[0].first[controlElectrodeIndices[i]] << " ";
+            }
+
+            // Save the results to the file
+            outFile << outputCurrents[0] * 160.2 << std::endl;
+        }
+        std::cout << "Sample " << j + 1 << "/1000 completed." << std::endl;
+    }
+
+    outFile.close();
 }
 
 /*
@@ -108,12 +187,16 @@ void Optimizer::generateSamples(size_t startMode) {
 
     size_t numSamples = static_cast<size_t>(parameterStorage->parameters.at("numSamples"));
 
+    // convert radius back to nm
+    double radius = parameterStorage->parameters.at("radius") * parameterStorage->parameters.at("R");
+    double electrodeWidth = parameterStorage->parameters.at("electrodeWidth") * parameterStorage->parameters.at("R");
+
     infoFile << "Number of samples: " << numSamples << std::endl;
     infoFile << "Number of control electrodes: " << controlElectrodeNumber << std::endl;
     infoFile << "Acceptor number: " << parameterStorage->parameters.at("acceptorNumber") << std::endl;
     infoFile << "Donor number: " << parameterStorage->parameters.at("donorNumber") << std::endl;
-    infoFile << "Radius: " << parameterStorage->parameters.at("radius") << std::endl;
-    infoFile << "Electrode width: " << parameterStorage->parameters.at("electrodeWidth") << std::endl;
+    infoFile << "Radius: " << radius << std::endl;
+    infoFile << "Electrode width: " << electrodeWidth << std::endl;
     infoFile << "Control voltage min: " << parameterStorage->parameters.at("controlVoltageMin") << std::endl;
     infoFile << "Control voltage max: " << parameterStorage->parameters.at("controlVoltageMax") << std::endl;
     infoFile << "Voltage scan points: " << voltageScanPoints << std::endl;
@@ -153,7 +236,7 @@ void Optimizer::generateSamples(size_t startMode) {
                 voltageEnergySets[0].first[controlElectrodeIndices[i]] =
                     parameterStorage->electrodes[controlElectrodeIndices[i]].voltage;
             }
-        } else { // random voltages
+        } else { // specific voltages for electrodes 2 and 4
             for (int i = 0; i < controlElectrodeNumber; ++i) {
                 voltageEnergySets[0].first[controlElectrodeIndices[i]] =
                     enhance::random_double(

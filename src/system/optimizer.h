@@ -80,6 +80,7 @@ class Optimizer {
     void searchForRandomStart();
 
     void generateSamples(size_t startMode = 0);
+    void generateBooleanSamples(size_t startMode = 0);
 
     void singleRun(size_t startMode = 0);
     void optimizeMC(size_t startMode = 0);

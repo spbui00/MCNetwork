@@ -45,15 +45,14 @@ fig, ax = plt.subplots(1, 1, figsize=(4.980614173228346, 3.2))
 
 
 electodePlotWidth = 0.5
+# Add this code inside the loop where electrodes are being plotted
 for i in range(len(electrodes)):
     if i == parameters["outputElectrode"]:
-        color = "blue"
-    elif i == parameters["inputElectrode1"]:
-        color = "red"
-    elif i == parameters["inputElectrode2"]:
-        color = "red"
+        color = "#f24822"  # Output electrode color
+    elif i == parameters["inputElectrode1"] or i == parameters["inputElectrode2"]:
+        color = "black"  # Input electrodes color
     else:
-        color = "green"
+        color = "#3770df"  # Other electrodes color
 
     if parameters["geometry"] == "rect":
         if electrodes[i][1] == 0:
@@ -99,20 +98,19 @@ for i in range(len(electrodes)):
         electrodeWidth = (
             parameters["electrodeWidth"] / (parameters["radius"] * 2 * np.pi) * 360
         )  # in degrees
-        ax.add_artist(
-            Wedge(
-                (0, 0),
-                parameters["radius"] + electodePlotWidth / 2,
-                electrodes[i][0] - electrodeWidth / 2,
-                electrodes[i][0] + electrodeWidth / 2,
-                width=electodePlotWidth,
-                fc=color,
-                ec=color,
-                zorder=-1,
-            )
+        wedge = Wedge(
+            (0, 0),
+            parameters["radius"] + electodePlotWidth / 2,
+            electrodes[i][0] - electrodeWidth / 2,
+            electrodes[i][0] + electrodeWidth / 2,
+            width=electodePlotWidth,
+            fc=color,
+            ec=color,
+            zorder=-1,
         )
+        ax.add_artist(wedge)
 
-
+# Continue with the rest of the code
 ax.scatter(acceptorPos[:, 0], acceptorPos[:, 1], c="k", marker=".", s=20)
 ax.scatter(donorPos[:, 0], donorPos[:, 1], c="k", marker="x", s=20)
 
@@ -129,7 +127,6 @@ elif parameters["geometry"] == "rect":
         )
     )
 
-
 if parameters["geometry"] == "rect":
     ax.set_xlim(-electodePlotWidth / 2, parameters["lenX"] + electodePlotWidth / 2)
     ax.set_ylim(-electodePlotWidth / 2, parameters["lenY"] + electodePlotWidth / 2)
@@ -144,8 +141,6 @@ elif parameters["geometry"] == "circle":
     )
 
 ax.set_aspect("equal")
-
-
 plt.savefig(join(pathToSimFolder, "plotDevice.png"), bbox_inches="tight", dpi=300)
 # plt.show()
 plt.close()

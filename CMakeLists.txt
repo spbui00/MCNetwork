@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.5)
 project(MCnetwork LANGUAGES CXX)
 
+set(CMAKE_OSX_SYSROOT /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.5.sdk)
+
 include_directories("./src/")
 
 set(CMAKE_CXX_STANDARD 17)

@@ -69,6 +69,7 @@ int main(int argc, char* argv[])
         "detected, no further options needed")("mnd",
         "make new device")(
         "generateSamples", "generate samples from MC simulation")(
+        "generateBooleanSamples", "generate samples from MC simulation")(
         "optMC", "optimize control voltages using Monte Carlo search")(
         "optGen", "optimize control voltages using genetic algorithm")(
         "optBasinHop", "optimize control voltages using basin hopping")(
@@ -114,8 +115,9 @@ int main(int argc, char* argv[])
     std::string optimizationMode;
     if (vm.count("generateSamples")) {
         optimizationMode = "generateSamples";
-    } 
-    else if (vm.count("optMC")) {
+    } else if (vm.count("generateBooleanSamples")) {
+        optimizationMode = "generateBooleanSamples";
+    } else if (vm.count("optMC")) {
         optimizationMode = "MC";
     } else if (vm.count("optGen")) {
         optimizationMode = "genetic";
